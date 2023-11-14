@@ -1,0 +1,367 @@
+
+
+To ssh multiple hosts in a file
+#for node in $(cat /tmp/my_nodes.list); do echo $node; ssh -q $node uptime;done
+#for node in $(cat access_clear); do echo $node; ssh -q $node /home/user_id/test; done
+#for node in $(cat Cloud_Era_Client_Platform_PP); do echo $node; sshpass -p $pasd ssh -q $node uptime; done
+#for node in $(cat servers); do echo "setspn -Q HOST/"$node" -f | find "OU" >> OU.txt" >> scripts; done
+
+#awk -F',' '{print $3}' myfile.txt
+
+To find OU for any host - from Windows cmd
+#setspn -Q HOST/%COMPUTERNAME% -f | find "OU"
+
+To get host OU information from vastool 
+#vastool -u host/ info id
+
+Refreshing AD for a specific group
+#vastool list -f group <group_name>
+
+vastool
+#hget env uhas | pusshq vastool list -f user zscstl1u 
+
+Lookup group/DG info
+#vastool attrs -g "DG name" member
+#vastool attrs -g "DG DAP DevOps Hadoop" member
+
+List open ports
+#netstat --listen
+
+hget env bvhasss | pusshq -s -q -u fix_jackson.sh
+
+Echo commands
+-n will not output the trailing newline. So that saves me from going to a new line each time I echo something.
+-e will allow me to interpret backslash escape symbols.
+
+use the below script to complete Nexus tickets 
+#"/dap/admin/auto-HAS/bin/execHReq.sh"
+
+To list the servers in a OU
+#dapsearch -b "OU=Pre-Production,OU=Platform,DC=domain,DC=com"
+
+Output only matched lines from file
+#sed -n '/match_phrase/p' file_name
+
+Replace text
+#sed -i 's/original/new/g' file.txt
+
+Autoinput password in ssh 
+sshpass -p $PASS scp filename.txt USERNAME@HOSTNAME1:/path/to/dir
+sshpass -p $pasd ssh -q server_name uptime
+
+
+
+Encrypt the file with the command gpg -c important.docx
+gpg important.dox.gpg
+
+You can convert it to binary with:1
+
+xxd -r -p text_dump > binary_dump.bi
+
+unzip -q -c commons-lang-2.4.jar META-INF/MANIFEST.MF
+
+
+TO pull list of servers from OU
+#ldapsearch -b "OU=Pre-Production,OU=Platform,DC=domain,DC=com" > ldap_query
+#sed -n '/dn: CN=/p' ldap_query > Cloud_Era_Client_Platform_PP
+#sed -i 's/dn: CN=//g' Cloud_Era_Client_Platform_PP  
+#sed -i '/^UR/ d' Cloud_Era_Client_Platform_PP 
+
+To display mounts more than 50% usage 
+#df -hP | grep -v ^none | (read header; echo "$header"; sort -rn -k 5) | sed '1d' | awk '0+$5 >= 50 {print}' | sed '/dist/d'
+hget edge bvhas | pusshq df -hP | sed '/Use/d' | sed '/Total/d' | awk ' 0+$6 >= 50 {print}'
+
+
+
+
+keytool -list -v -keystore /path_to/truststore.jks
+for i in `hget env bthas`; do ssh -q root@$i “keytool -storepasswd -new D@pD3v0ps -keystore /path_to/truststore.jks -storepass changeit”; done 
+
+
+
+login to MYSQL
+mysql -h 127.0.0.1 -P 3307 -u scm -p
+mysql -P 3307 -u mysql -S /path_to/mysqld.sock -p
+mysql -h 127.0.0.1 -P 3307 -u root -password < 2019-07-30.Tuesday.211.hive.sql
+/path_to/bin/mysql -p3307 -umyadmin   -p`cat /path_to/dbscript/.myinfo` -S /path_to/mysql.sock
+
+to check the fine size
+ hadoop fs -du -h -s /user/spark/applicationHistory*
+
+
+change nameservice name 
+on my sql run 
+select concat('update DBS SET DB_LOCATION_URI =''', replace(DB_LOCATION_URI,'nsbthas', 'nameservice1'), '''', ' where DB_ID=', DB_ID) from DBS;
+collect the output and run commands individually 
+disable the HA-HDFS
+run the collected commands in mysql under hive database
+reenable HA-HDFS - with new nameservice
+
+
+
+ls -l --block-size=M --sort=size
+
+yarn jar /opt/cloudera/parcels/CDH/jars/hadoop-mapreduce* teragen -Ddfs.replication=1 -Dmapred.map.tasks=12 1000000000 /tmp/teragen_file_name
+
+yarn jar /opt/cloudera/parcles/CDH/jars/hadoop-mapreduce-example-2.6.jar teragen -Ddfs.replication=1 -Dmapred.map.tasks=12 1000000000 /tmp/teragen_file_name
+
+yarn jar /opt/cloudera/parcles/CDH/jars/hadoop-mapreduce-example-2.6.jar teragen -Ddfs.replication=3 -Dmapred.map.tasks=354 /tmp/teragen /tmp/terasoft
+
+
+To check all the running processes from supervisord command line 
+/opt/cloudera/cm-agent/bin/supervisorctl -c /var/run/cloudera-scm-agent/supervisor/supervisord.conf
+
+
+To search the class in jar
+jar -tvf "$i" | grep -Hsi ClassName
+
+
+ - to list all file and subfolders
+
+grep -iR -- to search all files with one string 
+grep -iR "jaxrs.utils.JAXRSUtils: Both" *
+
+
+Crul command 
+curl -i -L --negotiate -u:zkawk5d -k -X GET "https://hdfs_httfs_vip.domain.com:443/webhdfs/v1/user/zkawk5d/big.txt?op=OPEN"
+
+curl -i -k --negotiate -u : https://namenode_host.domina.com:50470/jmx?qry=Hadoop:service=NameNode,name=NameNodeStatus
+
+Verify sending out a testmail: email
+echo "Testing the mail" | mailx -s "From `hostname`" nitin.jakka@gmail.com
+
+
+running command every one second 
+while sleep 1; do echo "Hi"; done
+
+sort and unique 
+sort -u
+
+kinit with keytab
+kinit -kt hbase.keytab `klist -kt hbase.keytab | tail -n1 | awk '{print $4}'`
+
+
+
+for i in {1..60}; do jstack -l $pid  > /tmp/jstack_$i_$(hostname)_$(date +%F_%H_%M_%S).txt; sleep 5; done
+
+
+~]# /usr/java/default/bin/keytool -list -keystore /path_to/jks/server.jks
+
+
+impala-shell -k -i impalad_host_name.domain.com:21000 --ssl -b impala_deamon_vip.domain.com -B -o /dev/null
+
+
+
+
+Size of mysql database
+SELECT table_schema "DB Name",
+        ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) "DB Size in MB" 
+FROM information_schema.tables 
+GROUP BY table_schema; 
+
+
+Mtsql Database last updated
+SELECT UPDATE_TIME
+FROM   information_schema.tables
+WHERE  TABLE_SCHEMA = 'dbname'
+   AND TABLE_NAME = 'tabname'
+
+
+
+
+supervisord command line
+/opt/cloudera/cm-agent/bin/supervisorctl -c /var/run/cloudera-scm-agent/supervisor/supervisord.conf
+/usr/lib64/cmf/agent/build/env/bin/supervisorctl -c /var/run/cloudera-scm-agent/supervisor/supervisord.conf
+
+
+
+creating sample files
+fallocate -l 1m /tmp/my1mbfile
+
+
+EC
+hdfs ec -listPolicies
+hdfs ec -getPolicy -path <path>
+
+Distcp
+hadoop distcp -Dmapreduce.job.hdfs-servers.token-renewal.exclude=source_namenode_hostname.domain.com,destination_namenode_hostname.domain.com -i -prb -update -skipcrccheck -m 250 hdfs://source_namenode_hostname.domain.com:8020/tmp/aaaeric.test hdfs://destination_namenode_hostname.domain.com:8020/tmp/aaaeric.test
+
+hadoop distcp -Dmapreduce.job.hdfs-servers.token-renewal.exclude=source_namenode_hostname.domain.com,lrcha3b6pappr.corp.bankofamerica.com -i -prb -update -skipcrccheck -m 250 hdfs://source_namenode_hostname.domain.com:8020/tmp/zkawk5d/test hdfs://destination_namenode_hostname.domain.com:802/tmp/zkawk5d
+
+
+KTS
+curl -k https://kts_hostname.domain.com:11371/?a=fingerprint
+
+Installing NavEncrypt
+vi /etc/yum.repos.d/Navencrypt.repo
+yum -y install navencrypt
+yum install kernel-devel
+/etc/navencrypt/RSA_private_key - on active KTS
+navencrypt register --server=https://active_kts_hostname.domain.com:11371 --passive-server=https://passive_kts_hostname.domain.com:11371 --org=BT2HAS --auth='/pOJpeqbhSJliaHeGxfnfg=='
+navencrypt-module-setup
+dd if=/dev/zero of=/dev/dm-9 ibs=1M count=1 - to clean up mount - to see the device name check LVM mapping
+navencrypt-prepare /dev/mapper/volgrp02-datadump /data/logs/ -  to encrypt mount
+# navencrypt status -d
+permissive
+navencrypt set --mode=permissive 
+navencrypt-prepare --undo /dev/mapper/volgrp02-datadump - unexcrypt mount
+
+openssl x509 -text -in /path_to/CA/ca.pem 
+keytool -list -v -keystore /path_to/jks/host.jks -storepass password
+
+
+Creating .sha file 
+$ sha1sum /opt/cloudera/parcel-repo/CDH-patch-file.parcel | cut -d ' ' -f 1 > /opt/cloudera/parcel-repo/CDH-patch-file.parcel.sha
+
+https://my.cloudera.com/knowledge/Deploying-a-Custom-Patch-Parcel-Using-Cloudera-Manager?id=73534
+
+
+HDFS debug from command lines
+export HADOOP_ROOT_LOGGER=DEBUG,console;
+
+
+oozie job -oozie http://localhost:11000/oozie -info 14-20090525161321-oozie-W
+
+
+
+formating zookeeper
+hdfs zkfc -formatZK
+
+kafka list topics
+kafka-topics.sh --list --zookeeper localhost:2181
+
+login to zookeeper shell
+./zkCli.sh -server zookeeper_hostname.domain.com:2181
+
+
+find command - find the files older than 60 days
+find /data/hddata*/yarn/nm/usercache -type f -mtime +60 -exec ls -l {} \;
+find /data/hddata*/yarn/nm/usercache -type f -mtime +60 -name '*.jar' -exec rm -f {} \;
+find /project/haas/crh/crh_1h/app/kerberos/cc/ -maxdepth 1 -type f  -name "*" -mtime +2 -delete
+
+
+
+removing /
+tr -d '/'
+
+
+LVM mapping
+lvdisplay|awk  '/LV Name/{n=$3} /Block device/{d=$3; sub(".*:","dm-",d); print d,n;}'
+
+to change mount type
+mkfs -t xfs /dev/sdh 
+
+
+HDFS console level logging
+ HADOOP_ROOT_LOGGER=hadoop.root.logger=TRACE,console hdfs dfs -du -s -h /hdfs_path/
+
+
+Spark-shell Hive on Spark 
+spark.sql("show databases").show(true)
+
+spark-submit --class org.apache.spark.examples.SparkPi /opt/cloudera/parcels/CDH/jars/spark-example*.jar
+
+
+move jobs to different queue on the fly
+yarn application -movetoqueue application_1697703599244_163716 -queue root.fba_high
+
+vas flush
+hget  <role>  <cluster> | pusshq vastool list -f user <username> 
+vastool list -f group <groupname> 
+
+
+
+/opt/cloudera/cm-agent/bin/supervisorctl -c /var/run/cloudera-scm-agent/supervisor/supervisord.conf restart status_server
+
+
+while sleep 1; do curl "https://namenode_hostname.domain.com:50470/jmx?qry=Hadoop:service=NameNode,name=NameNodeInfo" | grep "underReplicatedBlocks" | awk -F'"' '{print $12}'; done
+
+
+yarn jar /opt/cloudera/parcels/CDH/jars/hadoop-mapreduce-examples-* pi 16 100000
+
+
+
+Check lag between Hive and Sentry - login to backend mysql
+use hive;
+select *, (hive_event_id - sentry_event_id) as lag from (select (select max(EVENT_ID) from NOTIFICATION_LOG) as hive_event_id, (select max(NOTIFICATION_ID) from ptrisk_sentry.SENTRY_HMS_NOTIFICATION_ID) as sentry_event_id) a;
+
+
+tez set parameters
+
+SET tez.queue.name=root.App;
+set hive.exec.dynamic.partition.mode=nonstrict;
+set hive.exec.max.dynamic.partitions.pernode=1000;
+SET hive.optimize.sort.dynamic.partition=true;
+SET hive.exec.reducers.bytes.per.reducer=268435456;
+SET hive.tez.container.size=32240;
+set tez.task.resource.memory.mb=16240;
+set hive.stats.autogather=false;
+set hive.stats.column.autogather=false;
+set tez.am.resource.memory.mb=16384
+
+
+
+spark on Hive 
+
+from pyspark.sql import HiveContext
+hc = HiveContext(sc)
+hc.sql("select * from hulcml.zipcode_locations limit 5").show();
+                                                   
+ps aux --sort -%cpu | grep zscrhl1p | head -100 | grep -v WA_AGENT | grep -v cloudera | wc -l
+
+
+
+
+curl impala deamon web ui
+[root@lrdne27ypapdr impala-webui]# ############n=1; while sleep 1; do wget --user=PTENTR --password=ptentr -O PTENTR-$n https://impalad_hostname.domain.com:25000/; n=$((n+1)); done
+
+to see current hs2 connection or whoch hs2 instance the beeline is currently connected to 
+set hive.server2.thrift.bind.host;
+
+creating a keytab 
+ktutil
+ktutil:  addent -password -p user_id@CORP.domain.COM -k 1 -e arcfour-hmac
+Password for user_id@CORP.domain.COM:
+ktutil:  wkt user_id.keytab
+ktutil:  q 
+ls -al user_id.keytab 
+
+
+
+export HADOOP_NAMENODE_OPTS="-Xms64G -Xmx64G $HADOOP_NAMENODE_OPTS"
+export HADOOP_CLIENT_OPTS="-Xms128G -Xmx128G $HADOOP_CLIENT_OPTS"
+export HADOOP_CLIENT_OPTS="-Xmx2048m $HADOOP_CLIENT_OPTS"  
+
+
+
+
+find out ip address belong to lwhich nbkid 
+windows lo cmd lo 
+tracert  ip_address 
+
+
+curl -v telnet hostname.domain.com:23020
+
+to find proken sym link 
+find -L /etc/alternatives/ -type l
+
+connection to a port number
+openssl s_client -connect hostnmae.domain.com:31443 -showcerts
+
+ptrisk cron 
+0 * * * * /path_to/hive-audit-dir-check.sh > /dev/null 2>&1
+
+view passwords in ansble
+ansible-vault view vault
+
+
+ldap search for an user
+ldapsearch -x -H ldaps://ldap_vip.domain.com:3269/ -D user_id@CORP.domain.COM -w password -b "OU=Pre-Prod,DC=domain,DC=com" "(mail=nitin.jakka@gmail.com)"
+
+check lag between impala and hive 
+ select substr(table_name,29),visibility_type,hive_load_time,impala_refreshed_time,delay_in_seconds from dnt_data.auto_refresh_delay order by table_name,visibility_type;
+
+
+
+to list all the table where SET TBLPROPERTIES ('impala.disableHmsSync'='true'); from backend mysql 
+SELECT dbs.NAME, tbls.TBL_NAME, table_params.PARAM_KEY, table_params.PARAM_VALUE FROM table_params JOIN tbls ON table_params.TBL_ID = tbls.TBL_ID JOIN dbs ON tbls.DB_ID = dbs.DB_ID WHERE table_params.PARAM_KEY = 'impala.disableHmsSync' AND table_params.PARAM_VALUE = 'true';
