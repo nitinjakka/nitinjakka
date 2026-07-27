@@ -62,6 +62,34 @@ backtest (rule 7). Drafted 2026-07-27.
   **~87–88%** — the stop is the most valuable risk rule in the plan.
 - After a stop-out, do not re-enter the same 15-min window.
 
+## Backtest v2: distance-based strategy (2026-07-27)
+
+Rules tested (`kalshi_backtest_v2.py`): at T-5min, enter the leading
+side if the underlying is > 0.05% away from the target (either
+direction); close the position if the distance shrinks to <= 0.03%;
+otherwise hold to settlement. Underlying = Coinbase 1-min candles as
+a proxy for CF Benchmarks RTI (target recomputed from the same series
+to avoid exchange-basis error).
+
+7 days / 5 coins, 1,997 qualifying trades:
+
+- As specified: avg entry 89.6c, side won 90.19%, net **-0.36c per
+  contract after fees. Negative overall.**
+- The 0.03% exit fired on 20.7% of trades; 251 of 414 exits would
+  have won anyway (whipsaw cost dominates).
+- 33 trades lost without ever triggering the exit (price gapped
+  through 0.03% between minutes) — the exit rule alone does not
+  remove disaster risk.
+- By entry odds bucket:
+    <80c: -1.88c | 80-90c: -2.53c | 90-95c: **+1.13c** | 95c+: +0.39c
+- **Key finding: the distance signal only makes money when the
+  market also agrees (odds >= 90c).** Distance + odds >= 90c
+  combined: ~1,300 trades at **~+0.65c/contract** — the best
+  configuration tested so far (v1 T-5min was +0.46c).
+
+Same caveats as v1: one week of data, ask-price fills assumed, and
+the Coinbase proxy adds noise near the 0.03-0.05% thresholds.
+
 ## Backtest update: T-5min entry (2026-07-27)
 
 Re-run over 7 days / 5 series with entry moved from T-3min to T-5min
