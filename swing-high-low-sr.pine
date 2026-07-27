@@ -1,0 +1,64 @@
+//@version=5
+indicator("Swing High/Low Support & Resistance (open source)", shorttitle="Swing S/R", overlay=true, max_lines_count=500, max_labels_count=100)
+
+// ===================== INPUTS =====================
+swingLeft   = input.int(25, "Swing left bars",  minval=1)
+swingRight  = input.int(25, "Swing right bars", minval=1)
+maxLevels   = input.int(6,  "Max levels per side", minval=1, maxval=50)
+dropBroken  = input.bool(true, "Remove level once price closes through it")
+showPrices  = input.bool(true, "Show price labels in status line")
+
+resColor = input.color(color.new(color.red, 0),  "Resistance color")
+supColor = input.color(color.new(color.aqua, 0), "Support color")
+lineWidthPx = input.int(2, "Line width", minval=1, maxval=4)
+
+// ===================== SWING DETECTION =====================
+swingHigh = ta.pivothigh(high, swingLeft, swingRight)
+swingLow  = ta.pivotlow(low,  swingLeft, swingRight)
+
+var line[]  resLines = array.new_line()
+var line[]  supLines = array.new_line()
+
+if not na(swingHigh)
+    ln = line.new(bar_index - swingRight, swingHigh, bar_index, swingHigh, xloc.bar_index, extend.right, color=resColor, style=line.style_dotted, width=lineWidthPx)
+    array.push(resLines, ln)
+    if array.size(resLines) > maxLevels
+        line.delete(array.shift(resLines))
+
+if not na(swingLow)
+    ln = line.new(bar_index - swingRight, swingLow, bar_index, swingLow, xloc.bar_index, extend.right, color=supColor, style=line.style_dotted, width=lineWidthPx)
+    array.push(supLines, ln)
+    if array.size(supLines) > maxLevels
+        line.delete(array.shift(supLines))
+
+// ---- optionally drop levels once price closes through them ----
+if dropBroken and barstate.isconfirmed
+    if array.size(resLines) > 0
+        for i = array.size(resLines) - 1 to 0
+            if close > line.get_y1(array.get(resLines, i))
+                line.delete(array.get(resLines, i))
+                array.remove(resLines, i)
+    if array.size(supLines) > 0
+        for i = array.size(supLines) - 1 to 0
+            if close < line.get_y1(array.get(supLines, i))
+                line.delete(array.get(supLines, i))
+                array.remove(supLines, i)
+
+// ===================== STATUS-LINE PRICES (like the original) =====================
+f_levelsText(arr) =>
+    txt = ""
+    if array.size(arr) > 0
+        for i = 0 to array.size(arr) - 1
+            txt += str.tostring(line.get_y1(array.get(arr, i)), format.mintick) + (i < array.size(arr) - 1 ? "  " : "")
+    txt
+
+plot(showPrices and array.size(resLines) > 0 ? line.get_y1(array.get(resLines, array.size(resLines)-1)) : na, "Last swing high", color=color.new(resColor, 100), display=display.status_line)
+plot(showPrices and array.size(supLines) > 0 ? line.get_y1(array.get(supLines, array.size(supLines)-1)) : na, "Last swing low",  color=color.new(supColor, 100), display=display.status_line)
+
+// ===================== ALERTS =====================
+alertcondition(not na(swingHigh), "New swing high", "New swing-high resistance level confirmed")
+alertcondition(not na(swingLow),  "New swing low",  "New swing-low support level confirmed")
+crossRes = array.size(resLines) > 0 and ta.crossover(close, line.get_y1(array.get(resLines, array.size(resLines)-1)))
+crossSup = array.size(supLines) > 0 and ta.crossunder(close, line.get_y1(array.get(supLines, array.size(supLines)-1)))
+alertcondition(crossRes, "Resistance broken", "Price closed above the latest swing-high resistance")
+alertcondition(crossSup, "Support broken",    "Price closed below the latest swing-low support")

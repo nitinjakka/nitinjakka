@@ -1,0 +1,3 @@
+id,ticker,type,strike,occ_symbol,entry_bar_utc,exit_bar_utc,why,entry_prem,exit_prem,pnl_pct,quality
+46,SPY,PUT,753,SPY   260717P00753000,2026-07-15T13:45:00Z,2026-07-15T13:50:00Z,TARGET,2.50,2.21,-11.60,ok
+57,SPY,CALL,744,SPY   260717C00744000,2026-07-17T13:45:00Z,2026-07-17T13:50:00Z,TARGET,1.53,1.83,19.61,ok
