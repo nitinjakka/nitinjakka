@@ -6,7 +6,8 @@ backtest (rule 7). Drafted 2026-07-27.
 ## Core rules (Nitin's)
 
 1. **Markets**: Crypto 15-minute expiry markets only (e.g. `KXBTC15M`).
-2. **Timing**: Enter only in the last ~3 minutes before expiry.
+2. **Timing**: Enter only in the last ~5 minutes before expiry
+   (changed from 3 minutes on 2026-07-27).
 3. **Entry**: Only buy the side priced at **95%+ odds** (ask >= 95c).
 4. **Sizing**: Split available cash into 4 equal parts, one part per
    order (e.g. $100 -> $25 per order).
@@ -61,7 +62,27 @@ backtest (rule 7). Drafted 2026-07-27.
   **~87–88%** — the stop is the most valuable risk rule in the plan.
 - After a stop-out, do not re-enter the same 15-min window.
 
-## Backtest results (2026-07-27, rule 7 — DONE)
+## Backtest update: T-5min entry (2026-07-27)
+
+Re-run over 7 days / 5 series with entry moved from T-3min to T-5min
+(883 qualifying entries at >= 95c):
+
+- Avg entry 97.6c; the side won **98.64%** — about 1 point better
+  than the price paid. **First positive configuration.**
+- Net P&L **+0.46c per contract after fees** (+0.47% return per
+  trade cycle). At T-3min the same week was -0.15c.
+- Stops: 44 (5.0%), of which 32 whipsaws; still zero hold-to-zero.
+- Per series: ETH +1.76c, SOL +0.72c, BTC +0.06c, DOGE +0.05c,
+  XRP -0.17c.
+- Caveats: edge is ~2 standard errors — real but thin; one week of
+  data, one market regime; assumes taker fills at the ask and stop
+  fills at 65c. Validate on more weeks before going live.
+
+Interpretation: 5 minutes out, heavy favorites are still slightly
+underpriced; by 3 minutes out the market has converged to fair value
+minus fees.
+
+## Backtest results (2026-07-27, rule 7, T-3min entry — superseded)
 
 Run: `kalshi_backtest.py`, 3 days, 5 series (BTC/ETH/SOL/XRP/DOGE),
 1,439 settled markets, 442 qualifying entries at >= 95c at T-3min.

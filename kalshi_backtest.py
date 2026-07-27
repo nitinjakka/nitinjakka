@@ -2,7 +2,7 @@
 """Backtest the 15-min crypto strategy against Kalshi historical data.
 
 Strategy under test (see KALSHI_STRATEGY.md):
-  - At T-3 minutes before close, if one side's ask is >= 95c (and <= 99c),
+  - At T-5 minutes before close, if one side's ask is >= 95c (and <= 99c),
     buy that side.
   - Stop-loss: if the held side's bid trades down to 70c before close,
     exit; we assume a realistic fill at 65c (slippage budget).
@@ -24,7 +24,7 @@ API = "https://api.elections.kalshi.com/trade-api/v2"
 
 ENTRY_MIN = 0.95   # only buy at >= 95c ...
 ENTRY_MAX = 0.99   # ... and <= 99c (at 1.00 there is nothing to earn)
-ENTRY_T = 180      # decide 3 minutes (180 s) before close
+ENTRY_T = 300      # decide 5 minutes (300 s) before close
 STOP_TRIGGER = 0.70
 STOP_FILL = 0.65   # assumed real fill after slippage
 
@@ -143,7 +143,8 @@ def main() -> None:
     avg_entry = sum(t["entry"] for t in trades) / n
     total_pnl = sum(t["pnl"] for t in trades)
 
-    print(f"\n=== {n} qualifying entries (>= {ENTRY_MIN:.0%} at T-3min) "
+    print(f"\n=== {n} qualifying entries (>= {ENTRY_MIN:.0%} at "
+          f"T-{ENTRY_T // 60}min) "
           f"across {len(args.series)} series, {args.days} days ===")
     print(f"avg entry price          : {avg_entry * 100:.1f}c")
     print(f"raw win rate of the side : {sum(t['won'] for t in trades) / n:.2%}")
