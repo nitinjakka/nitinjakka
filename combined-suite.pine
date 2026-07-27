@@ -1,0 +1,547 @@
+//@version=6
+indicator("Combined Suite — Swing S&R + CALL/PUT Bias + Pivot S/R + Open/ORB + Trades", shorttitle="Combined Suite", overlay=true, max_lines_count=500, max_labels_count=500)
+
+// ═══════════════════════════════════════════════════════════════════════
+//  MODULE MASTER TOGGLES
+// ═══════════════════════════════════════════════════════════════════════
+grpMod = "◆ Module Toggles"
+enSwing = input.bool(true, "1 · Swing High/Low S&R",        group=grpMod)
+enBias  = input.bool(true, "2 · CALL/PUT Confluence Bias",  group=grpMod)
+enSR    = input.bool(true, "3 · Pivot Support/Resistance",  group=grpMod)
+enOpen  = input.bool(true, "4 · 9:30 Bias + ORB (intraday)",group=grpMod)
+enTrade = input.bool(true, "5 · Trade Engine (entry/exit)", group=grpMod)
+
+// ═══════════════════════════════════════════════════════════════════════
+//  MODULE 1 · SWING HIGH/LOW S&R
+// ═══════════════════════════════════════════════════════════════════════
+grp1 = "① Swing S&R"
+sw_leftBars   = input.int(25, "Left Bars",  minval=1, group=grp1)
+sw_rightBars  = input.int(25, "Right Bars", minval=1, group=grp1)
+sw_shColor    = input.color(color.new(#ef5350, 0), "Swing High Color", group=grp1)
+sw_slColor    = input.color(color.new(#26c6da, 0), "Swing Low Color",  group=grp1)
+sw_showLabels = input.bool(true, "Show Price Labels",   group=grp1)
+sw_showAlerts = input.bool(true, "Enable Break Alerts", group=grp1)
+
+// ta.* calls must run on every bar — gate their USE, not the call itself
+sw_ph = ta.pivothigh(sw_leftBars, sw_rightBars)
+sw_pl = ta.pivotlow(sw_leftBars,  sw_rightBars)
+
+var float sw_shPrice = na
+var float sw_slPrice = na
+var line  sw_shLine  = na
+var line  sw_slLine  = na
+var label sw_shLabel = na
+var label sw_slLabel = na
+
+sw_pivotBar = bar_index - sw_rightBars
+
+if enSwing and not na(sw_ph)
+    if not na(sw_shLine)
+        line.set_style(sw_shLine, line.style_dotted)
+        line.set_x2(sw_shLine, bar_index)
+        line.set_extend(sw_shLine, extend.none)
+        if not na(sw_shLabel)
+            label.delete(sw_shLabel)
+    sw_shPrice := sw_ph
+    sw_shLine := line.new(sw_pivotBar, sw_ph, bar_index, sw_ph, color=sw_shColor, width=2, style=line.style_solid)
+    if sw_showLabels
+        sw_shLabel := label.new(bar_index, sw_ph, text="Swing:SH " + str.tostring(sw_ph), style=label.style_label_left, color=sw_shColor, textcolor=color.white, size=size.small)
+
+if enSwing and not na(sw_pl)
+    if not na(sw_slLine)
+        line.set_style(sw_slLine, line.style_dotted)
+        line.set_x2(sw_slLine, bar_index)
+        line.set_extend(sw_slLine, extend.none)
+        if not na(sw_slLabel)
+            label.delete(sw_slLabel)
+    sw_slPrice := sw_pl
+    sw_slLine := line.new(sw_pivotBar, sw_pl, bar_index, sw_pl, color=sw_slColor, width=2, style=line.style_solid)
+    if sw_showLabels
+        sw_slLabel := label.new(bar_index, sw_pl, text="Swing:SL " + str.tostring(sw_pl), style=label.style_label_left, color=sw_slColor, textcolor=color.white, size=size.small)
+
+if enSwing and not na(sw_shLine)
+    line.set_x2(sw_shLine, bar_index)
+    if sw_showLabels and not na(sw_shLabel)
+        label.set_x(sw_shLabel, bar_index)
+if enSwing and not na(sw_slLine)
+    line.set_x2(sw_slLine, bar_index)
+    if sw_showLabels and not na(sw_slLabel)
+        label.set_x(sw_slLabel, bar_index)
+
+// crossovers computed unconditionally, gated afterwards
+sw_xUp = ta.crossover(close,  nz(sw_shPrice, close))
+sw_xDn = ta.crossunder(close, nz(sw_slPrice, close))
+sw_brokeHigh = enSwing and not na(sw_shPrice) and sw_xUp
+sw_brokeLow  = enSwing and not na(sw_slPrice) and sw_xDn
+if sw_showAlerts and sw_brokeHigh
+    alert("Price broke above swing high " + str.tostring(sw_shPrice), alert.freq_once_per_bar)
+if sw_showAlerts and sw_brokeLow
+    alert("Price broke below swing low " + str.tostring(sw_slPrice), alert.freq_once_per_bar)
+plotshape(sw_showAlerts and sw_brokeHigh, title="Swing Break High", style=shape.triangleup,   location=location.belowbar, color=sw_shColor, size=size.tiny)
+plotshape(sw_showAlerts and sw_brokeLow,  title="Swing Break Low",  style=shape.triangledown, location=location.abovebar, color=sw_slColor, size=size.tiny)
+
+// ═══════════════════════════════════════════════════════════════════════
+//  MODULES 2 & 3 · CALL/PUT CONFLUENCE BIAS + PIVOT S/R
+// ═══════════════════════════════════════════════════════════════════════
+grpT = "② Bias · Trend"
+emaFastLen  = input.int(9,  "EMA fast",  group=grpT)
+emaSlowLen  = input.int(21, "EMA slow",  group=grpT)
+emaTrendLen = input.int(50, "EMA trend", group=grpT)
+
+grpM = "② Bias · Momentum"
+rsiLen  = input.int(14, "RSI length", group=grpM)
+rsiBull = input.int(50, "RSI bull/bear line", group=grpM)
+macdF   = input.int(12, "MACD fast", group=grpM)
+macdS   = input.int(26, "MACD slow", group=grpM)
+macdSig = input.int(9,  "MACD signal", group=grpM)
+
+grpS = "② Bias · Strength / chop filter"
+adxLen     = input.int(14,   "ADX/DMI length", group=grpS)
+adxThresh  = input.float(20, "Min ADX to allow a signal", group=grpS)
+useAdxGate = input.bool(true, "NO-GO when ADX below threshold", group=grpS)
+
+grpH = "② Bias · Higher timeframe"
+useHTF = input.bool(true, "Use higher-timeframe trend vote", group=grpH)
+htfRes = input.timeframe("60", "Higher timeframe", group=grpH)
+
+grpBG = "② Bias · Signal / display"
+scoreThresh = input.int(2, "Min |score| for CALL/PUT", minval=1, group=grpBG)
+showLabels  = input.bool(true, "Show CALL/PUT markers", group=grpBG)
+colorBars   = input.bool(true, "Color bars by bias", group=grpBG)
+
+grpR = "③ Pivot Support / Resistance"
+pivLeft  = input.int(10, "Pivot left bars",  group=grpR)
+pivRight = input.int(10, "Pivot right bars", group=grpR)
+srCount  = input.int(3,  "Levels to keep per side", minval=1, maxval=10, group=grpR)
+showSR   = input.bool(true, "Show S/R lines", group=grpR)
+
+// ---- Indicators (always computed; usage is gated) ----
+emaFast  = ta.ema(close, emaFastLen)
+emaSlow  = ta.ema(close, emaSlowLen)
+emaTrend = ta.ema(close, emaTrendLen)
+rsiVal   = ta.rsi(close, rsiLen)
+[macdLine, sigLine, hist] = ta.macd(close, macdF, macdS, macdSig)
+[diPlus, diMinus, adxVal] = ta.dmi(adxLen, adxLen)
+// request.security must be called unconditionally (v6: bool cannot be na)
+htfBull = request.security(syminfo.tickerid, htfRes, close > ta.ema(close, emaTrendLen), lookahead=barmerge.lookahead_off)
+
+// ---- Votes ----
+vEma   = emaFast > emaSlow ? 1 : -1
+vTrend = close   > emaTrend ? 1 : -1
+vRsi   = rsiVal  > rsiBull  ? 1 : -1
+vMacd  = hist    > 0        ? 1 : -1
+vDmi   = diPlus  > diMinus  ? 1 : -1
+vHtf   = not useHTF ? 0 : (htfBull ? 1 : -1)
+
+score    = vEma + vTrend + vRsi + vMacd + vDmi + vHtf
+maxScore = 5 + (useHTF ? 1 : 0)
+
+chop     = useAdxGate and adxVal < adxThresh
+biasCode = chop ? 0 : (score >= scoreThresh ? 1 : score <= -scoreThresh ? -1 : 0)
+// 100.0 forces float math — int/int division truncates to 0 in Pine
+conf     = math.round(math.abs(score) * 100.0 / maxScore)
+
+// raw flips drive the trade engine; showLabels only gates the chart markers
+flipCall = enBias and biasCode ==  1 and biasCode[1] !=  1
+flipPut  = enBias and biasCode == -1 and biasCode[1] != -1
+newCall  = flipCall and showLabels
+newPut   = flipPut  and showLabels
+// bias state ENDING: fade to neutral prints an END marker; a direct flip to the
+// opposite side is already marked by the opposite triangle, so no END there
+endCall  = enBias and biasCode[1] ==  1 and biasCode == 0
+endPut   = enBias and biasCode[1] == -1 and biasCode == 0
+
+// ---- Pivot S/R (Module 3) ----
+var line[] resLines = array.new_line()
+var line[] supLines = array.new_line()
+sr_ph = ta.pivothigh(pivLeft, pivRight)
+sr_pl = ta.pivotlow(pivLeft,  pivRight)
+
+if enSR and not na(sr_ph)
+    ln = line.new(bar_index - pivRight, sr_ph, bar_index, sr_ph, xloc.bar_index, extend.right, color=showSR ? color.new(color.red, 20) : color.new(color.red, 100), width=1)
+    array.push(resLines, ln)
+    if array.size(resLines) > srCount
+        line.delete(array.shift(resLines))
+if enSR and not na(sr_pl)
+    ln = line.new(bar_index - pivRight, sr_pl, bar_index, sr_pl, xloc.bar_index, extend.right, color=showSR ? color.new(color.teal, 20) : color.new(color.teal, 100), width=1)
+    array.push(supLines, ln)
+    if array.size(supLines) > srCount
+        line.delete(array.shift(supLines))
+
+f_nearestAbove(arr, px) =>
+    lvl = float(na)
+    if array.size(arr) > 0
+        for i = 0 to array.size(arr) - 1
+            v = line.get_y1(array.get(arr, i))
+            if v > px and (na(lvl) or v < lvl)
+                lvl := v
+    lvl
+f_nearestBelow(arr, px) =>
+    lvl = float(na)
+    if array.size(arr) > 0
+        for i = 0 to array.size(arr) - 1
+            v = line.get_y1(array.get(arr, i))
+            if v < px and (na(lvl) or v > lvl)
+                lvl := v
+    lvl
+
+// nearest levels computed every bar — the trade engine uses them, not just the dashboard
+nRes = f_nearestAbove(resLines, close)
+nSup = f_nearestBelow(supLines, close)
+
+// ---- Bias visuals ----
+plotshape(newCall, "CALL", shape.triangleup,   location.belowbar, color.teal, text="CALL", textcolor=color.white, size=size.small)
+plotshape(newPut,  "PUT",  shape.triangledown, location.abovebar, color.red,  text="PUT",  textcolor=color.white, size=size.small)
+plotshape(endCall and showLabels, "END CALL", shape.xcross, location.abovebar, color.new(#26c6da, 0), text="END\nCALL", textcolor=color.white, size=size.small)
+plotshape(endPut and showLabels,  "END PUT",  shape.xcross, location.belowbar, color.new(#ff7043, 0),  text="END\nPUT",  textcolor=color.white, size=size.small)
+barcolor(enBias and colorBars ? (biasCode==1 ? color.new(color.teal,55) : biasCode==-1 ? color.new(color.red,55) : na) : na)
+
+alertcondition(flipCall, "Flip to CALL", "CALL/PUT Bias flipped to CALL")
+alertcondition(flipPut,  "Flip to PUT",  "CALL/PUT Bias flipped to PUT")
+alertcondition(endCall,  "CALL ended",   "CALL bias ended (faded to neutral)")
+alertcondition(endPut,   "PUT ended",    "PUT bias ended (faded to neutral)")
+
+// ═══════════════════════════════════════════════════════════════════════
+//  MODULE 4 · 9:30 BIAS + ORB — intraday only
+// ═══════════════════════════════════════════════════════════════════════
+grp4 = "④ Open / ORB"
+op_tz          = "America/New_York"
+op_gapThresh   = input.float(0.30, "9:30 gap % threshold (below = NO-GO)", step=0.05, group=grp4)
+op_orbMode     = input.bool(true,  "Show Opening-Range Breakout signal", group=grp4)
+op_orbMinutes  = input.int(5,      "Opening-range length (minutes)", minval=1, group=grp4)
+op_useVwap     = input.bool(true,  "Require VWAP confirmation on ORB break", group=grp4)
+op_signalEndMin= input.int(150,    "Stop new ORB signals after N min from open", group=grp4)
+op_showLabels  = input.bool(true,  "Show labels", group=grp4)
+
+op_nyH = hour(time, op_tz)
+op_nyM = minute(time, op_tz)
+op_isOpenBar     = enOpen and op_nyH == 9 and op_nyM == 30
+op_minsSinceOpen = (op_nyH - 9) * 60 + (op_nyM - 30)
+op_prevClose = request.security(syminfo.tickerid, "D", close[1], lookahead=barmerge.lookahead_on)
+op_vwapVal = ta.vwap
+
+var float op_orHigh   = na
+var float op_orLow    = na
+var float op_sessOpen = na
+var bool  op_signaled = false
+var string op_bias    = "NO-GO"
+
+if op_isOpenBar
+    op_orHigh   := high
+    op_orLow    := low
+    op_sessOpen := open
+    op_signaled := false
+    op_gapPct = na(op_prevClose) or op_prevClose == 0 ? 0.0 : (open - op_prevClose) / op_prevClose * 100.0
+    op_bias := op_gapPct > op_gapThresh ? "CALL" : op_gapPct < -op_gapThresh ? "PUT" : "NO-GO"
+    if op_showLabels
+        op_txt = syminfo.ticker + " 9:30 LEAN: " + op_bias + "\ngap " + str.tostring(op_gapPct, "#.##") + "%\n(low-confidence)"
+        op_col = op_bias == "CALL" ? color.new(color.teal, 0) : op_bias == "PUT" ? color.new(color.red, 0) : color.new(color.gray, 0)
+        label.new(bar_index, high, op_txt, style=label.style_label_down, color=op_col, textcolor=color.white, size=size.small)
+else if enOpen and not na(op_orHigh) and op_minsSinceOpen > 0 and op_minsSinceOpen < op_orbMinutes
+    op_orHigh := math.max(op_orHigh, high)
+    op_orLow  := math.min(op_orLow,  low)
+
+plot(enOpen and not na(op_orHigh) ? op_orHigh : na, "OR High", color=color.new(color.teal, 40), style=plot.style_linebr)
+plot(enOpen and not na(op_orLow)  ? op_orLow  : na, "OR Low",  color=color.new(color.red,  40), style=plot.style_linebr)
+plot(enOpen ? op_vwapVal : na, "VWAP", color=color.new(color.orange, 0))
+
+op_canSignal = enOpen and op_orbMode and not op_signaled and not na(op_orHigh) and op_minsSinceOpen >= op_orbMinutes and op_minsSinceOpen < op_signalEndMin
+op_orbUp = op_canSignal and close > op_orHigh and (not op_useVwap or close > op_vwapVal)
+op_orbDn = op_canSignal and close < op_orLow  and (not op_useVwap or close < op_vwapVal)
+if op_orbUp
+    op_signaled := true
+    if op_showLabels
+        label.new(bar_index, low, "ORB: CALL\n(break ↑)", style=label.style_label_up, color=color.new(color.teal,0), textcolor=color.white, size=size.normal)
+if op_orbDn
+    op_signaled := true
+    if op_showLabels
+        label.new(bar_index, high, "ORB: PUT\n(break ↓)", style=label.style_label_down, color=color.new(color.red,0), textcolor=color.white, size=size.normal)
+plotshape(op_orbUp, "ORB Call", shape.triangleup,   location.belowbar, color.teal, size=size.small)
+plotshape(op_orbDn, "ORB Put",  shape.triangledown, location.abovebar, color.red,  size=size.small)
+
+alertcondition(op_isOpenBar and op_bias == "CALL", "9:30 CALL lean", "{{ticker}} 9:30 gap-up lean: CALL (low confidence)")
+alertcondition(op_isOpenBar and op_bias == "PUT",  "9:30 PUT lean",  "{{ticker}} 9:30 gap-down lean: PUT (low confidence)")
+alertcondition(op_orbUp, "ORB CALL breakout", "{{ticker}} opening-range break UP → CALL")
+alertcondition(op_orbDn, "ORB PUT breakout",  "{{ticker}} opening-range break DOWN → PUT")
+
+// ═══════════════════════════════════════════════════════════════════════
+//  MODULE 5 · TRADE ENGINE — entries & exits with stop / target / bias / time
+// ═══════════════════════════════════════════════════════════════════════
+// Validation on real data (NVDA/SPY/QQQ/TSLA/AAPL):
+//  - 5-min bars, 101 sessions (Feb 23-Jul 17 2026): ORB + opposite-OR stop + 0.5xATR target
+//    + EOD flat -> 85.2% win / PF 1.27; 81.8% win on pure pre-tuning OOS window.
+//  - 1-min bars, 29 sessions (Jun 5-Jul 17 2026): same ORB config -> 90.3% win / PF 1.90
+//    (84.4% on test split). "Session breakout (all-day)" mode with 0.75xATR target ->
+//    90.5% win / PF 1.29, ~8 signals/day/ticker, accuracy holds all day but per-trade
+//    edge is thinner than the morning ORB.
+//  - "Breakout + Pullback (all-day)" adds with-trend pullback entries (dip to EMA21,
+//    EMA9 re-cross, VWAP side): 87.8% win combined (86.9% test). The pullback sleeve is
+//    high-accuracy but ~breakeven expectancy (PF ~0.9) - coverage, not edge.
+//  - Rejection-fade entries at S/R were tested and REJECTED (54% win = coin flip).
+//  - SPY underperforms in every test (74-83% win, PF < 1) - prefer single names + QQQ.
+// Underlying-move win rates; real-premium spot check (Jul 13-17): see suite-backtest/.
+grp5 = "⑤ Trade Engine"
+entrySource   = input.string("Session breakout (all-day)", "Entry trigger", options=["Bias flips","ORB breakout","Session breakout (all-day)","Breakout + Pullback (all-day)","Both"], group=grp5)
+atrLen        = input.int(14,    "ATR length", group=grp5)
+atrStopMult   = input.float(3.0, "Stop-loss = ATR x", step=0.1, group=grp5)
+atrTgtMult    = input.float(0.5, "Take-profit = ATR x", step=0.1, group=grp5)
+orbStopOR     = input.bool(true, "ORB entries: stop at opposite side of opening range", group=grp5)
+useSrTarget   = input.bool(true, "Cap target at nearest S/R level", group=grp5)
+useSrFilter   = input.bool(true, "Skip entry if S/R closer than buffer", group=grp5)
+srBufPct      = input.float(0.25, "S/R entry buffer (%)", step=0.05, group=grp5)
+useBiasExit   = input.bool(false, "Exit when bias is lost / flips", group=grp5)
+biasExitOrb   = input.bool(false, "Apply bias exit to ORB entries too", group=grp5)
+useTimeStop   = input.bool(true, "Time exit after N bars", group=grp5)
+maxBarsHeld   = input.int(78,    "Max bars in trade (78 = full day on 5m chart)", minval=1, group=grp5)
+useEodFlat    = input.bool(true, "Exit at end of day (intraday charts)", group=grp5)
+eodExitMin    = input.int(385,   "EOD exit: minutes after 9:30 (385 = 15:55 ET)", group=grp5)
+sbTgtMult     = input.float(0.75, "Session-breakout target = ATR x", step=0.05, group=grp5)
+sbCutoffMin   = input.int(360,   "Session-breakout: no new entries after N min from open", group=grp5)
+sbMaxPerDay   = input.int(10,    "Session-breakout: max trades per day", minval=1, group=grp5)
+pbStopMult    = input.float(2.5, "Pullback entries: stop = ATR x", step=0.1, group=grp5)
+trShowLabels  = input.bool(true, "Show ENTRY/EXIT labels", group=grp5)
+
+atrVal = ta.atr(atrLen)
+
+var int   pos      = 0        // 1 = in CALL trade, -1 = in PUT trade, 0 = flat
+var float entryPx  = na
+var float stopPx   = na
+var float tgtPx    = na
+var int   entryBar = na
+var int   entrySrc = 0        // 1 = bias flip entry, 2 = ORB entry
+
+bool   enterCall = false
+bool   enterPut  = false
+bool   exitTrade = false
+string exitWhy   = na
+float  exitPx    = na
+
+// bias exit applies to bias entries always; to ORB entries only if opted in
+biasExitActive = useBiasExit and enBias and (entrySrc == 1 or biasExitOrb)
+// end-of-day flat: only meaningful on intraday charts
+eodNow = useEodFlat and timeframe.isintraday and op_minsSinceOpen >= eodExitMin
+
+// ---- exits (checked before new entries, so a bias flip can reverse the trade) ----
+if enTrade and pos == 1
+    if low <= stopPx
+        exitTrade := true
+        exitWhy   := "STOP"
+        exitPx    := stopPx
+    else if high >= tgtPx
+        exitTrade := true
+        exitWhy   := "TARGET"
+        exitPx    := tgtPx
+    else if biasExitActive and biasCode != 1
+        exitTrade := true
+        exitWhy   := biasCode == -1 ? "BIAS FLIP" : "BIAS LOST"
+        exitPx    := close
+    else if useTimeStop and bar_index - entryBar >= maxBarsHeld
+        exitTrade := true
+        exitWhy   := "TIME"
+        exitPx    := close
+    else if eodNow
+        exitTrade := true
+        exitWhy   := "EOD"
+        exitPx    := close
+else if enTrade and pos == -1
+    if high >= stopPx
+        exitTrade := true
+        exitWhy   := "STOP"
+        exitPx    := stopPx
+    else if low <= tgtPx
+        exitTrade := true
+        exitWhy   := "TARGET"
+        exitPx    := tgtPx
+    else if biasExitActive and biasCode != -1
+        exitTrade := true
+        exitWhy   := biasCode == 1 ? "BIAS FLIP" : "BIAS LOST"
+        exitPx    := close
+    else if useTimeStop and bar_index - entryBar >= maxBarsHeld
+        exitTrade := true
+        exitWhy   := "TIME"
+        exitPx    := close
+    else if eodNow
+        exitTrade := true
+        exitWhy   := "EOD"
+        exitPx    := close
+
+if exitTrade
+    pos      := 0
+    entrySrc := 0
+
+// ---- entries (bias flip / ORB break / all-day session breakout + S/R room) ----
+allowBias = enTrade and (entrySource == "Bias flips"   or entrySource == "Both")
+allowOrb  = enTrade and (entrySource == "ORB breakout" or entrySource == "Both") and enOpen
+sbMode    = entrySource == "Session breakout (all-day)" or entrySource == "Breakout + Pullback (all-day)"
+allowSb   = enTrade and sbMode and enOpen and timeframe.isintraday
+allowPb   = enTrade and entrySource == "Breakout + Pullback (all-day)" and enOpen and timeframe.isintraday
+
+// running session high/low as of the PRIOR bar (all-day breakout reference)
+var float sb_dayHi = na
+var float sb_dayLo = na
+var int   sb_tradesToday = 0
+sb_newDay = op_nyH == 9 and op_nyM == 30
+sb_prevHi = sb_dayHi
+sb_prevLo = sb_dayLo
+if sb_newDay
+    sb_dayHi := high
+    sb_dayLo := low
+    sb_tradesToday := 0
+else
+    sb_dayHi := math.max(nz(sb_dayHi, high), high)
+    sb_dayLo := math.min(nz(sb_dayLo, low), low)
+
+sbWin = op_minsSinceOpen >= op_orbMinutes and op_minsSinceOpen < sbCutoffMin and sb_tradesToday < sbMaxPerDay
+trigCallSb = allowSb and sbWin and not na(sb_prevHi) and close > sb_prevHi and (not op_useVwap or close > op_vwapVal)
+trigPutSb  = allowSb and sbWin and not na(sb_prevLo) and close < sb_prevLo and (not op_useVwap or close < op_vwapVal)
+
+// with-trend pullback (validated 86-88% accuracy, ~breakeven edge — coverage signal):
+// dip to EMA21 within last ~10 bars, trend aligned (EMA9 vs EMA21 + VWAP side),
+// close re-crossing EMA9, and NOT already at a fresh session extreme
+pb_dipUp = ta.lowest(low, 11)  <= emaSlow
+pb_dipDn = ta.highest(high, 11) >= emaSlow
+pb_xUp = close > emaFast and close[1] <= emaFast[1]
+pb_xDn = close < emaFast and close[1] >= emaFast[1]
+trigCallPb = allowPb and sbWin and not trigCallSb and close > op_vwapVal and emaFast > emaSlow and pb_xUp and pb_dipUp and (na(sb_prevHi) or close < sb_prevHi)
+trigPutPb  = allowPb and sbWin and not trigPutSb  and close < op_vwapVal and emaFast < emaSlow and pb_xDn and pb_dipDn and (na(sb_prevLo) or close > sb_prevLo)
+
+trigCallBias = allowBias and flipCall
+trigPutBias  = allowBias and flipPut
+trigCallOrb  = allowOrb and op_orbUp
+trigPutOrb   = allowOrb and op_orbDn
+
+roomUp = na(nRes) ? 100.0 : (nRes - close) / close * 100
+roomDn = na(nSup) ? 100.0 : (close - nSup) / close * 100
+
+if pos == 0 and not eodNow and (trigCallBias or trigCallOrb or trigCallSb or trigCallPb) and (not useSrFilter or roomUp >= srBufPct)
+    pos       := 1
+    entryPx   := close
+    entrySrc  := trigCallBias ? 1 : trigCallOrb ? 2 : trigCallSb ? 3 : 4
+    stopPx    := close - atrVal * atrStopMult
+    if (entrySrc == 2 or entrySrc == 3) and orbStopOR and not na(op_orLow)
+        stopPx := op_orLow
+    if entrySrc == 4
+        stopPx := close - atrVal * pbStopMult
+    tgtPx     := close + atrVal * (entrySrc >= 3 ? sbTgtMult : atrTgtMult)
+    if useSrTarget and not na(nRes) and nRes < tgtPx
+        tgtPx := nRes
+    entryBar  := bar_index
+    sb_tradesToday += 1
+    enterCall := true
+
+if pos == 0 and not eodNow and (trigPutBias or trigPutOrb or trigPutSb or trigPutPb) and (not useSrFilter or roomDn >= srBufPct)
+    pos      := -1
+    entryPx  := close
+    entrySrc := trigPutBias ? 1 : trigPutOrb ? 2 : trigPutSb ? 3 : 4
+    stopPx   := close + atrVal * atrStopMult
+    if (entrySrc == 2 or entrySrc == 3) and orbStopOR and not na(op_orHigh)
+        stopPx := op_orHigh
+    if entrySrc == 4
+        stopPx := close + atrVal * pbStopMult
+    tgtPx    := close - atrVal * (entrySrc >= 3 ? sbTgtMult : atrTgtMult)
+    if useSrTarget and not na(nSup) and nSup > tgtPx
+        tgtPx := nSup
+    entryBar := bar_index
+    sb_tradesToday += 1
+    enterPut := true
+
+// ---- trade visuals ----
+f_srcTag(s) => s == 2 ? " (ORB)" : s == 3 ? " (DAY)" : s == 4 ? " (PB)" : ""
+if trShowLabels and enterCall
+    label.new(bar_index, low, "ENTER CALL" + f_srcTag(entrySrc) + "\n@ " + str.tostring(entryPx, format.mintick) + "\nstop " + str.tostring(stopPx, format.mintick) + " · tgt " + str.tostring(tgtPx, format.mintick), style=label.style_label_up, color=color.new(color.teal, 0), textcolor=color.white, size=size.small)
+if trShowLabels and enterPut
+    label.new(bar_index, high, "ENTER PUT" + f_srcTag(entrySrc) + "\n@ " + str.tostring(entryPx, format.mintick) + "\nstop " + str.tostring(stopPx, format.mintick) + " · tgt " + str.tostring(tgtPx, format.mintick), style=label.style_label_down, color=color.new(color.red, 0), textcolor=color.white, size=size.small)
+if trShowLabels and exitTrade
+    label.new(bar_index, high, "EXIT " + exitWhy + "\n" + str.tostring(exitPx, format.mintick), style=label.style_label_down, color=color.orange, textcolor=color.white, size=size.small)
+
+plot(enTrade and pos != 0 ? entryPx : na, "Entry price", color=color.new(color.gray, 0),  style=plot.style_linebr)
+plot(enTrade and pos != 0 ? stopPx  : na, "Stop-loss",   color=color.new(color.red, 0),   style=plot.style_linebr)
+plot(enTrade and pos != 0 ? tgtPx   : na, "Target",      color=color.new(color.green, 0), style=plot.style_linebr)
+
+alertcondition(enterCall, "ENTER CALL", "{{ticker}} enter CALL: signal fired, room to resistance")
+alertcondition(enterPut,  "ENTER PUT",  "{{ticker}} enter PUT: signal fired, room to support")
+alertcondition(exitTrade, "EXIT trade", "{{ticker}} exit open options trade (stop / target / bias / time)")
+
+// ═══════════════════════════════════════════════════════════════════════
+//  UNIFIED DASHBOARD  (middle-left)
+// ═══════════════════════════════════════════════════════════════════════
+grpG = "◆ Dashboard"
+showTable   = input.bool(true, "Show dashboard", group=grpG)
+tablePosStr = input.string("Top right", "Dashboard position", options=["Top left","Top center","Top right","Middle left","Middle center","Middle right","Bottom left","Bottom center","Bottom right"], group=grpG)
+tableTxtStr = input.string("Small", "Dashboard text size", options=["Tiny","Small","Normal"], group=grpG)
+
+f_arrow(v) => v > 0 ? "▲ CALL" : v < 0 ? "▼ PUT" : "• off"
+f_col(v)   => v > 0 ? color.teal : v < 0 ? color.red : color.gray
+f_pos(s)   => s=="Top left" ? position.top_left : s=="Top center" ? position.top_center : s=="Top right" ? position.top_right : s=="Middle left" ? position.middle_left : s=="Middle center" ? position.middle_center : s=="Middle right" ? position.middle_right : s=="Bottom left" ? position.bottom_left : s=="Bottom center" ? position.bottom_center : position.bottom_right
+
+// opaque cell colors so candles never bleed through the table
+dashHdr = color.new(#363a45, 0)
+dashLbl = color.new(#2a2e39, 0)
+dashBg  = color.new(#131722, 0)
+txtSz   = tableTxtStr == "Tiny" ? size.tiny : tableTxtStr == "Normal" ? size.normal : size.small
+
+var table dash = table.new(f_pos(tablePosStr), 2, 15, border_width=1, frame_color=color.gray, frame_width=1, bgcolor=dashBg)
+if showTable and barstate.islast
+    table.clear(dash, 0, 0, 1, 14)
+    row = 0
+    // --- Bias section ---
+    if enBias
+        biasTxt = biasCode==1 ? "CALL" : biasCode==-1 ? "PUT" : (chop ? "NO-GO (chop)" : "NEUTRAL")
+        biasCol = biasCode==1 ? color.teal : biasCode==-1 ? color.red : color.gray
+        table.cell(dash,0,row,"BIAS", text_color=color.white, bgcolor=dashHdr, text_size=txtSz)
+        table.cell(dash,1,row,biasTxt+"  "+str.tostring(conf)+"%", text_color=color.white, bgcolor=biasCol, text_size=txtSz)
+        row += 1
+        table.cell(dash,0,row,"EMA "+str.tostring(emaFastLen)+"/"+str.tostring(emaSlowLen), text_color=color.white, bgcolor=dashLbl, text_size=txtSz)
+        table.cell(dash,1,row,f_arrow(vEma), text_color=f_col(vEma), text_size=txtSz)
+        row += 1
+        table.cell(dash,0,row,"Px vs EMA"+str.tostring(emaTrendLen), text_color=color.white, bgcolor=dashLbl, text_size=txtSz)
+        table.cell(dash,1,row,f_arrow(vTrend), text_color=f_col(vTrend), text_size=txtSz)
+        row += 1
+        table.cell(dash,0,row,"RSI "+str.tostring(math.round(rsiVal)), text_color=color.white, bgcolor=dashLbl, text_size=txtSz)
+        table.cell(dash,1,row,f_arrow(vRsi), text_color=f_col(vRsi), text_size=txtSz)
+        row += 1
+        table.cell(dash,0,row,"MACD", text_color=color.white, bgcolor=dashLbl, text_size=txtSz)
+        table.cell(dash,1,row,f_arrow(vMacd), text_color=f_col(vMacd), text_size=txtSz)
+        row += 1
+        table.cell(dash,0,row,"DMI", text_color=color.white, bgcolor=dashLbl, text_size=txtSz)
+        table.cell(dash,1,row,f_arrow(vDmi), text_color=f_col(vDmi), text_size=txtSz)
+        row += 1
+        table.cell(dash,0,row,"HTF "+htfRes, text_color=color.white, bgcolor=dashLbl, text_size=txtSz)
+        table.cell(dash,1,row,useHTF?f_arrow(vHtf):"off", text_color=f_col(vHtf), text_size=txtSz)
+        row += 1
+        table.cell(dash,0,row,"ADX "+str.tostring(math.round(adxVal)), text_color=color.white, bgcolor=dashLbl, text_size=txtSz)
+        table.cell(dash,1,row,adxVal>=adxThresh?"strong":"weak", text_color=adxVal>=adxThresh?color.teal:color.gray, text_size=txtSz)
+        row += 1
+    // --- Pivot S/R section ---
+    if enSR and showSR
+        resTxt = na(nRes) ? "—" : str.tostring(nRes, format.mintick)+"  (+"+str.tostring((nRes-close)/close*100, "#.##")+"%)"
+        supTxt = na(nSup) ? "—" : str.tostring(nSup, format.mintick)+"  ("+str.tostring((nSup-close)/close*100, "#.##")+"%)"
+        table.cell(dash,0,row,"Resistance", text_color=color.white, bgcolor=color.new(#802020, 0), text_size=txtSz)
+        table.cell(dash,1,row,resTxt, text_color=color.red, text_size=txtSz)
+        row += 1
+        table.cell(dash,0,row,"Support", text_color=color.white, bgcolor=color.new(#00695c, 0), text_size=txtSz)
+        table.cell(dash,1,row,supTxt, text_color=color.teal, text_size=txtSz)
+        row += 1
+    // --- Open/ORB section ---
+    if enOpen
+        openCol = op_bias=="CALL" ? color.teal : op_bias=="PUT" ? color.red : color.gray
+        table.cell(dash,0,row,"9:30 Lean", text_color=color.white, bgcolor=dashHdr, text_size=txtSz)
+        table.cell(dash,1,row,op_bias, text_color=color.white, bgcolor=openCol, text_size=txtSz)
+        row += 1
+        orbTxt = na(op_orHigh) ? "waiting" : op_signaled ? "fired" : op_minsSinceOpen < op_orbMinutes ? "forming OR" : op_minsSinceOpen < op_signalEndMin ? "armed" : "window closed"
+        table.cell(dash,0,row,"ORB", text_color=color.white, bgcolor=dashHdr, text_size=txtSz)
+        table.cell(dash,1,row,orbTxt + (na(op_orHigh) ? "" : "  " + str.tostring(op_orLow, format.mintick) + "–" + str.tostring(op_orHigh, format.mintick)), text_color=color.white, bgcolor=op_signaled ? color.new(#b35a00, 0) : dashLbl, text_size=txtSz)
+        row += 1
+    // --- Trade Engine section ---
+    if enTrade
+        posTxt = pos==1 ? "IN CALL" + f_srcTag(entrySrc) : pos==-1 ? "IN PUT" + f_srcTag(entrySrc) : "FLAT"
+        posCol = pos==1 ? color.teal : pos==-1 ? color.red : color.gray
+        table.cell(dash,0,row,"Position", text_color=color.white, bgcolor=dashHdr, text_size=txtSz)
+        table.cell(dash,1,row,posTxt, text_color=color.white, bgcolor=posCol, text_size=txtSz)
+        row += 1
+        table.cell(dash,0,row,"Entry / Stop", text_color=color.white, bgcolor=dashLbl, text_size=txtSz)
+        table.cell(dash,1,row,pos!=0 ? str.tostring(entryPx, format.mintick)+" / "+str.tostring(stopPx, format.mintick) : "—", text_color=color.white, text_size=txtSz)
+        row += 1
+        table.cell(dash,0,row,"Target", text_color=color.white, bgcolor=dashLbl, text_size=txtSz)
+        table.cell(dash,1,row,pos!=0 ? str.tostring(tgtPx, format.mintick) : "—", text_color=color.green, text_size=txtSz)
+        row += 1
