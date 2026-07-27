@@ -50,13 +50,6 @@ backtest (rule 7). Drafted 2026-07-27.
 - $25 order at 95c = ~26 contracts: win nets ~$1.21 after fees.
 - Breakeven win rate held-to-settlement: **~95.7%** (not 95%).
 
-### Distance/volatility filter (10)
-- A 95c price can be safe (big cushion, quiet market) or fragile
-  (small cushion, fast market). The displayed odds lag the price.
-- Rule: compute recent per-minute range from the last 3–5 one-minute
-  candles; require **cushion >= 2–3x recent per-minute range**,
-  otherwise skip even at 95c+.
-
 ### Stop-loss reality (12)
 - Kalshi has no native stop order — a script must watch and react.
 - Odds gap down fast (95 -> 88 -> 74 -> 61); expect exit fills around
@@ -93,15 +86,13 @@ real edge, to test next:
 1. **Maker entries.** Post a resting bid instead of lifting the ask —
    saves ~1c of spread per trade, which is larger than the entire
    current deficit. Trade-off: not all orders fill.
-2. **Cushion/volatility filter (rule 10).** Skip "fragile" 95c
-   entries where price-to-target cushion < 2–3x recent per-minute
-   range. Needs underlying BTC price data joined to each market;
-   not yet backtested.
+(A cushion/volatility filter was considered as rule 10 but removed
+from the strategy on 2026-07-27.)
 
 ## Open questions for next session
 
-- Backtest maker-entry variant and the cushion filter (the two
-  possible sources of real edge).
+- Backtest the maker-entry variant (the main remaining candidate
+  for real edge).
 - Decide whether concurrent slots spread across coins (BTC/ETH/SOL are
   correlated — 4 crypto orders ~= 1 big bet) or across successive
   15-min windows.
