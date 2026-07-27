@@ -36,6 +36,12 @@ backtest (rule 7). Drafted 2026-07-27.
     target, exit price, P&L. The realized win rate at 95c is the number
     that decides whether to continue, resize, or stop.
 
+17. **Partial fills: re-place the remainder.** If an order executes
+    only partially (e.g. $100 intended, $39.50 filled), immediately
+    place a new order for the remaining ~$60 — but only if the entry
+    conditions (95%+ odds, inside the time window) still hold at that
+    moment; otherwise let the remainder go.
+
 ## Key math (rules 8, 10, 12 — discussed in detail)
 
 ### Fees (8)
@@ -62,10 +68,40 @@ backtest (rule 7). Drafted 2026-07-27.
   **~87–88%** — the stop is the most valuable risk rule in the plan.
 - After a stop-out, do not re-enter the same 15-min window.
 
+## Backtest results (2026-07-27, rule 7 — DONE)
+
+Run: `kalshi_backtest.py`, 3 days, 5 series (BTC/ETH/SOL/XRP/DOGE),
+1,439 settled markets, 442 qualifying entries at >= 95c at T-3min.
+
+- Avg entry 97.8c; the side won 97.74% of the time — i.e. **the market
+  price almost exactly equals the true probability. No free edge.**
+- Base strategy (95–99c entry, stop 70c -> 65c fill): **-0.12c per
+  contract after fees.** Breakeven, slightly negative.
+- Variants tested: entry 95–97c (-0.08c), 97–99c (-0.01c),
+  90–95c (-1.56c — clearly worse); stop at 50c (-0.40c), stop at 30c
+  (-0.21c), no stop (-0.23c, with 10 total-loss trades).
+- Only optimistic assumption (stop fills exactly at 70c, no slippage)
+  turns positive: +0.19c/ct — inside noise, and depends on fill luck.
+- The 70c stop IS the best stop level tested (whipsaw at tighter
+  stops costs more than it saves), and it eliminated all 10
+  hold-to-zero disasters. Keep it. It just doesn't create edge.
+
+**Conclusion: as specified, the strategy is a coin-flip minus fees.
+Do not go live on these rules alone.** Two paths that could create
+real edge, to test next:
+
+1. **Maker entries.** Post a resting bid instead of lifting the ask —
+   saves ~1c of spread per trade, which is larger than the entire
+   current deficit. Trade-off: not all orders fill.
+2. **Cushion/volatility filter (rule 10).** Skip "fragile" 95c
+   entries where price-to-target cushion < 2–3x recent per-minute
+   range. Needs underlying BTC price data joined to each market;
+   not yet backtested.
+
 ## Open questions for next session
 
-- Run the backtest (rule 7) and compute the realized win rate at
-  95c / T-3min, after fees.
+- Backtest maker-entry variant and the cushion filter (the two
+  possible sources of real edge).
 - Decide whether concurrent slots spread across coins (BTC/ETH/SOL are
   correlated — 4 crypto orders ~= 1 big bet) or across successive
   15-min windows.
