@@ -1,0 +1,15 @@
+[Unit]
+Description=Mode B breakout trading bot (paper/live per modeb_bot.env)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/modeb-bot
+ExecStart=/opt/modeb-bot/venv/bin/python /opt/modeb-bot/modeb_bot.py
+Restart=always
+RestartSec=30
+User=root
+
+[Install]
+WantedBy=multi-user.target
