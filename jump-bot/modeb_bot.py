@@ -266,7 +266,22 @@ def buying_power() -> float:
         return 0.0
 
 
+def account_qty(sym):
+    """ACTUAL sellable shares of sym in the account (None on fetch failure)."""
+    try:
+        for p in rh.account.get_open_stock_positions(
+                account_number=ACCOUNT) or []:
+            s = rh.stocks.get_symbol_by_url(p.get("instrument"))
+            if s == sym:
+                return float(p.get("shares_available_for_sells")
+                             or p.get("quantity") or 0)
+        return 0.0
+    except Exception:
+        return None
+
+
 def place_buy(sym, dollars, price):
+    """Place buy and return the ACTUAL filled quantity (never an estimate)."""
     if dollars < 1.0:
         return None
     if not LIVE:
@@ -277,7 +292,30 @@ def place_buy(sym, dollars, price):
     ok = isinstance(r, dict) and r.get("id")
     log(f"LIVE BUY {sym} ${dollars:.2f} -> "
         f"{'accepted ' + r['id'][:8] if ok else r}")
-    return dollars / price if ok else None
+    if not ok:
+        return None
+    for _ in range(12):                     # wait up to ~60s for the fill
+        time.sleep(5)
+        try:
+            info = rh.orders.get_stock_order_info(r["id"]) or {}
+        except Exception:
+            continue
+        state = info.get("state")
+        if state == "filled":
+            q = float(info.get("cumulative_quantity") or 0)
+            if q > 0:
+                avg = info.get("average_price")
+                log(f"{sym}: filled {q:.6f} sh @ {avg}")
+                return q
+        if state in ("cancelled", "rejected", "failed"):
+            log(f"{sym}: buy {state} -- not tracking")
+            return None
+    try:
+        rh.orders.cancel_stock_order(r["id"])
+    except Exception:
+        pass
+    log(f"{sym}: buy unfilled after 60s -> cancelled, not tracking")
+    return None
 
 
 def place_sell(sym, qty, price, why):
@@ -292,6 +330,31 @@ def place_sell(sym, qty, price, why):
     return bool(ok)
 
 
+def sell_position(sym, p, px, why, st) -> bool:
+    """Sell a tracked position using the ACCOUNT's actual sellable quantity.
+    Drops phantom positions; 30-min cooloff after 3 consecutive failures."""
+    if p.get("cooloff_until", 0) > time.time():
+        return False
+    actual = account_qty(sym) if LIVE else p["qty"]
+    if actual is None:                     # couldn't check -- try tracked qty
+        actual = p["qty"]
+    qty = min(p["qty"], actual)
+    if qty <= 1e-6:
+        log(f"{sym}: no shares actually held (phantom/unfilled) -> "
+            "dropping tracking, nothing sold")
+        st["positions"].pop(sym, None)
+        return False
+    if place_sell(sym, qty, px, why):
+        st["positions"].pop(sym, None)
+        return True
+    p["fails"] = p.get("fails", 0) + 1
+    if p["fails"] >= 3:
+        p["fails"] = 0
+        p["cooloff_until"] = time.time() + 1800
+        log(f"{sym}: 3 sell failures -> 30 min cooloff before retrying")
+    return False
+
+
 def eod_sweep(st):
     """15:58: sell every ACCOUNT position in profit; hold losers."""
     try:
@@ -302,7 +365,8 @@ def eod_sweep(st):
         return
     for p in positions:
         try:
-            qty = float(p.get("quantity") or 0)
+            qty = float(p.get("shares_available_for_sells")
+                        or p.get("quantity") or 0)
             if qty <= 0:
                 continue
             sym = rh.stocks.get_symbol_by_url(p.get("instrument"))
@@ -362,28 +426,26 @@ def run():
                 if p.get("trailing"):
                     p["peak"] = max(p["peak"], px)
                     if px <= p["peak"] * (1 - TRAIL_GIVEBACK) and regular:
-                        if place_sell(sym, p["qty"], px, "TRAIL"):
+                        if sell_position(sym, p, px, "TRAIL", st):
                             log(f"EXIT {sym} TRAIL {unreal*100:+.2f}%")
                             if sym == "SOFI" and unreal > 0:
                                 st["retired"].append(sym)
                                 log("SOFI retired permanently")
-                            st["positions"].pop(sym)
                 elif unreal >= TRAIL_ARM:
                     p["trailing"] = True
                     p["peak"] = px
                     log(f"{sym}: trailing armed at {unreal*100:+.2f}%")
                 elif TP_LO <= unreal < TP_HI and regular:
-                    if place_sell(sym, p["qty"], px, "TAKE_PROFIT"):
+                    if sell_position(sym, p, px, "TAKE_PROFIT", st):
                         log(f"EXIT {sym} TP {unreal*100:+.2f}%")
                         if sym == "SOFI" and unreal > 0:
                             st["retired"].append(sym)
                             log("SOFI retired permanently")
-                        st["positions"].pop(sym)
                 # else: HOLD (includes all losses -- by design)
             save_state(st)
 
             # ---- EOD profit sweep at 15:58 ----
-            if hm >= 958 // 1 and now.hour == 15 and now.minute >= 58 \
+            if now.hour == 15 and now.minute >= 58 \
                     and st["sweep_done"] != day:
                 st["sweep_done"] = day
                 save_state(st)
