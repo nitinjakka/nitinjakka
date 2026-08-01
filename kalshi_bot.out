@@ -40,3 +40,5 @@
 [23:13:00] KXBTC15M-26AUG011915-15: no side in 95-98c (yes 0.013 / no 0.988) - skip
 [23:15:23] paper bot start: $10.00, running 24.0h
 [23:23:27] paper bot start: $10.00, running 24.0h
+[23:27:31] paper bot v3 start: $10.00, running 24.0h (T-3 maker entry, gap>0.05%, 90%-98%, stop 70%, 25% of cash per trade)
+[23:27:32] KXBTC15M-26AUG011930-30: gap -0.064% but no ask 1.00 outside 0.90-0.98 - skip
