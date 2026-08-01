@@ -49,7 +49,8 @@ def fee(p: float) -> float:
 def notify(title: str, body: str) -> None:
     try:
         requests.post(f"https://ntfy.sh/{NTFY_TOPIC}", data=body.encode(),
-                      headers={"Title": title}, timeout=10)
+                      headers={"Title": title, "Priority": "high"},
+                      timeout=10)
     except Exception:
         pass
 
