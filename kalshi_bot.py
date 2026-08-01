@@ -4,7 +4,8 @@
 Spec (Nitin, 2026-07-27):
   - Monitor the BTC 15-minute market (KXBTC15M).
   - With under 2 minutes to expiry, if either side (Up/Down) is priced
-    97-99c, buy that side.
+    95-98c, buy that side (99c entries lose: they need a 99.07% win
+    rate after fees, above the ~98.6% these markets deliver).
   - Invest the entire available balance every trade.
   - Run continuously (default 24 hours).
 
@@ -28,7 +29,7 @@ import requests
 API = "https://api.elections.kalshi.com/trade-api/v2"
 SERIES = "KXBTC15M"
 ENTRY_WINDOW = 120     # seconds before close to decide
-ENTRY_MIN, ENTRY_MAX = 0.97, 0.99
+ENTRY_MIN, ENTRY_MAX = 0.95, 0.98
 BET_FRACTION = 1.00    # all-in: invest the full balance every trade
 
 
@@ -52,6 +53,7 @@ def get(path: str, params: dict | None = None) -> dict:
 def next_market() -> dict | None:
     ms = get("/markets", {"series_ticker": SERIES, "status": "open",
                           "limit": 5}).get("markets", [])
+    ms = [m for m in ms if close_ts_of(m) > time.time() + 10]
     if not ms:
         return None
     return sorted(ms, key=lambda m: m["close_time"])[0]
