@@ -31,6 +31,7 @@ SERIES = "KXBTC15M"
 ENTRY_WINDOW = 120     # seconds before close to decide
 ENTRY_MIN, ENTRY_MAX = 0.95, 0.98
 BET_FRACTION = 1.00    # all-in: invest the full balance every trade
+STOP_TRIGGER = 0.70    # sell if the held side's bid drops to 70c
 
 
 def fee(p: float) -> float:
@@ -148,13 +149,38 @@ def main() -> None:
                   f"{m['ticker']}: PAPER BUY {contracts}x {side.upper()} "
                   f"@ {price:.2f} cost ${cost:.2f}", flush=True)
 
-            result = settle(m["ticker"])
-            won = (result == side)
-            payout = contracts * 1.0 if won else 0.0
-            cash += payout
-            pnl = payout - cost
-            print(f"    -> result={result} {'WIN' if won else 'LOSS'} "
-                  f"pnl ${pnl:+.2f} cash ${cash:.2f}", flush=True)
+            # Monitor until close: sell if our side's bid drops to 70c.
+            stopped, exit_px = False, 0.0
+            while time.time() < cts:
+                mm = get(f"/markets/{m['ticker']}").get("market", {})
+                try:
+                    yb = float(mm.get("yes_bid_dollars") or 0)
+                    ya = float(mm.get("yes_ask_dollars") or 1)
+                except (TypeError, ValueError):
+                    time.sleep(3)
+                    continue
+                bid = yb if side == "yes" else round(1.0 - ya, 4)
+                if 0 < bid <= STOP_TRIGGER:
+                    exit_px = bid
+                    stopped = True
+                    break
+                time.sleep(3)
+
+            if stopped:
+                proceeds = contracts * (exit_px - fee(exit_px))
+                cash += proceeds
+                pnl = proceeds - cost
+                result, won = "stopped", False
+                print(f"    -> STOP-LOSS sell @ {exit_px:.2f} "
+                      f"pnl ${pnl:+.2f} cash ${cash:.2f}", flush=True)
+            else:
+                result = settle(m["ticker"])
+                won = (result == side)
+                payout = contracts * 1.0 if won else 0.0
+                cash += payout
+                pnl = payout - cost
+                print(f"    -> result={result} {'WIN' if won else 'LOSS'} "
+                      f"pnl ${pnl:+.2f} cash ${cash:.2f}", flush=True)
             w.writerow([dt.datetime.now(dt.timezone.utc).isoformat(),
                         m["ticker"], side, f"{price:.4f}", contracts,
                         f"{cost:.2f}", result, won,
