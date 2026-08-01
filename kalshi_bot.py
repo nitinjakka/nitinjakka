@@ -23,8 +23,11 @@ import csv
 import datetime as dt
 import os
 import time
+from zoneinfo import ZoneInfo
 
 import requests
+
+ET = ZoneInfo("America/New_York")
 
 API = "https://api.elections.kalshi.com/trade-api/v2"
 CB_TICKER = "https://api.exchange.coinbase.com/products/BTC-USD/ticker"
@@ -110,7 +113,7 @@ def settle(ticker: str) -> str:
 
 
 def log_line(msg: str) -> None:
-    print(f"[{dt.datetime.now(dt.timezone.utc):%H:%M:%S}] {msg}", flush=True)
+    print(f"[{dt.datetime.now(ET):%I:%M:%S %p ET}] {msg}", flush=True)
 
 
 def main() -> None:
@@ -131,7 +134,7 @@ def main() -> None:
     with open(args.log, "a", newline="") as f:
         w = csv.writer(f)
         if new_log:
-            w.writerow(["utc_time", "ticker", "side", "entry_price",
+            w.writerow(["et_time", "ticker", "side", "entry_price",
                         "contracts", "cost", "result", "won",
                         "pnl", "cash_after"])
         f.flush()
@@ -255,7 +258,7 @@ def main() -> None:
                          f"pnl ${pnl:+.2f} cash ${cash:.2f}")
                 notify(f"Kalshi bot: {'WIN' if won else 'LOSS'}",
                        f"pnl ${pnl:+.2f}, cash ${cash:.2f}")
-            w.writerow([dt.datetime.now(dt.timezone.utc).isoformat(),
+            w.writerow([dt.datetime.now(ET).strftime("%Y-%m-%d %I:%M:%S %p ET"),
                         ticker, side, f"{limit:.4f}", contracts,
                         f"{cost:.2f}", result, won,
                         f"{pnl:.2f}", f"{cash:.2f}"])
