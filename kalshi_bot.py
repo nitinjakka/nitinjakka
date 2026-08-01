@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
-"""Paper-trading bot for Kalshi 15-min BTC markets.
+"""Paper-trading bot v3 for Kalshi 15-min BTC markets.
 
-Spec (Nitin, 2026-07-27):
-  - Monitor the BTC 15-minute market (KXBTC15M).
-  - With under 2 minutes to expiry, if either side (Up/Down) is priced
-    95-98c, buy that side (99c entries lose: they need a 99.07% win
-    rate after fees, above the ~98.6% these markets deliver).
-  - Invest the entire available balance every trade.
-  - Run continuously (default 24 hours).
+Strategy (evidence-based, within Nitin's last-3-minutes constraint):
+  - At T-3 minutes: compute the gap between BTC spot (Coinbase) and the
+    market's target price. Require |gap| > 0.05%.
+  - Buy the leading side only if its ask is 90-98c.
+  - MAKER entry: rest a limit 1c below the ask (zero fee). If not
+    filled by T-1 min, cancel - no trade.
+  - After a fill, monitor every 3s; stop-loss sell if our bid hits 70c.
+  - Size each trade at 25% of current cash.
+  - Push notifications via ntfy.sh on order, fill, result.
 
-This bot runs in PAPER mode: it tracks a virtual bankroll and logs
-every simulated fill to a CSV. It never sends real orders. (A live
-mode would additionally need KALSHI_API_KEY_ID / KALSHI_PRIVATE_KEY_PATH
-and the order code in kalshi_trade.py.)
+PAPER mode: fills are simulated (a resting bid is considered filled
+if the ask later drops to our limit). No real orders.
 
 Usage:
-  python3 kalshi_bot.py --cash 100 --hours 24 --log kalshi_paper_log.csv
+  python3 kalshi_bot.py --cash 10 --hours 24 --log kalshi_paper_log.csv
 """
 
 import argparse
@@ -27,25 +27,28 @@ import time
 import requests
 
 API = "https://api.elections.kalshi.com/trade-api/v2"
+CB_TICKER = "https://api.exchange.coinbase.com/products/BTC-USD/ticker"
 SERIES = "KXBTC15M"
-ENTRY_WINDOW = 120     # seconds before close to decide
-ENTRY_MIN, ENTRY_MAX = 0.95, 0.98
-BET_FRACTION = 1.00    # all-in: invest the full balance every trade
-STOP_TRIGGER = 0.70    # sell if the held side's bid drops to 70c
 
+ENTRY_WINDOW = 180     # decide 3 minutes before close
+CANCEL_AT = 60         # cancel unfilled maker order 1 min before close
+MIN_GAP = 0.0005       # require spot >0.05% away from target
+ENTRY_MIN, ENTRY_MAX = 0.90, 0.98
+MAKER_IMPROVE = 0.01   # rest 1c below the ask
+STOP_TRIGGER = 0.70
+BET_FRACTION = 0.25
 
 NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "nitin-kalshi-bot-x7q2")
 
 
 def fee(p: float) -> float:
+    """Taker fee. Maker fills pay no fee (verified from app quotes)."""
     return 0.07 * p * (1.0 - p)
 
 
 def notify(title: str, body: str) -> None:
-    """Send a phone push via ntfy.sh (free, no account). Best-effort."""
     try:
-        requests.post(f"https://ntfy.sh/{NTFY_TOPIC}",
-                      data=body.encode(),
+        requests.post(f"https://ntfy.sh/{NTFY_TOPIC}", data=body.encode(),
                       headers={"Title": title}, timeout=10)
     except Exception:
         pass
@@ -64,6 +67,20 @@ def get(path: str, params: dict | None = None) -> dict:
     return {}
 
 
+def btc_spot() -> float | None:
+    try:
+        r = requests.get(CB_TICKER, timeout=10)
+        r.raise_for_status()
+        return float(r.json()["price"])
+    except Exception:
+        return None
+
+
+def close_ts_of(m: dict) -> int:
+    return int(dt.datetime.fromisoformat(
+        m["close_time"].replace("Z", "+00:00")).timestamp())
+
+
 def next_market() -> dict | None:
     ms = get("/markets", {"series_ticker": SERIES, "status": "open",
                           "limit": 5}).get("markets", [])
@@ -73,13 +90,7 @@ def next_market() -> dict | None:
     return sorted(ms, key=lambda m: m["close_time"])[0]
 
 
-def close_ts_of(m: dict) -> int:
-    return int(dt.datetime.fromisoformat(
-        m["close_time"].replace("Z", "+00:00")).timestamp())
-
-
 def wait_until(ts: float, deadline: float) -> bool:
-    """Sleep until ts (unix). Returns False if deadline passed first."""
     while True:
         now = time.time()
         if now >= ts:
@@ -90,7 +101,6 @@ def wait_until(ts: float, deadline: float) -> bool:
 
 
 def settle(ticker: str) -> str:
-    """Poll until the market has a result; return 'yes'/'no'."""
     while True:
         m = get(f"/markets/{ticker}").get("market", {})
         if m.get("result"):
@@ -98,17 +108,23 @@ def settle(ticker: str) -> str:
         time.sleep(10)
 
 
+def log_line(msg: str) -> None:
+    print(f"[{dt.datetime.now(dt.timezone.utc):%H:%M:%S}] {msg}", flush=True)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--cash", type=float, default=100.0)
+    ap.add_argument("--cash", type=float, default=10.0)
     ap.add_argument("--hours", type=float, default=24.0)
     ap.add_argument("--log", default="kalshi_paper_log.csv")
     args = ap.parse_args()
 
     cash = args.cash
     deadline = time.time() + args.hours * 3600
-    print(f"[{dt.datetime.now(dt.timezone.utc):%H:%M:%S}] paper bot start: "
-          f"${cash:.2f}, running {args.hours}h", flush=True)
+    log_line(f"paper bot v3 start: ${cash:.2f}, running {args.hours}h "
+             f"(T-3 maker entry, gap>{MIN_GAP:.2%}, "
+             f"{ENTRY_MIN:.0%}-{ENTRY_MAX:.0%}, stop {STOP_TRIGGER:.0%}, "
+             f"{BET_FRACTION:.0%} of cash per trade)")
 
     new_log = not os.path.exists(args.log)
     with open(args.log, "a", newline="") as f:
@@ -128,47 +144,83 @@ def main() -> None:
             if not wait_until(cts - ENTRY_WINDOW, deadline):
                 break
 
-            # Read prices inside the final minute.
             m = get(f"/markets/{m['ticker']}").get("market", {})
             if not m:
                 continue
-            try:
-                yes_ask = float(m.get("yes_ask_dollars") or 0)
-                no_ask = float(m.get("no_ask_dollars") or 0)
-            except (TypeError, ValueError):
-                continue
-
-            if ENTRY_MIN <= yes_ask <= ENTRY_MAX:
-                side, price = "yes", yes_ask
-            elif ENTRY_MIN <= no_ask <= ENTRY_MAX:
-                side, price = "no", no_ask
-            else:
-                print(f"[{dt.datetime.now(dt.timezone.utc):%H:%M:%S}] "
-                      f"{m['ticker']}: no side in "
-                      f"{ENTRY_MIN * 100:.0f}-{ENTRY_MAX * 100:.0f}c "
-                      f"(yes {yes_ask:.3f} / no {no_ask:.3f}) - skip",
-                      flush=True)
+            ticker = m["ticker"]
+            strike = float(m.get("floor_strike") or 0)
+            spot = btc_spot()
+            if not strike or not spot:
+                log_line(f"{ticker}: missing strike/spot - skip")
                 wait_until(cts + 5, deadline)
                 continue
 
-            bet = cash * BET_FRACTION
-            contracts = int(bet / (price + fee(price)))
-            if contracts < 1:
-                print("bankroll too small to trade - stopping", flush=True)
-                break
-            cost = contracts * (price + fee(price))
-            cash -= cost
-            print(f"[{dt.datetime.now(dt.timezone.utc):%H:%M:%S}] "
-                  f"{m['ticker']}: PAPER BUY {contracts}x {side.upper()} "
-                  f"@ {price:.2f} cost ${cost:.2f}", flush=True)
-            notify("Kalshi bot: BUY",
-                   f"{contracts}x {side.upper()} @ {price:.2f} "
-                   f"(${cost:.2f}) {m['ticker']}")
+            gap = (spot - strike) / strike
+            if abs(gap) <= MIN_GAP:
+                log_line(f"{ticker}: gap {gap:+.3%} too small - skip")
+                wait_until(cts + 5, deadline)
+                continue
+            side = "yes" if gap > 0 else "no"
 
-            # Monitor until close: sell if our side's bid drops to 70c.
+            try:
+                ask = float(m["yes_ask_dollars"] if side == "yes"
+                            else m["no_ask_dollars"])
+            except (KeyError, TypeError, ValueError):
+                wait_until(cts + 5, deadline)
+                continue
+            if not ENTRY_MIN <= ask <= ENTRY_MAX:
+                log_line(f"{ticker}: gap {gap:+.3%} but {side} ask "
+                         f"{ask:.2f} outside {ENTRY_MIN:.2f}-{ENTRY_MAX:.2f}"
+                         f" - skip")
+                wait_until(cts + 5, deadline)
+                continue
+
+            limit = round(ask - MAKER_IMPROVE, 2)
+            contracts = int(cash * BET_FRACTION / limit)
+            if contracts < 1:
+                log_line("bankroll too small - stopping")
+                break
+            log_line(f"{ticker}: MAKER order {contracts}x {side.upper()} "
+                     f"@ {limit:.2f} (ask {ask:.2f}, gap {gap:+.3%})")
+            notify("Kalshi bot: ORDER PLACED",
+                   f"{contracts}x {side.upper()} resting @ {limit:.2f} "
+                   f"(ask {ask:.2f}, gap {gap:+.3%}) {ticker}")
+
+            # Wait for a simulated maker fill: ask drops to our limit.
+            filled = False
+            while time.time() < cts - CANCEL_AT:
+                mm = get(f"/markets/{ticker}").get("market", {})
+                try:
+                    cur_ask = float(mm["yes_ask_dollars"] if side == "yes"
+                                    else mm["no_ask_dollars"])
+                except (KeyError, TypeError, ValueError):
+                    time.sleep(3)
+                    continue
+                if cur_ask <= limit:
+                    filled = True
+                    break
+                time.sleep(3)
+
+            if not filled:
+                log_line(f"{ticker}: not filled by T-{CANCEL_AT}s - "
+                         f"canceled")
+                notify("Kalshi bot: NOT FILLED",
+                       f"Canceled resting order {ticker}")
+                wait_until(cts + 5, deadline)
+                continue
+
+            cost = contracts * limit  # maker: no fee
+            cash -= cost
+            log_line(f"{ticker}: FILLED {contracts}x {side.upper()} "
+                     f"@ {limit:.2f} cost ${cost:.2f}")
+            notify("Kalshi bot: FILLED (BUY)",
+                   f"{contracts}x {side.upper()} @ {limit:.2f} "
+                   f"(${cost:.2f}) {ticker}")
+
+            # Monitor for the 70c stop until close.
             stopped, exit_px = False, 0.0
             while time.time() < cts:
-                mm = get(f"/markets/{m['ticker']}").get("market", {})
+                mm = get(f"/markets/{ticker}").get("market", {})
                 try:
                     yb = float(mm.get("yes_bid_dollars") or 0)
                     ya = float(mm.get("yes_ask_dollars") or 1)
@@ -187,30 +239,29 @@ def main() -> None:
                 cash += proceeds
                 pnl = proceeds - cost
                 result, won = "stopped", False
-                print(f"    -> STOP-LOSS sell @ {exit_px:.2f} "
-                      f"pnl ${pnl:+.2f} cash ${cash:.2f}", flush=True)
+                log_line(f"  STOP-LOSS sell @ {exit_px:.2f} "
+                         f"pnl ${pnl:+.2f} cash ${cash:.2f}")
                 notify("Kalshi bot: STOP-LOSS",
                        f"Sold @ {exit_px:.2f}, pnl ${pnl:+.2f}, "
                        f"cash ${cash:.2f}")
             else:
-                result = settle(m["ticker"])
+                result = settle(ticker)
                 won = (result == side)
                 payout = contracts * 1.0 if won else 0.0
                 cash += payout
                 pnl = payout - cost
-                print(f"    -> result={result} {'WIN' if won else 'LOSS'} "
-                      f"pnl ${pnl:+.2f} cash ${cash:.2f}", flush=True)
+                log_line(f"  result={result} {'WIN' if won else 'LOSS'} "
+                         f"pnl ${pnl:+.2f} cash ${cash:.2f}")
                 notify(f"Kalshi bot: {'WIN' if won else 'LOSS'}",
                        f"pnl ${pnl:+.2f}, cash ${cash:.2f}")
             w.writerow([dt.datetime.now(dt.timezone.utc).isoformat(),
-                        m["ticker"], side, f"{price:.4f}", contracts,
+                        ticker, side, f"{limit:.4f}", contracts,
                         f"{cost:.2f}", result, won,
                         f"{pnl:.2f}", f"{cash:.2f}"])
             f.flush()
 
-    print(f"[{dt.datetime.now(dt.timezone.utc):%H:%M:%S}] done. "
-          f"final cash ${cash:.2f} (started ${args.cash:.2f}, "
-          f"{(cash / args.cash - 1):+.1%})", flush=True)
+    log_line(f"done. final cash ${cash:.2f} (started ${args.cash:.2f}, "
+             f"{(cash / args.cash - 1):+.1%})")
     notify("Kalshi bot: run finished",
            f"Final cash ${cash:.2f} (started ${args.cash:.2f}, "
            f"{(cash / args.cash - 1):+.1%})")
