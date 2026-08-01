@@ -1,1 +1,2 @@
 utc_time,ticker,side,entry_price,contracts,cost,result,won,pnl,cash_after
+2026-08-01T22:45:04.693502+00:00,KXBTC15M-26AUG011845-45,no,0.9680,51,49.48,no,True,1.52,101.52
