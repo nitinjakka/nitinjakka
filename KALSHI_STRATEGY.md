@@ -62,6 +62,21 @@ backtest (rule 7). Drafted 2026-07-27.
   **~87–88%** — the stop is the most valuable risk rule in the plan.
 - After a stop-out, do not re-enter the same 15-min window.
 
+## Bot v3 strategy validation (2026-08-01)
+
+Rules: T-3min entry, spot gap >0.05% from target, leading side's ask
+90-98c, stop 70c. 7 days / 5 coins / 652 qualifying trades (~93/day):
+
+- Taker bound (pay ask + fee): **+0.11c/contract — positive even
+  before maker savings**, unlike plain T-3 (-0.15c). The gap+odds
+  combo works at T-3.
+- Maker-adjusted (rest 1c below ask, no fee): **~+1.21c/contract,
+  ~+1.27% per trade cycle** — pending live fill-rate data.
+- BTC only: 104 trades, +1.54c/ct even as taker.
+- Win rate 96.17% at avg 95.0c entry; 85 stop exits (71 whipsaw);
+  11 gap-through zeros.
+- Deployed as paper bot v3 (25% of cash per trade, ntfy alerts).
+
 ## Backtest v2: distance-based strategy (2026-07-27)
 
 Rules tested (`kalshi_backtest_v2.py`): at T-5min, enter the leading
