@@ -128,7 +128,8 @@ def main() -> None:
                 side, price = "no", no_ask
             else:
                 print(f"[{dt.datetime.now(dt.timezone.utc):%H:%M:%S}] "
-                      f"{m['ticker']}: no side in 95-99c "
+                      f"{m['ticker']}: no side in "
+                      f"{ENTRY_MIN * 100:.0f}-{ENTRY_MAX * 100:.0f}c "
                       f"(yes {yes_ask:.3f} / no {no_ask:.3f}) - skip",
                       flush=True)
                 wait_until(cts + 5, deadline)
