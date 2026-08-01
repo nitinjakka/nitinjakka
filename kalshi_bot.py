@@ -304,7 +304,9 @@ def main() -> None:
             placed += 1
 
         if not candidates:
-            log_line("no qualifying coins this window")
+            log_line(f"nothing to trade this window "
+                     f"({dt.datetime.fromtimestamp(cts, ET):%I:%M %p ET} "
+                     f"close)")
         # Move past this window before scanning for the next one.
         while time.time() < cts + 5:
             time.sleep(3)
