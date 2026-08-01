@@ -1,37 +1,47 @@
 #!/usr/bin/env python3
-"""Paper-trading bot v3 for Kalshi 15-min BTC markets.
+"""Paper-trading bot v4 for Kalshi 15-min crypto markets (9 coins).
 
-Strategy (evidence-based, within Nitin's last-3-minutes constraint):
-  - At T-3 minutes: compute the gap between BTC spot (Coinbase) and the
-    market's target price. Require |gap| > 0.05%.
+Coins: BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE, NEAR.
+
+Strategy per 15-minute window (all coins share the same close grid):
+  - At T-3 minutes: for each coin, compute the gap between spot
+    (Coinbase) and the market's target. Require |gap| > 0.05%.
   - Buy the leading side only if its ask is 90-98c.
-  - MAKER entry: rest a limit 1c below the ask (zero fee). If not
-    filled by T-1 min, cancel - no trade.
+  - MAKER entry: rest a limit 1c below the ask (zero fee). Cancel if
+    not filled by T-1 min.
   - After a fill, monitor every 3s; stop-loss sell if our bid hits 70c.
-  - Size each trade at 25% of current cash.
-  - Push notifications via ntfy.sh on order, fill, result.
+  - Size each order at 25% of cash; at most 4 concurrent positions.
+  - High-priority push notifications via ntfy.sh; timestamps in ET.
 
-PAPER mode: fills are simulated (a resting bid is considered filled
-if the ask later drops to our limit). No real orders.
-
-Usage:
-  python3 kalshi_bot.py --cash 10 --hours 24 --log kalshi_paper_log.csv
+PAPER mode: fills are simulated (resting bid fills if the ask later
+drops to the limit). No real orders.
 """
 
 import argparse
 import csv
 import datetime as dt
 import os
+import threading
 import time
 from zoneinfo import ZoneInfo
 
 import requests
 
+API = "https://api.elections.kalshi.com/trade-api/v2"
+CB = "https://api.exchange.coinbase.com"
 ET = ZoneInfo("America/New_York")
 
-API = "https://api.elections.kalshi.com/trade-api/v2"
-CB_TICKER = "https://api.exchange.coinbase.com/products/BTC-USD/ticker"
-SERIES = "KXBTC15M"
+COINS = {
+    "KXBTC15M": "BTC-USD",
+    "KXETH15M": "ETH-USD",
+    "KXSOL15M": "SOL-USD",
+    "KXZEC15M": "ZEC-USD",
+    "KXBNB15M": "BNB-USD",
+    "KXXRP15M": "XRP-USD",
+    "KXHYPE15M": "HYPE-USD",
+    "KXDOGE15M": "DOGE-USD",
+    "KXNEAR15M": "NEAR-USD",
+}
 
 ENTRY_WINDOW = 180     # decide 3 minutes before close
 CANCEL_AT = 60         # cancel unfilled maker order 1 min before close
@@ -40,8 +50,12 @@ ENTRY_MIN, ENTRY_MAX = 0.90, 0.98
 MAKER_IMPROVE = 0.01   # rest 1c below the ask
 STOP_TRIGGER = 0.70
 BET_FRACTION = 0.25
+MAX_CONCURRENT = 4
 
 NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "nitin-kalshi-bot-x7q2")
+
+lock = threading.Lock()   # guards cash + csv writer
+state = {"cash": 0.0}
 
 
 def fee(p: float) -> float:
@@ -66,14 +80,14 @@ def get(path: str, params: dict | None = None) -> dict:
             return r.json()
         except Exception:
             if attempt == 3:
-                raise
+                return {}
             time.sleep(2 ** attempt)
     return {}
 
 
-def btc_spot() -> float | None:
+def spot(product: str) -> float | None:
     try:
-        r = requests.get(CB_TICKER, timeout=10)
+        r = requests.get(f"{CB}/products/{product}/ticker", timeout=10)
         r.raise_for_status()
         return float(r.json()["price"])
     except Exception:
@@ -85,23 +99,14 @@ def close_ts_of(m: dict) -> int:
         m["close_time"].replace("Z", "+00:00")).timestamp())
 
 
-def next_market() -> dict | None:
-    ms = get("/markets", {"series_ticker": SERIES, "status": "open",
+def open_markets(series: str) -> list[dict]:
+    ms = get("/markets", {"series_ticker": series, "status": "open",
                           "limit": 5}).get("markets", [])
-    ms = [m for m in ms if close_ts_of(m) > time.time() + 10]
-    if not ms:
-        return None
-    return sorted(ms, key=lambda m: m["close_time"])[0]
+    return [m for m in ms if close_ts_of(m) > time.time() + 10]
 
 
-def wait_until(ts: float, deadline: float) -> bool:
-    while True:
-        now = time.time()
-        if now >= ts:
-            return True
-        if now >= deadline:
-            return False
-        time.sleep(min(5.0, ts - now))
+def log_line(msg: str) -> None:
+    print(f"[{dt.datetime.now(ET):%I:%M:%S %p ET}] {msg}", flush=True)
 
 
 def settle(ticker: str) -> str:
@@ -112,8 +117,94 @@ def settle(ticker: str) -> str:
         time.sleep(10)
 
 
-def log_line(msg: str) -> None:
-    print(f"[{dt.datetime.now(ET):%I:%M:%S %p ET}] {msg}", flush=True)
+def coin_name(series: str) -> str:
+    return COINS[series].split("-")[0]
+
+
+def trade_lifecycle(series: str, m: dict, side: str, limit: float,
+                    contracts: int, gap: float, cts: int,
+                    writer, wfile) -> None:
+    """Runs in its own thread: fill-wait -> stop monitor -> settle."""
+    ticker = m["ticker"]
+    coin = coin_name(series)
+    reserve = contracts * limit
+    filled = False
+    while time.time() < cts - CANCEL_AT:
+        mm = get(f"/markets/{ticker}").get("market", {})
+        try:
+            cur_ask = float(mm["yes_ask_dollars"] if side == "yes"
+                            else mm["no_ask_dollars"])
+        except (KeyError, TypeError, ValueError):
+            time.sleep(3)
+            continue
+        if cur_ask <= limit:
+            filled = True
+            break
+        time.sleep(3)
+
+    if not filled:
+        with lock:
+            state["cash"] += reserve  # refund reservation
+        log_line(f"{coin}: not filled by T-{CANCEL_AT}s - canceled "
+                 f"({ticker})")
+        notify(f"Kalshi bot: {coin} NOT FILLED",
+               f"Canceled resting order {ticker}")
+        return
+
+    cost = reserve  # maker: no fee
+    log_line(f"{coin}: FILLED {contracts}x {side.upper()} @ {limit:.2f} "
+             f"cost ${cost:.2f} ({ticker})")
+    notify(f"Kalshi bot: {coin} FILLED (BUY)",
+           f"{contracts}x {side.upper()} @ {limit:.2f} (${cost:.2f}) "
+           f"{ticker}")
+
+    stopped, exit_px = False, 0.0
+    while time.time() < cts:
+        mm = get(f"/markets/{ticker}").get("market", {})
+        try:
+            yb = float(mm.get("yes_bid_dollars") or 0)
+            ya = float(mm.get("yes_ask_dollars") or 1)
+        except (TypeError, ValueError):
+            time.sleep(3)
+            continue
+        bid = yb if side == "yes" else round(1.0 - ya, 4)
+        if 0 < bid <= STOP_TRIGGER:
+            exit_px = bid
+            stopped = True
+            break
+        time.sleep(3)
+
+    if stopped:
+        proceeds = contracts * (exit_px - fee(exit_px))
+        with lock:
+            state["cash"] += proceeds
+            cash_now = state["cash"]
+        pnl = proceeds - cost
+        result, won = "stopped", False
+        log_line(f"{coin}: STOP-LOSS sell @ {exit_px:.2f} "
+                 f"pnl ${pnl:+.2f} cash ${cash_now:.2f}")
+        notify(f"Kalshi bot: {coin} STOP-LOSS",
+               f"Sold @ {exit_px:.2f}, pnl ${pnl:+.2f}, "
+               f"cash ${cash_now:.2f}")
+    else:
+        result = settle(ticker)
+        won = (result == side)
+        payout = contracts * 1.0 if won else 0.0
+        with lock:
+            state["cash"] += payout
+            cash_now = state["cash"]
+        pnl = payout - cost
+        log_line(f"{coin}: result={result} {'WIN' if won else 'LOSS'} "
+                 f"pnl ${pnl:+.2f} cash ${cash_now:.2f}")
+        notify(f"Kalshi bot: {coin} {'WIN' if won else 'LOSS'}",
+               f"pnl ${pnl:+.2f}, cash ${cash_now:.2f}")
+
+    with lock:
+        writer.writerow(
+            [dt.datetime.now(ET).strftime("%Y-%m-%d %I:%M:%S %p ET"),
+             ticker, side, f"{limit:.4f}", contracts, f"{cost:.2f}",
+             result, won, f"{pnl:.2f}", f"{cash_now:.2f}"])
+        wfile.flush()
 
 
 def main() -> None:
@@ -123,152 +214,112 @@ def main() -> None:
     ap.add_argument("--log", default="kalshi_paper_log.csv")
     args = ap.parse_args()
 
-    cash = args.cash
+    state["cash"] = args.cash
     deadline = time.time() + args.hours * 3600
-    log_line(f"paper bot v3 start: ${cash:.2f}, running {args.hours}h "
-             f"(T-3 maker entry, gap>{MIN_GAP:.2%}, "
-             f"{ENTRY_MIN:.0%}-{ENTRY_MAX:.0%}, stop {STOP_TRIGGER:.0%}, "
-             f"{BET_FRACTION:.0%} of cash per trade)")
+    log_line(f"paper bot v4 start: ${args.cash:.2f}, {args.hours}h, "
+             f"{len(COINS)} coins ({', '.join(coin_name(s) for s in COINS)}); "
+             f"T-3 maker, gap>{MIN_GAP:.2%}, {ENTRY_MIN:.0%}-{ENTRY_MAX:.0%}, "
+             f"stop {STOP_TRIGGER:.0%}, {BET_FRACTION:.0%}/trade, "
+             f"max {MAX_CONCURRENT} at once")
 
     new_log = not os.path.exists(args.log)
-    with open(args.log, "a", newline="") as f:
-        w = csv.writer(f)
-        if new_log:
-            w.writerow(["et_time", "ticker", "side", "entry_price",
+    f = open(args.log, "a", newline="")
+    writer = csv.writer(f)
+    if new_log:
+        writer.writerow(["et_time", "ticker", "side", "entry_price",
                         "contracts", "cost", "result", "won",
                         "pnl", "cash_after"])
         f.flush()
 
-        while time.time() < deadline:
-            m = next_market()
-            if not m:
-                time.sleep(30)
-                continue
-            cts = close_ts_of(m)
-            if not wait_until(cts - ENTRY_WINDOW, deadline):
+    threads: list[threading.Thread] = []
+    while time.time() < deadline:
+        anchor = open_markets("KXBTC15M")
+        if not anchor:
+            time.sleep(30)
+            continue
+        cts = min(close_ts_of(m) for m in anchor)
+        while time.time() < cts - ENTRY_WINDOW:
+            if time.time() >= deadline:
                 break
+            time.sleep(min(5.0, cts - ENTRY_WINDOW - time.time()))
+        if time.time() >= deadline:
+            break
 
-            m = get(f"/markets/{m['ticker']}").get("market", {})
+        # Decision pass across all coins for this window.
+        candidates = []
+        for series, product in COINS.items():
+            ms = [m for m in open_markets(series)
+                  if close_ts_of(m) == cts]
+            if not ms:
+                continue
+            m = get(f"/markets/{ms[0]['ticker']}").get("market", {})
             if not m:
                 continue
-            ticker = m["ticker"]
             strike = float(m.get("floor_strike") or 0)
-            spot = btc_spot()
-            if not strike or not spot:
-                log_line(f"{ticker}: missing strike/spot - skip")
-                wait_until(cts + 5, deadline)
+            px = spot(product)
+            if not strike or not px:
                 continue
-
-            gap = (spot - strike) / strike
+            gap = (px - strike) / strike
             if abs(gap) <= MIN_GAP:
-                log_line(f"{ticker}: gap {gap:+.3%} too small - skip")
-                wait_until(cts + 5, deadline)
+                log_line(f"{coin_name(series)}: gap {gap:+.3%} too small"
+                         f" - skip")
                 continue
             side = "yes" if gap > 0 else "no"
-
             try:
                 ask = float(m["yes_ask_dollars"] if side == "yes"
                             else m["no_ask_dollars"])
             except (KeyError, TypeError, ValueError):
-                wait_until(cts + 5, deadline)
                 continue
             if not ENTRY_MIN <= ask <= ENTRY_MAX:
-                log_line(f"{ticker}: gap {gap:+.3%} but {side} ask "
-                         f"{ask:.2f} outside {ENTRY_MIN:.2f}-{ENTRY_MAX:.2f}"
-                         f" - skip")
-                wait_until(cts + 5, deadline)
+                log_line(f"{coin_name(series)}: gap {gap:+.3%} but "
+                         f"{side} ask {ask:.2f} out of range - skip")
                 continue
+            candidates.append((abs(gap), gap, series, m, side, ask))
 
-            limit = round(ask - MAKER_IMPROVE, 2)
-            contracts = int(cash * BET_FRACTION / limit)
-            if contracts < 1:
-                log_line("bankroll too small - stopping")
+        candidates.sort(reverse=True, key=lambda c: c[0])
+        placed = 0
+        for _, gap, series, m, side, ask in candidates:
+            if placed >= MAX_CONCURRENT:
                 break
-            log_line(f"{ticker}: MAKER order {contracts}x {side.upper()} "
-                     f"@ {limit:.2f} (ask {ask:.2f}, gap {gap:+.3%})")
-            notify("Kalshi bot: ORDER PLACED",
+            limit = round(ask - MAKER_IMPROVE, 2)
+            with lock:
+                contracts = int(state["cash"] * BET_FRACTION / limit)
+                if contracts < 1:
+                    continue
+                state["cash"] -= contracts * limit  # reserve
+            coin = coin_name(series)
+            log_line(f"{coin}: MAKER order {contracts}x {side.upper()} "
+                     f"@ {limit:.2f} (ask {ask:.2f}, gap {gap:+.3%}) "
+                     f"{m['ticker']}")
+            notify(f"Kalshi bot: {coin} ORDER PLACED",
                    f"{contracts}x {side.upper()} resting @ {limit:.2f} "
-                   f"(ask {ask:.2f}, gap {gap:+.3%}) {ticker}")
+                   f"(ask {ask:.2f}, gap {gap:+.3%}) {m['ticker']}")
+            t = threading.Thread(
+                target=trade_lifecycle,
+                args=(series, m, side, limit, contracts, gap, cts,
+                      writer, f),
+                daemon=False)
+            t.start()
+            threads.append(t)
+            placed += 1
 
-            # Wait for a simulated maker fill: ask drops to our limit.
-            filled = False
-            while time.time() < cts - CANCEL_AT:
-                mm = get(f"/markets/{ticker}").get("market", {})
-                try:
-                    cur_ask = float(mm["yes_ask_dollars"] if side == "yes"
-                                    else mm["no_ask_dollars"])
-                except (KeyError, TypeError, ValueError):
-                    time.sleep(3)
-                    continue
-                if cur_ask <= limit:
-                    filled = True
-                    break
-                time.sleep(3)
+        if not candidates:
+            log_line("no qualifying coins this window")
+        # Move past this window before scanning for the next one.
+        while time.time() < cts + 5:
+            time.sleep(3)
+        threads = [t for t in threads if t.is_alive()]
 
-            if not filled:
-                log_line(f"{ticker}: not filled by T-{CANCEL_AT}s - "
-                         f"canceled")
-                notify("Kalshi bot: NOT FILLED",
-                       f"Canceled resting order {ticker}")
-                wait_until(cts + 5, deadline)
-                continue
-
-            cost = contracts * limit  # maker: no fee
-            cash -= cost
-            log_line(f"{ticker}: FILLED {contracts}x {side.upper()} "
-                     f"@ {limit:.2f} cost ${cost:.2f}")
-            notify("Kalshi bot: FILLED (BUY)",
-                   f"{contracts}x {side.upper()} @ {limit:.2f} "
-                   f"(${cost:.2f}) {ticker}")
-
-            # Monitor for the 70c stop until close.
-            stopped, exit_px = False, 0.0
-            while time.time() < cts:
-                mm = get(f"/markets/{ticker}").get("market", {})
-                try:
-                    yb = float(mm.get("yes_bid_dollars") or 0)
-                    ya = float(mm.get("yes_ask_dollars") or 1)
-                except (TypeError, ValueError):
-                    time.sleep(3)
-                    continue
-                bid = yb if side == "yes" else round(1.0 - ya, 4)
-                if 0 < bid <= STOP_TRIGGER:
-                    exit_px = bid
-                    stopped = True
-                    break
-                time.sleep(3)
-
-            if stopped:
-                proceeds = contracts * (exit_px - fee(exit_px))
-                cash += proceeds
-                pnl = proceeds - cost
-                result, won = "stopped", False
-                log_line(f"  STOP-LOSS sell @ {exit_px:.2f} "
-                         f"pnl ${pnl:+.2f} cash ${cash:.2f}")
-                notify("Kalshi bot: STOP-LOSS",
-                       f"Sold @ {exit_px:.2f}, pnl ${pnl:+.2f}, "
-                       f"cash ${cash:.2f}")
-            else:
-                result = settle(ticker)
-                won = (result == side)
-                payout = contracts * 1.0 if won else 0.0
-                cash += payout
-                pnl = payout - cost
-                log_line(f"  result={result} {'WIN' if won else 'LOSS'} "
-                         f"pnl ${pnl:+.2f} cash ${cash:.2f}")
-                notify(f"Kalshi bot: {'WIN' if won else 'LOSS'}",
-                       f"pnl ${pnl:+.2f}, cash ${cash:.2f}")
-            w.writerow([dt.datetime.now(ET).strftime("%Y-%m-%d %I:%M:%S %p ET"),
-                        ticker, side, f"{limit:.4f}", contracts,
-                        f"{cost:.2f}", result, won,
-                        f"{pnl:.2f}", f"{cash:.2f}"])
-            f.flush()
-
+    for t in threads:
+        t.join(timeout=1200)
+    with lock:
+        cash = state["cash"]
     log_line(f"done. final cash ${cash:.2f} (started ${args.cash:.2f}, "
              f"{(cash / args.cash - 1):+.1%})")
     notify("Kalshi bot: run finished",
            f"Final cash ${cash:.2f} (started ${args.cash:.2f}, "
            f"{(cash / args.cash - 1):+.1%})")
+    f.close()
 
 
 if __name__ == "__main__":
