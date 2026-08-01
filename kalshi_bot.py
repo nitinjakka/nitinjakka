@@ -34,8 +34,21 @@ BET_FRACTION = 1.00    # all-in: invest the full balance every trade
 STOP_TRIGGER = 0.70    # sell if the held side's bid drops to 70c
 
 
+NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "nitin-kalshi-bot-x7q2")
+
+
 def fee(p: float) -> float:
     return 0.07 * p * (1.0 - p)
+
+
+def notify(title: str, body: str) -> None:
+    """Send a phone push via ntfy.sh (free, no account). Best-effort."""
+    try:
+        requests.post(f"https://ntfy.sh/{NTFY_TOPIC}",
+                      data=body.encode(),
+                      headers={"Title": title}, timeout=10)
+    except Exception:
+        pass
 
 
 def get(path: str, params: dict | None = None) -> dict:
@@ -148,6 +161,9 @@ def main() -> None:
             print(f"[{dt.datetime.now(dt.timezone.utc):%H:%M:%S}] "
                   f"{m['ticker']}: PAPER BUY {contracts}x {side.upper()} "
                   f"@ {price:.2f} cost ${cost:.2f}", flush=True)
+            notify("Kalshi bot: BUY",
+                   f"{contracts}x {side.upper()} @ {price:.2f} "
+                   f"(${cost:.2f}) {m['ticker']}")
 
             # Monitor until close: sell if our side's bid drops to 70c.
             stopped, exit_px = False, 0.0
@@ -173,6 +189,9 @@ def main() -> None:
                 result, won = "stopped", False
                 print(f"    -> STOP-LOSS sell @ {exit_px:.2f} "
                       f"pnl ${pnl:+.2f} cash ${cash:.2f}", flush=True)
+                notify("Kalshi bot: STOP-LOSS",
+                       f"Sold @ {exit_px:.2f}, pnl ${pnl:+.2f}, "
+                       f"cash ${cash:.2f}")
             else:
                 result = settle(m["ticker"])
                 won = (result == side)
@@ -181,6 +200,8 @@ def main() -> None:
                 pnl = payout - cost
                 print(f"    -> result={result} {'WIN' if won else 'LOSS'} "
                       f"pnl ${pnl:+.2f} cash ${cash:.2f}", flush=True)
+                notify(f"Kalshi bot: {'WIN' if won else 'LOSS'}",
+                       f"pnl ${pnl:+.2f}, cash ${cash:.2f}")
             w.writerow([dt.datetime.now(dt.timezone.utc).isoformat(),
                         m["ticker"], side, f"{price:.4f}", contracts,
                         f"{cost:.2f}", result, won,
@@ -190,6 +211,9 @@ def main() -> None:
     print(f"[{dt.datetime.now(dt.timezone.utc):%H:%M:%S}] done. "
           f"final cash ${cash:.2f} (started ${args.cash:.2f}, "
           f"{(cash / args.cash - 1):+.1%})", flush=True)
+    notify("Kalshi bot: run finished",
+           f"Final cash ${cash:.2f} (started ${args.cash:.2f}, "
+           f"{(cash / args.cash - 1):+.1%})")
 
 
 if __name__ == "__main__":
