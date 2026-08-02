@@ -481,3 +481,5 @@
 [09:12:14 AM ET] NEAR: gap -0.177% too small - skip
 [09:12:14 AM ET] nothing to trade this window (09:15 AM ET close)
 [watchdog 15:19:13 UTC] bot dead - restarting: cash=10.00 hours=28.68 args=--live
+[11:19:13 AM ET] *** LIVE MODE *** live auth OK, account balance $10.08, max order $0.00
+[11:19:13 AM ET] LIVE bot v4 start: $10.08, 28.68h, 9 coins (BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE, NEAR); T-3 market orders, per-coin gaps (BTC 0.05% / mid 0.10% / HYPE 0.20% / NEAR+ZEC 0.25%), 90c-98.5c, stop 70%, size 1coin=50%/2+=split100%, max 4 at once
