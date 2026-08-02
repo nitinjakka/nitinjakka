@@ -61,3 +61,15 @@
 [07:59:03 PM ET] SOL: not filled by T-60s - canceled (KXSOL15M-26AUG012000-00)
 [08:06:26 PM ET] paper bot v4 start: $10.00, 24.0h, 9 coins (BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE, NEAR); T-3 maker, gap>0.05%, 90%-98%, stop 70%, 25%/trade, max 4 at once
 [08:06:56 PM ET] paper bot v4 start: $10.00, 24.0h, 9 coins (BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE, NEAR); T-3 market orders, gap>0.05%, 90%-98%, stop 70%, 25%/trade, max 4 at once
+[watchdog 00:12:52 UTC] bot dead - restarting: cash=101.52 hours=24.00
+[08:12:53 PM ET] paper bot v4 start: $101.52, 24.0h, 9 coins (BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE, NEAR); T-3 market orders, gap>0.05%, 90%-98%, stop 70%, 25%/trade, max 4 at once
+[08:12:55 PM ET] BTC: gap +0.217% but yes ask 1.00 out of range - skip
+[08:12:56 PM ET] ETH: gap +0.186% but yes ask 1.00 out of range - skip
+[08:12:57 PM ET] SOL: gap +0.195% but yes ask 1.00 out of range - skip
+[08:12:59 PM ET] ZEC: gap +0.828% but yes ask 0.99 out of range - skip
+[08:13:00 PM ET] BNB: gap +0.197% but yes ask 0.99 out of range - skip
+[08:13:02 PM ET] XRP: gap +0.189% but yes ask 1.00 out of range - skip
+[08:13:03 PM ET] HYPE: gap +0.386% but yes ask 1.00 out of range - skip
+[08:13:05 PM ET] DOGE: gap +0.164% but yes ask 1.00 out of range - skip
+[08:13:06 PM ET] NEAR: gap +0.197% but yes ask 1.00 out of range - skip
+[08:13:06 PM ET] nothing to trade this window (08:15 PM ET close)
