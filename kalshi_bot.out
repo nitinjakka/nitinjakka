@@ -42,3 +42,12 @@
 [11:57:01 AM ET] NEAR: gap -0.253% but no ask 1.00 out of range - skip
 [11:57:01 AM ET] nothing to trade this window (12:00 PM ET close)
 [autodeploy 2026-08-02T16:04 UTC] pulled b335b9b
+[12:12:00 PM ET] BTC: gap -0.005% too small - skip
+[12:12:00 PM ET] ETH: gap -0.068% too small - skip
+[12:12:00 PM ET] SOL: gap -0.065% too small - skip
+[12:12:00 PM ET] ZEC: gap -0.374% but no ask 0.99 out of range - skip
+[12:12:00 PM ET] BNB: gap +0.003% too small - skip
+[12:12:00 PM ET] XRP: gap -0.120% but no ask 0.99 out of range - skip
+[12:12:00 PM ET] HYPE: gap -0.012% too small - skip
+[12:12:01 PM ET] NEAR: gap -0.201% too small - skip
+[12:12:05 PM ET] DOGE: LIVE order REJECTED: 410: {"error":{"code":"deprecated_v1_order_endpoint","message":"Please switch to the V2 endpoints","details":"https://docs.kalshi.com/api-reference/orders/create-order-v2"}}
