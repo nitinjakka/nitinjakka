@@ -1,3 +1,6 @@
 monitor.out
 __pycache__/
 *.pyc
+kalshi_bot.out
+kalshi_live_log.csv
+kalshi_cash.txt

@@ -21,7 +21,8 @@ while true; do
     for f in kalshi_bot.out kalshi_live_log.csv kalshi_cash.txt; do
         [ -f "$REPO/$f" ] && cp -f "$REPO/$f" "$WT/$f" 2>/dev/null
     done
-    git -C "$WT" add -A >/dev/null 2>&1
+    git -C "$WT" add -f kalshi_bot.out kalshi_live_log.csv \
+        kalshi_cash.txt >/dev/null 2>&1
     if git -C "$WT" commit -q -m "live logs $(date -u +%FT%H:%M)" \
             >/dev/null 2>&1; then
         git -C "$WT" push -q origin live-logs >/dev/null 2>&1

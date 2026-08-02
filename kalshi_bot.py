@@ -20,6 +20,7 @@ import argparse
 import csv
 import datetime as dt
 import os
+import subprocess
 import threading
 import time
 from zoneinfo import ZoneInfo
@@ -162,6 +163,17 @@ def settle(ticker: str) -> str:
 
 def coin_name(series: str) -> str:
     return COINS[series].split("-")[0]
+
+
+def repo_commit() -> str:
+    """Current git commit of the repo, or '' if unavailable."""
+    try:
+        return subprocess.check_output(
+            ["git", "rev-parse", "HEAD"],
+            cwd=os.path.dirname(os.path.abspath(__file__)),
+            stderr=subprocess.DEVNULL).decode().strip()
+    except Exception:
+        return ""
 
 
 def trade_lifecycle(series: str, m: dict, side: str, price: float,
@@ -334,8 +346,18 @@ def main() -> None:
     threading.Thread(target=heartbeat_loop, args=(mode,),
                      daemon=True).start()
 
+    boot_commit = repo_commit()
     threads: list[threading.Thread] = []
     while time.time() < deadline:
+        # Auto-update: if new code was deployed, exit at this safe point
+        # (between windows, no order being placed) so the watchdog
+        # restarts us on the new code. Non-daemon trade threads still
+        # finish first, so open positions are never abandoned.
+        cur = repo_commit()
+        if boot_commit and cur and cur != boot_commit:
+            log_line(f"new code deployed ({cur[:7]}) - restarting to update")
+            notify("Kalshi bot: UPDATING", "New code deployed; restarting.")
+            return
         anchor = open_markets("KXBTC15M")
         if not anchor:
             time.sleep(30)
