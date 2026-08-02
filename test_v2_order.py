@@ -27,19 +27,26 @@ except Exception as e:
     print(f"CREDENTIAL/PREFLIGHT ERROR: {e}")
     raise SystemExit(1)
 
-# Find a current open BTC 15-min market (>2 min to close).
-ms = requests.get(f"{API}/markets",
-                  params={"series_ticker": "KXBTC15M", "status": "open",
-                          "limit": 5}, timeout=15).json().get("markets", [])
-ms = [m for m in ms
-      if dt.datetime.fromisoformat(
-          m["close_time"].replace("Z", "+00:00")).timestamp()
-      > time.time() + 120]
-if not ms:
-    print("No open BTC 15-min market right now; try again shortly.")
+# Find any open 15-min crypto market with >30s to close.
+SERIES = ["KXBTC15M", "KXETH15M", "KXSOL15M", "KXXRP15M", "KXDOGE15M",
+          "KXBNB15M", "KXHYPE15M", "KXNEAR15M", "KXZEC15M"]
+found = []
+for s in SERIES:
+    ms = requests.get(f"{API}/markets",
+                      params={"series_ticker": s, "status": "open",
+                              "limit": 5}, timeout=15).json().get("markets", [])
+    for m in ms:
+        cts = dt.datetime.fromisoformat(
+            m["close_time"].replace("Z", "+00:00")).timestamp()
+        if cts > time.time() + 30:
+            found.append((cts, m["ticker"]))
+    if found:
+        break
+if not found:
+    print("No open 15-min crypto market right now; try again shortly.")
     raise SystemExit(0)
 
-ticker = sorted(ms, key=lambda x: x["close_time"])[0]["ticker"]
+ticker = sorted(found)[0][1]
 print(f"\nTesting V2 order on {ticker}: 1x YES bid @ 1c (IOC, will not fill)")
 
 try:
