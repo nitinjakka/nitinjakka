@@ -1,0 +1,14 @@
+[Unit]
+Description=Kalshi bot auto-deploy (git poll + reset)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/nitinjakka
+ExecStart=/bin/bash /opt/nitinjakka/auto_deploy.sh
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

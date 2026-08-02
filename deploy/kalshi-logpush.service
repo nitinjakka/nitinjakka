@@ -1,0 +1,14 @@
+[Unit]
+Description=Kalshi bot log pusher (git -> live-logs branch)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/nitinjakka
+ExecStart=/bin/bash /opt/nitinjakka/push_live_logs.sh
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

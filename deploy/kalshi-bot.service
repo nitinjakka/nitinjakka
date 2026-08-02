@@ -1,0 +1,17 @@
+[Unit]
+Description=Kalshi 15-min crypto trading bot (live)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/nitinjakka
+EnvironmentFile=/etc/kalshi-bot.env
+ExecStart=/usr/bin/python3 /opt/nitinjakka/kalshi_bot.py --live --hours 999999 --log kalshi_live_log.csv
+Restart=always
+RestartSec=5
+StandardOutput=append:/opt/nitinjakka/kalshi_bot.out
+StandardError=append:/opt/nitinjakka/kalshi_bot.out
+
+[Install]
+WantedBy=multi-user.target
