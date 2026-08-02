@@ -60,6 +60,9 @@ STOP_TRIGGER = 0.70
 MAX_CONCURRENT = 4
 
 NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "nitin-kalshi-bot-x7q2")
+HEARTBEAT_TOPIC = os.environ.get("NTFY_HEARTBEAT_TOPIC",
+                                 "nitin-kalshi-heartbeat-x7q2")
+HEARTBEAT_SECS = 300   # emit a liveness ping every 5 minutes
 
 LIVE = False              # set by --live; when False everything is simulated
 live = None               # kalshi_live module, imported only in live mode
@@ -91,6 +94,25 @@ def notify(title: str, body: str) -> None:
                       timeout=10)
     except Exception:
         pass
+
+
+def heartbeat_loop(mode: str) -> None:
+    """Emit a low-priority liveness ping so an external monitor can tell
+    the bot is still running. Runs as a daemon thread."""
+    while True:
+        try:
+            with lock:
+                cash = state["cash"]
+            requests.post(
+                f"https://ntfy.sh/{HEARTBEAT_TOPIC}",
+                data=f"alive {mode} cash=${cash:.2f} "
+                     f"{dt.datetime.now(ET):%I:%M:%S %p ET}".encode(),
+                headers={"Title": "kalshi-heartbeat", "Priority": "min",
+                         "Tags": "heartbeat"},
+                timeout=10)
+        except Exception:
+            pass
+        time.sleep(HEARTBEAT_SECS)
 
 
 def get(path: str, params: dict | None = None) -> dict:
@@ -308,6 +330,9 @@ def main() -> None:
                         "contracts", "cost", "result", "won",
                         "pnl", "cash_after"])
         f.flush()
+
+    threading.Thread(target=heartbeat_loop, args=(mode,),
+                     daemon=True).start()
 
     threads: list[threading.Thread] = []
     while time.time() < deadline:
