@@ -447,12 +447,20 @@ def main() -> None:
                     # (buy NO) asks <= bid (floor).
                     yes_ask_c = math.ceil(round(ya * 1000) / 10)
                     yes_bid_c = int(round(yb * 1000) / 10)
-                    live.enter(m["ticker"], side, yes_ask_c, yes_bid_c,
-                               contracts)
+                    resp = live.enter(m["ticker"], side, yes_ask_c,
+                                      yes_bid_c, contracts)
                 except Exception as e:
                     log_line(f"{coin}: LIVE order REJECTED: {e}")
                     notify(f"Kalshi bot: {coin} ORDER FAILED", str(e))
                     continue
+                # Report/manage only what actually filled (IOC may
+                # partial-fill or fill nothing).
+                filled = int(float(resp.get("fill_count", 0) or 0))
+                if filled < 1:
+                    log_line(f"{coin}: order placed but 0 filled - skip "
+                             f"{m['ticker']}")
+                    continue
+                contracts = filled
             else:
                 with lock:
                     state["cash"] -= contracts * unit
