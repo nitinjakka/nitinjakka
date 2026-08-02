@@ -435,10 +435,14 @@ def main() -> None:
                 try:
                     ya = float(m.get("yes_ask_dollars") or 0)
                     yb = float(m.get("yes_bid_dollars") or 0)
-                    # marketable: buy YES bids >= ask (ceil); sell YES
-                    # (buy NO) asks <= bid (floor).
-                    yes_ask_c = math.ceil(round(ya * 1000) / 10)
-                    yes_bid_c = int(round(yb * 1000) / 10)
+                    # Market-like: price 2c THROUGH the touch so the IOC
+                    # order still crosses and fills even if the quote
+                    # moved since the scan. It fills at the resting
+                    # touch; the aggressive limit only caps worst-case
+                    # slippage (Kalshi V2 requires a price - no true
+                    # market order type exists).
+                    yes_ask_c = math.ceil(ya * 100) + 2   # buy YES
+                    yes_bid_c = int(yb * 100) - 2          # sell YES (buy NO)
                     resp = live.enter(m["ticker"], side, yes_ask_c,
                                       yes_bid_c, contracts)
                 except Exception as e:
