@@ -115,7 +115,8 @@ def buy(ticker: str, side: str, count: int, limit_cents: int) -> dict:
     """Marketable LIMIT buy (limit at the ask caps slippage vs a raw
     market order). Returns the API order object. Raises on cap breach."""
     notional = count * limit_cents / 100.0
-    if notional > MAX_ORDER_USD:
+    # MAX_ORDER_USD <= 0 disables the per-order cap.
+    if MAX_ORDER_USD > 0 and notional > MAX_ORDER_USD:
         raise RuntimeError(
             f"order ${notional:.2f} exceeds MAX_ORDER_USD ${MAX_ORDER_USD}")
     order = {
