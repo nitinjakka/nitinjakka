@@ -8,7 +8,7 @@ END_TS="${1:?usage: watchdog.sh <end_epoch>}"
 while [ "$(date +%s)" -lt "$END_TS" ]; do
     if ! pgrep -f "python3 kalshi_bo[t]" >/dev/null; then
         # Resume with the last known cash balance (default 10).
-        cash=$(tail -1 kalshi_paper_log.csv 2>/dev/null | awk -F, '{print $NF}')
+        cash=$(cat kalshi_cash.txt 2>/dev/null)
         case "$cash" in
             ''|*[!0-9.]*) cash=10 ;;
         esac

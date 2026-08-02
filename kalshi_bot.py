@@ -52,6 +52,17 @@ NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "nitin-kalshi-bot-x7q2")
 
 lock = threading.Lock()   # guards cash + csv writer
 state = {"cash": 0.0}
+CASH_FILE = "kalshi_cash.txt"
+
+
+def save_cash() -> None:
+    """Persist current cash so the watchdog can resume correctly.
+    Call with lock held."""
+    try:
+        with open(CASH_FILE, "w") as cf:
+            cf.write(f"{state['cash']:.2f}")
+    except Exception:
+        pass
 
 
 def fee(p: float) -> float:
@@ -150,6 +161,7 @@ def trade_lifecycle(series: str, m: dict, side: str, price: float,
         with lock:
             state["cash"] += proceeds
             cash_now = state["cash"]
+            save_cash()
         pnl = proceeds - cost
         result, won = "stopped", False
         log_line(f"{coin}: STOP-LOSS sell @ {exit_px:.2f} "
@@ -164,6 +176,7 @@ def trade_lifecycle(series: str, m: dict, side: str, price: float,
         with lock:
             state["cash"] += payout
             cash_now = state["cash"]
+            save_cash()
         pnl = payout - cost
         log_line(f"{coin}: result={result} {'WIN' if won else 'LOSS'} "
                  f"pnl ${pnl:+.2f} cash ${cash_now:.2f}")
@@ -186,6 +199,7 @@ def main() -> None:
     args = ap.parse_args()
 
     state["cash"] = args.cash
+    save_cash()
     deadline = time.time() + args.hours * 3600
     log_line(f"paper bot v4 start: ${args.cash:.2f}, {args.hours}h, "
              f"{len(COINS)} coins ({', '.join(coin_name(s) for s in COINS)}); "
@@ -259,6 +273,7 @@ def main() -> None:
                 if contracts < 1:
                     continue
                 state["cash"] -= contracts * unit
+                save_cash()
             coin = coin_name(series)
             log_line(f"{coin}: MARKET BUY {contracts}x {side.upper()} "
                      f"@ {ask:.2f} (gap {gap:+.3%}) cost "
