@@ -412,3 +412,10 @@
 [07:45:13 AM ET] NEAR: result=no WIN pnl $+0.07 cash $9.81
 [watchdog 11:51:51 UTC] bot dead - restarting: cash=9.81 hours=12.30
 [07:51:51 AM ET] paper bot v4 start: $9.81, 12.3h, 9 coins (BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE, NEAR); T-3 market orders, per-coin gaps (BTC 0.05% / mid 0.10% / HYPE 0.20% / NEAR+ZEC 0.25%), 90%-98%, stop 70%, 25%/trade, max 4 at once
+[watchdog 11:55:35 UTC] bot dead - restarting: cash=9.81 hours=36.07
+[07:55:35 AM ET] paper bot v4 start: $9.81, 36.07h, 9 coins (BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE, NEAR); T-3 market orders, per-coin gaps (BTC 0.05% / mid 0.10% / HYPE 0.20% / NEAR+ZEC 0.25%), 90%-98%, stop 70%, 25%/trade, max 4 at once
+[07:57:02 AM ET] BTC: gap -0.195% but no ask 0.99 out of range - skip
+[07:57:06 AM ET] ZEC: gap -0.061% too small - skip
+[07:57:08 AM ET] BNB: gap -0.070% too small - skip
+[07:57:11 AM ET] HYPE: gap -0.161% too small - skip
+[07:57:14 AM ET] DOGE: gap -0.080% too small - skip
