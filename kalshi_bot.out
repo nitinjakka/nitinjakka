@@ -143,3 +143,13 @@
 [01:57:01 PM ET] DOGE: gap -0.037% too small - skip
 [01:57:01 PM ET] NEAR: gap +0.278% but yes ask 1.00 out of range - skip
 [01:57:01 PM ET] HYPE: order placed but 0 filled - skip KXHYPE15M-26AUG021400-00
+[02:12:00 PM ET] BTC: gap -0.016% too small - skip
+[02:12:00 PM ET] ETH: gap +0.020% too small - skip
+[02:12:00 PM ET] SOL: gap -0.024% too small - skip
+[02:12:00 PM ET] ZEC: gap +0.090% too small - skip
+[02:12:00 PM ET] BNB: gap +0.039% too small - skip
+[02:12:00 PM ET] XRP: gap -0.018% too small - skip
+[02:12:00 PM ET] HYPE: gap +0.278% but yes ask 0.99 out of range - skip
+[02:12:01 PM ET] DOGE: gap -0.021% too small - skip
+[02:12:01 PM ET] NEAR: gap +0.529% but yes ask 0.99 out of range - skip
+[02:12:01 PM ET] nothing to trade this window (02:15 PM ET close)
