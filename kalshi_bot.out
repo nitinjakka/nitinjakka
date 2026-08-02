@@ -267,3 +267,12 @@
 [12:27:13 AM ET] DOGE: MARKET BUY 1x YES @ 0.97 (gap +0.083%) cost $0.97 KXDOGE15M-26AUG020030-30
 [12:30:11 AM ET] NEAR: result=no WIN pnl $+0.13 cash $8.39
 [12:30:12 AM ET] DOGE: result=yes WIN pnl $+0.03 cash $9.39
+[12:42:01 AM ET] BTC: gap -0.035% too small - skip
+[12:42:02 AM ET] ETH: gap -0.071% but no ask 0.84 out of range - skip
+[12:42:08 AM ET] XRP: gap +0.065% but yes ask 0.89 out of range - skip
+[12:42:09 AM ET] HYPE: gap -0.127% but no ask 0.86 out of range - skip
+[12:42:12 AM ET] DOGE: gap +0.044% too small - skip
+[12:42:13 AM ET] NEAR: gap -0.199% but no ask 0.99 out of range - skip
+[12:42:13 AM ET] ZEC: MARKET BUY 2x NO @ 0.94 (gap -0.175%) cost $1.89 KXZEC15M-26AUG020045-45
+[12:42:14 AM ET] BNB: MARKET BUY 1x NO @ 0.94 (gap -0.154%) cost $0.94 KXBNB15M-26AUG020045-45
+[12:42:14 AM ET] SOL: MARKET BUY 1x NO @ 0.95 (gap -0.082%) cost $0.95 KXSOL15M-26AUG020045-45
