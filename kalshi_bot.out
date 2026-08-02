@@ -167,3 +167,14 @@
 [02:27:01 PM ET] DOGE: gap +0.254% but yes ask 1.00 out of range - skip
 [02:27:01 PM ET] NEAR: LIVE BUY 5x NO @ 0.97 (gap -0.234%) cost $4.87 KXNEAR15M-26AUG021430-30
 [02:28:15 PM ET] NEAR: STOP-LOSS sell @ 0.01 pnl $+nan cash $6.47
+[02:42:00 PM ET] BTC: gap +0.474% but yes ask 1.00 out of range - skip
+[02:42:00 PM ET] ETH: gap +0.924% but yes ask 1.00 out of range - skip
+[02:42:00 PM ET] SOL: gap +0.604% but yes ask 1.00 out of range - skip
+[02:42:00 PM ET] ZEC: gap +0.657% but yes ask 1.00 out of range - skip
+[02:42:00 PM ET] BNB: gap +0.085% but yes ask 0.68 out of range - skip
+[02:42:00 PM ET] XRP: gap +0.426% but yes ask 1.00 out of range - skip
+[02:42:00 PM ET] HYPE: gap +0.636% but yes ask 1.00 out of range - skip
+[02:42:01 PM ET] DOGE: gap +0.547% but yes ask 1.00 out of range - skip
+[02:42:01 PM ET] NEAR: gap +0.047% too small - skip
+[02:42:01 PM ET] nothing to trade this window (02:45 PM ET close)
+[autodeploy 2026-08-02T18:42 UTC] pulled 845a8c0
