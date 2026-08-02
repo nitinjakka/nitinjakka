@@ -436,3 +436,14 @@
 [08:12:15 AM ET] DOGE: gap +0.213% but yes ask 0.99 out of range - skip
 [08:12:17 AM ET] NEAR: gap +0.088% too small - skip
 [08:12:17 AM ET] nothing to trade this window (08:15 AM ET close)
+[08:27:02 AM ET] BTC: gap +0.032% too small - skip
+[08:27:04 AM ET] ETH: gap +0.048% too small - skip
+[08:27:05 AM ET] SOL: gap -0.046% too small - skip
+[08:27:07 AM ET] ZEC: gap +0.238% too small - skip
+[08:27:09 AM ET] BNB: gap -0.022% too small - skip
+[08:27:10 AM ET] XRP: gap -0.056% too small - skip
+[08:27:12 AM ET] HYPE: gap -0.235% but no ask 0.98 out of range - skip
+[08:27:15 AM ET] NEAR: MARKET BUY 2x NO @ 0.95 (gap -0.264%) cost $1.90 KXNEAR15M-26AUG020830-30
+[08:27:15 AM ET] DOGE: MARKET BUY 2x NO @ 0.97 (gap -0.101%) cost $1.95 KXDOGE15M-26AUG020830-30
+[08:30:11 AM ET] NEAR: result=no WIN pnl $+0.10 cash $8.12
+[08:30:12 AM ET] DOGE: result=no WIN pnl $+0.05 cash $10.12
