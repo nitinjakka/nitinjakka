@@ -42,9 +42,16 @@ COINS = {
 }
 
 ENTRY_WINDOW = 180     # decide 3 minutes before close
-MIN_GAP = 0.0005       # require spot >0.05% away from target
-GAP_OVERRIDES = {      # per-coin thresholds for volatile coins
-    "KXZEC15M": 0.0025,   # ZEC: require >0.25%
+MIN_GAP = 0.0005       # BTC baseline: >0.05% (p90 3-min move 0.07%)
+GAP_OVERRIDES = {      # per-coin thresholds ~= p90 of 3-min moves
+    "KXETH15M": 0.0010,   # 0.10%
+    "KXSOL15M": 0.0010,   # 0.10%
+    "KXBNB15M": 0.0010,   # 0.10%
+    "KXXRP15M": 0.0010,   # 0.10%
+    "KXDOGE15M": 0.0010,  # 0.10%
+    "KXHYPE15M": 0.0020,  # 0.20%
+    "KXNEAR15M": 0.0025,  # 0.25%
+    "KXZEC15M": 0.0025,   # 0.25%
 }
 ENTRY_MIN, ENTRY_MAX = 0.90, 0.98
 STOP_TRIGGER = 0.70
@@ -206,7 +213,8 @@ def main() -> None:
     deadline = time.time() + args.hours * 3600
     log_line(f"paper bot v4 start: ${args.cash:.2f}, {args.hours}h, "
              f"{len(COINS)} coins ({', '.join(coin_name(s) for s in COINS)}); "
-             f"T-3 market orders, gap>{MIN_GAP:.2%} (ZEC>0.25%), "
+             f"T-3 market orders, per-coin gaps (BTC 0.05% / mid 0.10% / "
+             f"HYPE 0.20% / NEAR+ZEC 0.25%), "
              f"{ENTRY_MIN:.0%}-{ENTRY_MAX:.0%}, "
              f"stop {STOP_TRIGGER:.0%}, {BET_FRACTION:.0%}/trade, "
              f"max {MAX_CONCURRENT} at once")
