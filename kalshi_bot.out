@@ -157,3 +157,12 @@
 [02:15:07 PM ET] new code deployed (bb71477) - restarting to update
 [02:15:13 PM ET] *** LIVE MODE *** live auth OK, account balance $11.37, max order $0.00
 [02:15:13 PM ET] LIVE bot v4 start: $11.37, 999999.0h, 9 coins (BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE, NEAR); T-3 market orders, gaps (most 0.05% / HYPE+NEAR+ZEC 0.10%), 90c-98.5c, stop 70%, size 1coin=50%/2+=split100%, max 4 at once
+[02:27:00 PM ET] BTC: gap -0.029% too small - skip
+[02:27:00 PM ET] ETH: gap -0.086% but no ask 0.99 out of range - skip
+[02:27:00 PM ET] SOL: gap +0.116% but yes ask 0.99 out of range - skip
+[02:27:00 PM ET] ZEC: gap +0.050% too small - skip
+[02:27:00 PM ET] BNB: gap +0.213% but yes ask 0.99 out of range - skip
+[02:27:00 PM ET] XRP: gap -0.120% but no ask 0.99 out of range - skip
+[02:27:00 PM ET] HYPE: gap +0.064% too small - skip
+[02:27:01 PM ET] DOGE: gap +0.254% but yes ask 1.00 out of range - skip
+[02:27:01 PM ET] NEAR: LIVE BUY 5x NO @ 0.97 (gap -0.234%) cost $4.87 KXNEAR15M-26AUG021430-30
