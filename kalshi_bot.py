@@ -7,14 +7,12 @@ Strategy per 15-minute window (all coins share the same close grid):
   - At T-3 minutes: for each coin, compute the gap between spot
     (Coinbase) and the market's target. Require |gap| > 0.05%.
   - Buy the leading side only if its ask is 90-98c.
-  - MAKER entry: rest a limit 1c below the ask (zero fee). Cancel if
-    not filled by T-1 min.
+  - MARKET entry: buy immediately at the ask (taker fee applies).
   - After a fill, monitor every 3s; stop-loss sell if our bid hits 70c.
   - Size each order at 25% of cash; at most 4 concurrent positions.
   - High-priority push notifications via ntfy.sh; timestamps in ET.
 
-PAPER mode: fills are simulated (resting bid fills if the ask later
-drops to the limit). No real orders.
+PAPER mode: market orders fill at the current ask. No real orders.
 """
 
 import argparse
@@ -44,10 +42,8 @@ COINS = {
 }
 
 ENTRY_WINDOW = 180     # decide 3 minutes before close
-CANCEL_AT = 60         # cancel unfilled maker order 1 min before close
 MIN_GAP = 0.0005       # require spot >0.05% away from target
 ENTRY_MIN, ENTRY_MAX = 0.90, 0.98
-MAKER_IMPROVE = 0.01   # rest 1c below the ask
 STOP_TRIGGER = 0.70
 BET_FRACTION = 0.25
 MAX_CONCURRENT = 4
@@ -121,42 +117,17 @@ def coin_name(series: str) -> str:
     return COINS[series].split("-")[0]
 
 
-def trade_lifecycle(series: str, m: dict, side: str, limit: float,
+def trade_lifecycle(series: str, m: dict, side: str, price: float,
                     contracts: int, gap: float, cts: int,
                     writer, wfile) -> None:
-    """Runs in its own thread: fill-wait -> stop monitor -> settle."""
+    """Runs in its own thread: stop monitor -> settle.
+
+    Market order: filled immediately at the ask (taker, fee paid);
+    cash was already deducted by the caller.
+    """
     ticker = m["ticker"]
     coin = coin_name(series)
-    reserve = contracts * limit
-    filled = False
-    while time.time() < cts - CANCEL_AT:
-        mm = get(f"/markets/{ticker}").get("market", {})
-        try:
-            cur_ask = float(mm["yes_ask_dollars"] if side == "yes"
-                            else mm["no_ask_dollars"])
-        except (KeyError, TypeError, ValueError):
-            time.sleep(3)
-            continue
-        if cur_ask <= limit:
-            filled = True
-            break
-        time.sleep(3)
-
-    if not filled:
-        with lock:
-            state["cash"] += reserve  # refund reservation
-        log_line(f"{coin}: not filled by T-{CANCEL_AT}s - canceled "
-                 f"({ticker})")
-        notify(f"Kalshi bot: {coin} NOT FILLED",
-               f"Canceled resting order {ticker}")
-        return
-
-    cost = reserve  # maker: no fee
-    log_line(f"{coin}: FILLED {contracts}x {side.upper()} @ {limit:.2f} "
-             f"cost ${cost:.2f} ({ticker})")
-    notify(f"Kalshi bot: {coin} FILLED (BUY)",
-           f"{contracts}x {side.upper()} @ {limit:.2f} (${cost:.2f}) "
-           f"{ticker}")
+    cost = contracts * (price + fee(price))
 
     stopped, exit_px = False, 0.0
     while time.time() < cts:
@@ -202,7 +173,7 @@ def trade_lifecycle(series: str, m: dict, side: str, limit: float,
     with lock:
         writer.writerow(
             [dt.datetime.now(ET).strftime("%Y-%m-%d %I:%M:%S %p ET"),
-             ticker, side, f"{limit:.4f}", contracts, f"{cost:.2f}",
+             ticker, side, f"{price:.4f}", contracts, f"{cost:.2f}",
              result, won, f"{pnl:.2f}", f"{cash_now:.2f}"])
         wfile.flush()
 
@@ -281,22 +252,23 @@ def main() -> None:
         for _, gap, series, m, side, ask in candidates:
             if placed >= MAX_CONCURRENT:
                 break
-            limit = round(ask - MAKER_IMPROVE, 2)
+            unit = ask + fee(ask)  # taker: pay the ask plus fee
             with lock:
-                contracts = int(state["cash"] * BET_FRACTION / limit)
+                contracts = int(state["cash"] * BET_FRACTION / unit)
                 if contracts < 1:
                     continue
-                state["cash"] -= contracts * limit  # reserve
+                state["cash"] -= contracts * unit
             coin = coin_name(series)
-            log_line(f"{coin}: MAKER order {contracts}x {side.upper()} "
-                     f"@ {limit:.2f} (ask {ask:.2f}, gap {gap:+.3%}) "
-                     f"{m['ticker']}")
-            notify(f"Kalshi bot: {coin} ORDER PLACED",
-                   f"{contracts}x {side.upper()} resting @ {limit:.2f} "
-                   f"(ask {ask:.2f}, gap {gap:+.3%}) {m['ticker']}")
+            log_line(f"{coin}: MARKET BUY {contracts}x {side.upper()} "
+                     f"@ {ask:.2f} (gap {gap:+.3%}) cost "
+                     f"${contracts * unit:.2f} {m['ticker']}")
+            notify(f"Kalshi bot: {coin} BUY",
+                   f"{contracts}x {side.upper()} @ {ask:.2f} market "
+                   f"(${contracts * unit:.2f}, gap {gap:+.3%}) "
+                   f"{m['ticker']}")
             t = threading.Thread(
                 target=trade_lifecycle,
-                args=(series, m, side, limit, contracts, gap, cts,
+                args=(series, m, side, ask, contracts, gap, cts,
                       writer, f),
                 daemon=False)
             t.start()
