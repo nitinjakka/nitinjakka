@@ -361,3 +361,5 @@
 [02:27:13 AM ET] DOGE: MARKET BUY 2x YES @ 0.98 (gap +0.124%) cost $1.96 KXDOGE15M-26AUG020230-30
 [02:30:02 AM ET] DOGE: result=yes WIN pnl $+0.04 cash $8.31
 [02:30:14 AM ET] ZEC: result=yes WIN pnl $+0.06 cash $10.31
+[watchdog 10:44:49 UTC] bot dead - restarting: cash=10.31 hours=13.42
+[06:44:50 AM ET] paper bot v4 start: $10.31, 13.42h, 9 coins (BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE, NEAR); T-3 market orders, gap>0.05%, 90%-98%, stop 70%, 25%/trade, max 4 at once
