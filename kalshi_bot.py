@@ -9,7 +9,8 @@ Strategy per 15-minute window (all coins share the same close grid):
   - Buy the leading side only if its ask is 90-98c.
   - MARKET entry: buy immediately at the ask (taker fee applies).
   - After a fill, monitor every 3s; stop-loss sell if our bid hits 70c.
-  - Size each order at 25% of cash; at most 4 concurrent positions.
+  - Sizing: 1 qualifying coin -> 50% of cash; 2+ coins -> split
+    100% of cash evenly across them. At most 4 concurrent positions.
   - High-priority push notifications via ntfy.sh; timestamps in ET.
 
 PAPER mode: market orders fill at the current ask. No real orders.
@@ -55,7 +56,7 @@ GAP_OVERRIDES = {      # per-coin thresholds ~= p90 of 3-min moves
 }
 ENTRY_MIN, ENTRY_MAX = 0.90, 0.98
 STOP_TRIGGER = 0.70
-BET_FRACTION = 0.25
+# Sizing is dynamic: 1 coin -> 50% of cash; N>1 coins -> 100%/N each.
 MAX_CONCURRENT = 4
 
 NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "nitin-kalshi-bot-x7q2")
@@ -216,7 +217,7 @@ def main() -> None:
              f"T-3 market orders, per-coin gaps (BTC 0.05% / mid 0.10% / "
              f"HYPE 0.20% / NEAR+ZEC 0.25%), "
              f"{ENTRY_MIN:.0%}-{ENTRY_MAX:.0%}, "
-             f"stop {STOP_TRIGGER:.0%}, {BET_FRACTION:.0%}/trade, "
+             f"stop {STOP_TRIGGER:.0%}, size 1coin=50%/2+=split100%, "
              f"max {MAX_CONCURRENT} at once")
 
     new_log = not os.path.exists(args.log)
@@ -275,13 +276,17 @@ def main() -> None:
             candidates.append((abs(gap), gap, series, m, side, ask))
 
         candidates.sort(reverse=True, key=lambda c: c[0])
+        candidates = candidates[:MAX_CONCURRENT]
+        # Sizing: 1 coin -> 50% of cash; 2+ coins -> split 100% evenly.
+        n_found = len(candidates)
+        frac = 0.50 if n_found == 1 else (1.0 / n_found if n_found else 0)
+        with lock:
+            window_cash = state["cash"]   # fix the base before deductions
         placed = 0
         for _, gap, series, m, side, ask in candidates:
-            if placed >= MAX_CONCURRENT:
-                break
             unit = ask + fee(ask)  # taker: pay the ask plus fee
             with lock:
-                contracts = int(state["cash"] * BET_FRACTION / unit)
+                contracts = int(window_cash * frac / unit)
                 if contracts < 1:
                     continue
                 state["cash"] -= contracts * unit
