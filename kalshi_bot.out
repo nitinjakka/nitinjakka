@@ -80,3 +80,7 @@
 [12:42:01 PM ET] DOGE: gap +0.257% but yes ask 1.00 out of range - skip
 [12:42:01 PM ET] NEAR: gap +0.112% but yes ask 0.99 out of range - skip
 [12:42:01 PM ET] nothing to trade this window (12:45 PM ET close)
+[12:45:07 PM ET] new code deployed (565dd42) - restarting to update
+[watchdog 16:45:14 UTC] bot dead - restarting: cash=10.39 hours=27.25 args=--live
+[12:45:14 PM ET] *** LIVE MODE *** live auth OK, account balance $10.39, max order $0.00
+[12:45:14 PM ET] LIVE bot v4 start: $10.39, 27.25h, 9 coins (BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE, NEAR); T-3 market orders, gaps (most 0.05% / HYPE+NEAR+ZEC 0.10%), 90c-98.5c, stop 70%, size 1coin=50%/2+=split100%, max 4 at once
