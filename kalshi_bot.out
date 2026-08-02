@@ -254,3 +254,5 @@
 [12:12:13 AM ET] NEAR: gap +0.246% but yes ask 0.99 out of range - skip
 [12:12:13 AM ET] ZEC: MARKET BUY 2x NO @ 0.92 (gap -0.134%) cost $1.85 KXZEC15M-26AUG020015-15
 [12:12:15 AM ET] DOGE: MARKET BUY 2x YES @ 0.97 (gap +0.064%) cost $1.94 KXDOGE15M-26AUG020015-15
+[12:13:51 AM ET] ZEC: STOP-LOSS sell @ 0.67 pnl $-0.54 cash $7.23
+[12:15:21 AM ET] DOGE: result=yes WIN pnl $+0.06 cash $9.23
