@@ -16,3 +16,4 @@
 [watchdog 15:30:13 UTC] bot dead - restarting: cash=10.08 hours=28.50 args=--live
 [11:30:13 AM ET] *** LIVE MODE *** live auth OK, account balance $10.08, max order $0.00
 [11:30:13 AM ET] LIVE bot v4 start: $10.08, 28.5h, 9 coins (BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE, NEAR); T-3 market orders, per-coin gaps (BTC 0.05% / mid 0.10% / HYPE 0.20% / NEAR+ZEC 0.25%), 90c-98.5c, stop 70%, size 1coin=50%/2+=split100%, max 4 at once
+[autodeploy 2026-08-02T15:40 UTC] pulled 1b521a7
