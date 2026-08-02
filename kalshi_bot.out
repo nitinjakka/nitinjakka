@@ -470,3 +470,13 @@
 [08:57:14 AM ET] BTC: MARKET BUY 5x NO @ 0.97 (gap -0.063%) cost $4.87 KXBTC15M-26AUG020900-00
 [09:00:14 AM ET] BTC: result=no WIN pnl $+0.13 cash $5.36
 [09:00:21 AM ET] HYPE: result=no WIN pnl $+0.11 cash $10.36
+[09:12:01 AM ET] BTC: gap -0.028% too small - skip
+[09:12:03 AM ET] ETH: gap -0.024% too small - skip
+[09:12:04 AM ET] SOL: gap -0.003% too small - skip
+[09:12:06 AM ET] ZEC: gap -0.163% too small - skip
+[09:12:08 AM ET] BNB: gap -0.010% too small - skip
+[09:12:09 AM ET] XRP: gap +0.158% but yes ask 1.00 out of range - skip
+[09:12:11 AM ET] HYPE: gap +0.158% too small - skip
+[09:12:12 AM ET] DOGE: gap +0.089% too small - skip
+[09:12:14 AM ET] NEAR: gap -0.177% too small - skip
+[09:12:14 AM ET] nothing to trade this window (09:15 AM ET close)
