@@ -9,7 +9,7 @@ BRANCH="claude/kalshi-api-access-o5hnen"
 
 for ((i = 1; i <= HOURS * 6; i++)); do
     sleep 600
-    git add kalshi_bot.out kalshi_paper_log.csv 2>/dev/null
+    git add kalshi_bot.out kalshi_paper_log.csv kalshi_cash.txt 2>/dev/null
     if ! git diff --cached --quiet; then
         git commit -q -m "Update paper-trading logs (hourly auto-push)"
         for backoff in 2 4 8 16 0; do
