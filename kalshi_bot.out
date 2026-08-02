@@ -182,3 +182,13 @@
 [02:45:13 PM ET] *** LIVE MODE *** live auth OK, account balance $6.47, max order $0.00
 [02:45:13 PM ET] LIVE bot v4 start: $6.47, 999999.0h, 8 coins (BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE); T-3 market orders, gaps (most 0.05% / HYPE+ZEC 0.10%), 90c-98.5c, stop 70%, size 1coin=50%/2+=split100%, max 4 at once
 [autodeploy 2026-08-02T18:46 UTC] pulled 34bf179
+[02:57:00 PM ET] new code deployed (34bf179) - restarting to update
+[02:57:05 PM ET] *** LIVE MODE *** live auth OK, account balance $6.47, max order $0.00
+[02:57:05 PM ET] LIVE bot v4 start: $6.47, 999999.0h, 6 coins (BTC, ETH, SOL, BNB, XRP, DOGE); T-3 market orders, gap 0.05%, 90c-98.5c, stop 70%, size 1coin=50%/2+=split100%, max 4 at once
+[02:57:05 PM ET] BTC: gap -0.167% but no ask 1.00 out of range - skip
+[02:57:06 PM ET] ETH: gap -0.244% but no ask 1.00 out of range - skip
+[02:57:06 PM ET] SOL: gap -0.147% but no ask 0.99 out of range - skip
+[02:57:06 PM ET] BNB: gap -0.097% but no ask 0.99 out of range - skip
+[02:57:06 PM ET] XRP: gap -0.185% but no ask 0.99 out of range - skip
+[02:57:06 PM ET] DOGE: gap -0.306% but no ask 0.99 out of range - skip
+[02:57:06 PM ET] nothing to trade this window (03:00 PM ET close)
