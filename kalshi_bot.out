@@ -400,3 +400,12 @@
 [07:28:55 AM ET] ZEC: STOP-LOSS sell @ 0.37 pnl $-1.14 cash $9.74
 [watchdog 11:36:00 UTC] bot dead - restarting: cash=9.74 hours=12.57
 [07:36:00 AM ET] paper bot v4 start: $9.74, 12.57h, 9 coins (BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE, NEAR); T-3 market orders, gap>0.05% (ZEC>0.25%), 90%-98%, stop 70%, 25%/trade, max 4 at once
+[07:42:01 AM ET] BTC: gap -0.043% too small - skip
+[07:42:03 AM ET] ETH: gap -0.299% but no ask 1.00 out of range - skip
+[07:42:05 AM ET] SOL: gap -0.066% but no ask 0.98 out of range - skip
+[07:42:08 AM ET] ZEC: gap -0.241% too small - skip
+[07:42:10 AM ET] BNB: gap -0.118% but no ask 1.00 out of range - skip
+[07:42:11 AM ET] XRP: gap -0.028% too small - skip
+[07:42:13 AM ET] HYPE: gap -0.061% but no ask 0.71 out of range - skip
+[07:42:15 AM ET] DOGE: gap -0.007% too small - skip
+[07:42:17 AM ET] NEAR: MARKET BUY 2x NO @ 0.96 (gap -0.188%) cost $1.93 KXNEAR15M-26AUG020745-45
