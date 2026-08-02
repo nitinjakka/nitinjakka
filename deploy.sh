@@ -23,8 +23,14 @@ fi
 # Keep your existing phone alerts unless you override the topic.
 export NTFY_TOPIC="${NTFY_TOPIC:-nitin-kalshi-bot-x7q2}"
 
-echo "Installing dependency (requests)..."
-python3 -m pip install --quiet --user requests || pip install --quiet requests
+echo "Checking dependency (requests)..."
+if python3 -c 'import requests' 2>/dev/null; then
+    echo "  requests already available."
+else
+    pip install requests --break-system-packages --quiet 2>/dev/null \
+        || pip install requests --quiet 2>/dev/null \
+        || apt-get install -y python3-requests
+fi
 
 # Fresh starting bankroll unless a state file already exists.
 [ -f kalshi_cash.txt ] || echo "10" > kalshi_cash.txt
