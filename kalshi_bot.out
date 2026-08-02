@@ -88,3 +88,6 @@
 [08:27:13 PM ET] SOL: MARKET BUY 2x NO @ 0.91 (gap -0.063%) cost $1.84 KXSOL15M-26AUG012030-30
 [08:30:02 PM ET] SOL: result=no WIN pnl $+0.16 cash $8.24
 [08:30:03 PM ET] HYPE: result=no WIN pnl $+0.07 cash $10.24
+[08:42:01 PM ET] BTC: gap -0.055% but no ask 0.98 out of range - skip
+[08:42:02 PM ET] ETH: gap -0.046% too small - skip
+[08:42:04 PM ET] SOL: gap -0.004% too small - skip
