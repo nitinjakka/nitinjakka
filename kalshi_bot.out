@@ -56,3 +56,12 @@
 [12:15:14 PM ET] *** LIVE MODE *** live auth OK, account balance $10.27, max order $0.00
 [12:15:14 PM ET] LIVE bot v4 start: $10.27, 27.75h, 9 coins (BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE, NEAR); T-3 market orders, gaps (most 0.05% / HYPE+NEAR+ZEC 0.10%), 90c-98.5c, stop 70%, size 1coin=50%/2+=split100%, max 4 at once
 [autodeploy 2026-08-02T16:20 UTC] pulled e0b4189
+[12:27:00 PM ET] BTC: gap -0.037% too small - skip
+[12:27:00 PM ET] ETH: gap -0.020% too small - skip
+[12:27:00 PM ET] SOL: gap +0.037% too small - skip
+[12:27:00 PM ET] BNB: gap -0.102% but no ask 0.82 out of range - skip
+[12:27:00 PM ET] XRP: gap -0.046% too small - skip
+[12:27:01 PM ET] DOGE: gap -0.009% too small - skip
+[12:27:01 PM ET] NEAR: gap +0.165% but yes ask 0.99 out of range - skip
+[12:27:05 PM ET] ZEC: LIVE order REJECTED: 410: {"error":{"code":"deprecated_v1_order_endpoint","message":"Please switch to the V2 endpoints","details":"https://docs.kalshi.com/api-reference/orders/create-order-v2"}}
+[12:27:10 PM ET] HYPE: LIVE order REJECTED: 410: {"error":{"code":"deprecated_v1_order_endpoint","message":"Please switch to the V2 endpoints","details":"https://docs.kalshi.com/api-reference/orders/create-order-v2"}}
