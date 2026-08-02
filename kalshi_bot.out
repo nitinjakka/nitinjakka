@@ -48,3 +48,14 @@
 [07:43:39 PM ET] KXBTC15M-26AUG011945-45: gap +0.031% too small - skip
 [07:46:58 PM ET] paper bot v4 start: $10.00, 24.0h, 9 coins (BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE, NEAR); T-3 maker, gap>0.05%, 90%-98%, stop 70%, 25%/trade, max 4 at once
 [07:48:24 PM ET] paper bot v4 start: $10.00, 24.0h, 9 coins (BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE, NEAR); T-3 maker, gap>0.05%, 90%-98%, stop 70%, 25%/trade, max 4 at once
+[07:57:01 PM ET] BTC: gap +0.044% too small - skip
+[07:57:02 PM ET] ETH: gap -0.006% too small - skip
+[07:57:06 PM ET] ZEC: gap +0.043% too small - skip
+[07:57:08 PM ET] BNB: gap +0.016% too small - skip
+[07:57:09 PM ET] XRP: gap +0.047% too small - skip
+[07:57:11 PM ET] HYPE: gap +0.124% but yes ask 0.99 out of range - skip
+[07:57:13 PM ET] NEAR: gap +0.042% too small - skip
+[07:57:13 PM ET] SOL: MAKER order 2x YES @ 0.97 (ask 0.98, gap +0.072%) KXSOL15M-26AUG012000-00
+[07:57:14 PM ET] DOGE: MAKER order 2x NO @ 0.95 (ask 0.96, gap -0.064%) KXDOGE15M-26AUG012000-00
+[07:59:00 PM ET] DOGE: not filled by T-60s - canceled (KXDOGE15M-26AUG012000-00)
+[07:59:03 PM ET] SOL: not filled by T-60s - canceled (KXSOL15M-26AUG012000-00)
