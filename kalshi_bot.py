@@ -88,10 +88,10 @@ def fee(p: float) -> float:
     return 0.07 * p * (1.0 - p)
 
 
-def notify(title: str, body: str) -> None:
+def notify(title: str, body: str, priority: str = "high") -> None:
     try:
         requests.post(f"https://ntfy.sh/{NTFY_TOPIC}", data=body.encode(),
-                      headers={"Title": title, "Priority": "high"},
+                      headers={"Title": title, "Priority": priority},
                       timeout=10)
     except Exception:
         pass
@@ -457,9 +457,11 @@ def main() -> None:
             placed += 1
 
         if not candidates:
-            log_line(f"nothing to trade this window "
-                     f"({dt.datetime.fromtimestamp(cts, ET):%I:%M %p ET} "
-                     f"close)")
+            wtime = f"{dt.datetime.fromtimestamp(cts, ET):%I:%M %p ET}"
+            log_line(f"nothing to trade this window ({wtime} close)")
+            notify("Kalshi bot: nothing to trade",
+                   f"No qualifying coin for the {wtime} window.",
+                   priority="low")
         # Move past this window before scanning for the next one.
         while time.time() < cts + 5:
             time.sleep(3)
