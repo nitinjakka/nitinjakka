@@ -1,16 +1,30 @@
 #!/bin/bash
-# Pushes the live bot's logs to the GitHub 'live-logs' branch every 60s
-# so they can be monitored remotely. Run on the jump server.
-# Requires the origin remote to have push credentials (a token in the URL).
+# Push live logs to the 'live-logs' branch via a DEDICATED worktree, so
+# the main working tree/branch is never polluted (no divergence when
+# code is pulled). Run on the jump server.
 set -u
-cd "$(dirname "$0")"
-git config user.email "bot@server" 2>/dev/null
-git config user.name  "kalshi-bot" 2>/dev/null
+REPO="$(cd "$(dirname "$0")" && pwd)"
+WT="/opt/kalshi-logs"
+export GIT_TERMINAL_PROMPT=0
+
+# One-time: create the logs worktree checked out on live-logs.
+if [ ! -e "$WT/.git" ]; then
+    git -C "$REPO" fetch -q origin live-logs 2>/dev/null
+    git -C "$REPO" worktree add -f -B live-logs "$WT" origin/live-logs \
+        2>/dev/null \
+      || git -C "$REPO" worktree add -f "$WT" live-logs 2>/dev/null
+fi
+git -C "$WT" config user.email "bot@server" 2>/dev/null
+git -C "$WT" config user.name  "kalshi-bot" 2>/dev/null
+
 while true; do
-    git add -f kalshi_bot.out kalshi_live_log.csv kalshi_cash.txt \
-        >/dev/null 2>&1
-    if git commit -q -m "live logs $(date -u '+%FT%H:%M')" >/dev/null 2>&1; then
-        git push -q origin HEAD:live-logs >/dev/null 2>&1
+    for f in kalshi_bot.out kalshi_live_log.csv kalshi_cash.txt; do
+        [ -f "$REPO/$f" ] && cp -f "$REPO/$f" "$WT/$f" 2>/dev/null
+    done
+    git -C "$WT" add -A >/dev/null 2>&1
+    if git -C "$WT" commit -q -m "live logs $(date -u +%FT%H:%M)" \
+            >/dev/null 2>&1; then
+        git -C "$WT" push -q origin live-logs >/dev/null 2>&1
     fi
     sleep 60
 done
