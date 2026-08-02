@@ -449,3 +449,13 @@
 [08:30:12 AM ET] DOGE: result=no WIN pnl $+0.05 cash $10.12
 [watchdog 12:36:36 UTC] bot dead - restarting: cash=10.12 hours=35.39
 [08:36:36 AM ET] paper bot v4 start: $10.12, 35.39h, 9 coins (BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE, NEAR); T-3 market orders, per-coin gaps (BTC 0.05% / mid 0.10% / HYPE 0.20% / NEAR+ZEC 0.25%), 90%-98%, stop 70%, size 1coin=50%/2+=split100%, max 4 at once
+[08:42:01 AM ET] BTC: gap -0.075% but no ask 0.98 out of range - skip
+[08:42:03 AM ET] ETH: gap -0.057% too small - skip
+[08:42:04 AM ET] SOL: gap -0.139% but no ask 0.99 out of range - skip
+[08:42:06 AM ET] ZEC: gap +0.179% too small - skip
+[08:42:07 AM ET] BNB: gap -0.163% but no ask 0.99 out of range - skip
+[08:42:09 AM ET] XRP: gap -0.185% but no ask 0.99 out of range - skip
+[08:42:11 AM ET] HYPE: gap +0.319% but yes ask 0.99 out of range - skip
+[08:42:13 AM ET] DOGE: gap +0.013% too small - skip
+[08:42:15 AM ET] NEAR: gap +0.059% too small - skip
+[08:42:15 AM ET] nothing to trade this window (08:45 AM ET close)
