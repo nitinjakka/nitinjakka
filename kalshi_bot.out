@@ -182,3 +182,5 @@
 [10:42:13 PM ET] NEAR: gap -0.364% but no ask 0.99 out of range - skip
 [10:42:13 PM ET] ZEC: MARKET BUY 3x YES @ 0.92 (gap +0.211%) cost $2.79 KXZEC15M-26AUG012245-45
 [10:42:13 PM ET] XRP: MARKET BUY 2x NO @ 0.98 (gap -0.103%) cost $1.96 KXXRP15M-26AUG012245-45
+[10:44:49 PM ET] ZEC: STOP-LOSS sell @ 0.56 pnl $-1.16 cash $8.16
+[10:45:21 PM ET] XRP: result=no WIN pnl $+0.04 cash $10.16
