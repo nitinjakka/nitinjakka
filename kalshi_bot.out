@@ -77,3 +77,14 @@
 [08:21:53 PM ET] paper bot v4 start: $101.52, 23.85h, 9 coins (BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE, NEAR); T-3 market orders, gap>0.05%, 90%-98%, stop 70%, 25%/trade, max 4 at once
 [watchdog 00:24:07 UTC] bot dead - restarting: cash=10 hours=23.72
 [08:24:07 PM ET] paper bot v4 start: $10.00, 23.72h, 9 coins (BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE, NEAR); T-3 market orders, gap>0.05%, 90%-98%, stop 70%, 25%/trade, max 4 at once
+[08:27:01 PM ET] BTC: gap -0.099% but no ask 1.00 out of range - skip
+[08:27:02 PM ET] ETH: gap -0.171% but no ask 0.99 out of range - skip
+[08:27:05 PM ET] ZEC: gap -0.205% but no ask 0.99 out of range - skip
+[08:27:07 PM ET] BNB: gap -0.241% but no ask 1.00 out of range - skip
+[08:27:09 PM ET] XRP: gap -0.075% but no ask 0.99 out of range - skip
+[08:27:12 PM ET] DOGE: gap -0.103% but no ask 0.99 out of range - skip
+[08:27:13 PM ET] NEAR: gap -0.215% but no ask 0.99 out of range - skip
+[08:27:13 PM ET] HYPE: MARKET BUY 2x NO @ 0.96 (gap -0.112%) cost $1.93 KXHYPE15M-26AUG012030-30
+[08:27:13 PM ET] SOL: MARKET BUY 2x NO @ 0.91 (gap -0.063%) cost $1.84 KXSOL15M-26AUG012030-30
+[08:30:02 PM ET] SOL: result=no WIN pnl $+0.16 cash $8.24
+[08:30:03 PM ET] HYPE: result=no WIN pnl $+0.07 cash $10.24
