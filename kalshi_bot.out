@@ -347,3 +347,9 @@
 [07:50:58 PM ET] XRP: result=no WIN pnl $+nan cash $9.12
 [07:50:59 PM ET] BTC: result=no WIN pnl $+nan cash $9.12
 [07:50:59 PM ET] SOL: result=no WIN pnl $+nan cash $9.12
+[07:57:00 PM ET] BTC: gap -0.002% too small - skip
+[07:57:00 PM ET] ETH: gap -0.018% too small - skip
+[07:57:00 PM ET] BNB: gap -0.049% too small - skip
+[07:57:00 PM ET] XRP: gap +0.175% but yes ask 0.99 out of range - skip
+[07:57:00 PM ET] DOGE: gap +0.069% but yes ask 0.86 out of range - skip
+[07:57:00 PM ET] SOL: order placed but 0 filled - skip KXSOL15M-26AUG022000-00
