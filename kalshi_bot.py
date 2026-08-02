@@ -189,7 +189,8 @@ def main() -> None:
     deadline = time.time() + args.hours * 3600
     log_line(f"paper bot v4 start: ${args.cash:.2f}, {args.hours}h, "
              f"{len(COINS)} coins ({', '.join(coin_name(s) for s in COINS)}); "
-             f"T-3 maker, gap>{MIN_GAP:.2%}, {ENTRY_MIN:.0%}-{ENTRY_MAX:.0%}, "
+             f"T-3 market orders, gap>{MIN_GAP:.2%}, "
+             f"{ENTRY_MIN:.0%}-{ENTRY_MAX:.0%}, "
              f"stop {STOP_TRIGGER:.0%}, {BET_FRACTION:.0%}/trade, "
              f"max {MAX_CONCURRENT} at once")
 
