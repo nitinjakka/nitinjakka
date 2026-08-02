@@ -70,3 +70,13 @@
 [12:30:14 PM ET] *** LIVE MODE *** live auth OK, account balance $10.39, max order $0.00
 [12:30:14 PM ET] LIVE bot v4 start: $10.39, 27.5h, 9 coins (BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE, NEAR); T-3 market orders, gaps (most 0.05% / HYPE+NEAR+ZEC 0.10%), 90c-98.5c, stop 70%, size 1coin=50%/2+=split100%, max 4 at once
 [autodeploy 2026-08-02T16:30 UTC] pulled a2ad41c
+[12:42:00 PM ET] BTC: gap +0.162% but yes ask 1.00 out of range - skip
+[12:42:00 PM ET] ETH: gap +0.260% but yes ask 0.99 out of range - skip
+[12:42:00 PM ET] SOL: gap +0.211% but yes ask 0.99 out of range - skip
+[12:42:00 PM ET] ZEC: gap +0.379% but yes ask 0.99 out of range - skip
+[12:42:00 PM ET] BNB: gap +0.261% but yes ask 1.00 out of range - skip
+[12:42:00 PM ET] XRP: gap +0.204% but yes ask 1.00 out of range - skip
+[12:42:01 PM ET] HYPE: gap +1.440% but yes ask 1.00 out of range - skip
+[12:42:01 PM ET] DOGE: gap +0.257% but yes ask 1.00 out of range - skip
+[12:42:01 PM ET] NEAR: gap +0.112% but yes ask 0.99 out of range - skip
+[12:42:01 PM ET] nothing to trade this window (12:45 PM ET close)
