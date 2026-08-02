@@ -45,16 +45,11 @@ COINS = {
 }
 
 ENTRY_WINDOW = 180     # decide 3 minutes before close
-MIN_GAP = 0.0005       # BTC baseline: >0.05% (p90 3-min move 0.07%)
-GAP_OVERRIDES = {      # per-coin thresholds ~= p90 of 3-min moves
-    "KXETH15M": 0.0010,   # 0.10%
-    "KXSOL15M": 0.0010,   # 0.10%
-    "KXBNB15M": 0.0010,   # 0.10%
-    "KXXRP15M": 0.0010,   # 0.10%
-    "KXDOGE15M": 0.0010,  # 0.10%
-    "KXHYPE15M": 0.0020,  # 0.20%
-    "KXNEAR15M": 0.0025,  # 0.25%
-    "KXZEC15M": 0.0025,   # 0.25%
+MIN_GAP = 0.0005       # baseline 0.05% (BTC, ETH, SOL, BNB, XRP, DOGE)
+GAP_OVERRIDES = {      # only the jumpy coins get a higher threshold
+    "KXHYPE15M": 0.0010,  # 0.10%
+    "KXNEAR15M": 0.0010,  # 0.10%
+    "KXZEC15M": 0.0010,   # 0.10%
 }
 ENTRY_MIN, ENTRY_MAX = 0.90, 0.985
 STOP_TRIGGER = 0.70
@@ -334,8 +329,8 @@ def main() -> None:
     mode = "LIVE" if LIVE else "paper"
     log_line(f"{mode} bot v4 start: ${state['cash']:.2f}, {args.hours}h, "
              f"{len(COINS)} coins ({', '.join(coin_name(s) for s in COINS)}); "
-             f"T-3 market orders, per-coin gaps (BTC 0.05% / mid 0.10% / "
-             f"HYPE 0.20% / NEAR+ZEC 0.25%), "
+             f"T-3 market orders, gaps (most 0.05% / "
+             f"HYPE+NEAR+ZEC 0.10%), "
              f"{ENTRY_MIN*100:.0f}c-{ENTRY_MAX*100:.1f}c, "
              f"stop {STOP_TRIGGER:.0%}, size 1coin=50%/2+=split100%, "
              f"max {MAX_CONCURRENT} at once")
