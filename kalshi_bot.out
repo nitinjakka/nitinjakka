@@ -100,3 +100,15 @@
 [01:00:17 PM ET] SOL: result=no WIN pnl $+nan cash $10.64
 [01:00:17 PM ET] ETH: result=no WIN pnl $+nan cash $10.64
 [autodeploy 2026-08-02T17:02 UTC] pulled bed929f
+[01:12:00 PM ET] new code deployed (bed929f) - restarting to update
+[01:12:05 PM ET] *** LIVE MODE *** live auth OK, account balance $10.64, max order $0.00
+[01:12:05 PM ET] LIVE bot v4 start: $10.64, 999999.0h, 9 coins (BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE, NEAR); T-3 market orders, gaps (most 0.05% / HYPE+NEAR+ZEC 0.10%), 90c-98.5c, stop 70%, size 1coin=50%/2+=split100%, max 4 at once
+[01:12:05 PM ET] BTC: gap +0.013% too small - skip
+[01:12:06 PM ET] SOL: gap +0.114% but yes ask 0.99 out of range - skip
+[01:12:06 PM ET] ZEC: gap -0.020% too small - skip
+[01:12:06 PM ET] BNB: gap +0.027% too small - skip
+[01:12:06 PM ET] XRP: gap +0.009% too small - skip
+[01:12:06 PM ET] HYPE: gap -0.026% too small - skip
+[01:12:06 PM ET] DOGE: gap -0.033% too small - skip
+[01:12:06 PM ET] NEAR: gap +0.024% too small - skip
+[01:12:07 PM ET] ETH: LIVE BUY 5x YES @ 0.97 (gap +0.080%) cost $4.88 KXETH15M-26AUG021315-15
