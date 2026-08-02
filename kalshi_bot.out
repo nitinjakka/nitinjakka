@@ -51,3 +51,7 @@
 [12:12:00 PM ET] HYPE: gap -0.012% too small - skip
 [12:12:01 PM ET] NEAR: gap -0.201% too small - skip
 [12:12:05 PM ET] DOGE: LIVE order REJECTED: 410: {"error":{"code":"deprecated_v1_order_endpoint","message":"Please switch to the V2 endpoints","details":"https://docs.kalshi.com/api-reference/orders/create-order-v2"}}
+[12:15:05 PM ET] new code deployed (b335b9b) - restarting to update
+[watchdog 16:15:13 UTC] bot dead - restarting: cash=10.08 hours=27.75 args=--live
+[12:15:14 PM ET] *** LIVE MODE *** live auth OK, account balance $10.27, max order $0.00
+[12:15:14 PM ET] LIVE bot v4 start: $10.27, 27.75h, 9 coins (BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE, NEAR); T-3 market orders, gaps (most 0.05% / HYPE+NEAR+ZEC 0.10%), 90c-98.5c, stop 70%, size 1coin=50%/2+=split100%, max 4 at once
