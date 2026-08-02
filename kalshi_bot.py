@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Paper-trading bot v4 for Kalshi 15-min crypto markets (9 coins).
 
-Coins: BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE, NEAR.
+Coins: BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE.
 
 Strategy per 15-minute window (all coins share the same close grid):
   - At T-3 minutes: for each coin, compute the gap between spot
@@ -41,14 +41,12 @@ COINS = {
     "KXXRP15M": "XRP-USD",
     "KXHYPE15M": "HYPE-USD",
     "KXDOGE15M": "DOGE-USD",
-    "KXNEAR15M": "NEAR-USD",
 }
 
 ENTRY_WINDOW = 180     # decide 3 minutes before close
 MIN_GAP = 0.0005       # baseline 0.05% (BTC, ETH, SOL, BNB, XRP, DOGE)
 GAP_OVERRIDES = {      # only the jumpy coins get a higher threshold
     "KXHYPE15M": 0.0010,  # 0.10%
-    "KXNEAR15M": 0.0010,  # 0.10%
     "KXZEC15M": 0.0010,   # 0.10%
 }
 ENTRY_MIN, ENTRY_MAX = 0.90, 0.985
@@ -334,7 +332,7 @@ def main() -> None:
     log_line(f"{mode} bot v4 start: ${state['cash']:.2f}, {args.hours}h, "
              f"{len(COINS)} coins ({', '.join(coin_name(s) for s in COINS)}); "
              f"T-3 market orders, gaps (most 0.05% / "
-             f"HYPE+NEAR+ZEC 0.10%), "
+             f"HYPE+ZEC 0.10%), "
              f"{ENTRY_MIN*100:.0f}c-{ENTRY_MAX*100:.1f}c, "
              f"stop {STOP_TRIGGER:.0%}, size 1coin=50%/2+=split100%, "
              f"max {MAX_CONCURRENT} at once")
