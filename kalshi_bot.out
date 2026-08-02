@@ -216,3 +216,8 @@
 [03:42:00 PM ET] XRP: gap -0.009% too small - skip
 [03:42:01 PM ET] DOGE: LIVE BUY 3x YES @ 0.91 (gap +0.054%) cost $2.75 KXDOGE15M-26AUG021545-45
 [03:45:17 PM ET] DOGE: result=yes WIN pnl $+nan cash $6.88
+[03:57:00 PM ET] BTC: gap +0.083% but yes ask 1.00 out of range - skip
+[03:57:00 PM ET] ETH: gap +0.151% but yes ask 0.99 out of range - skip
+[03:57:00 PM ET] BNB: gap +0.076% but yes ask 0.99 out of range - skip
+[03:57:01 PM ET] XRP: LIVE BUY 2x YES @ 0.97 (gap +0.074%) cost $1.95 KXXRP15M-26AUG021600-00
+[03:57:01 PM ET] DOGE: LIVE BUY 2x YES @ 0.95 (gap +0.054%) cost $1.91 KXDOGE15M-26AUG021600-00
