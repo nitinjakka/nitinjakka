@@ -209,3 +209,15 @@
 [11:15:11 PM ET] ETH: result=no WIN pnl $+0.09 cash $6.61
 [11:15:13 PM ET] NEAR: result=no WIN pnl $+0.09 cash $8.61
 [11:15:14 PM ET] ZEC: result=yes WIN pnl $+0.07 cash $10.61
+[11:27:01 PM ET] BTC: gap +0.114% but yes ask 0.99 out of range - skip
+[11:27:04 PM ET] SOL: gap +0.021% too small - skip
+[11:27:07 PM ET] BNB: gap -0.088% but no ask 0.50 out of range - skip
+[11:27:11 PM ET] HYPE: gap -0.084% but no ask 0.75 out of range - skip
+[11:27:12 PM ET] DOGE: gap -0.029% too small - skip
+[11:27:14 PM ET] NEAR: gap +0.371% but yes ask 0.99 out of range - skip
+[11:27:14 PM ET] ZEC: MARKET BUY 2x NO @ 0.97 (gap -0.400%) cost $1.95 KXZEC15M-26AUG012330-30
+[11:27:15 PM ET] ETH: MARKET BUY 2x YES @ 0.97 (gap +0.089%) cost $1.94 KXETH15M-26AUG012330-30
+[11:27:15 PM ET] XRP: MARKET BUY 1x YES @ 0.96 (gap +0.084%) cost $0.97 KXXRP15M-26AUG012330-30
+[11:30:12 PM ET] ZEC: result=no WIN pnl $+0.05 cash $7.76
+[11:30:12 PM ET] ETH: result=yes WIN pnl $+0.06 cash $9.76
+[11:30:13 PM ET] XRP: result=yes WIN pnl $+0.03 cash $10.76
