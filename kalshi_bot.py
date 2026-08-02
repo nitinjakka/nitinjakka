@@ -54,7 +54,7 @@ GAP_OVERRIDES = {      # per-coin thresholds ~= p90 of 3-min moves
     "KXNEAR15M": 0.0025,  # 0.25%
     "KXZEC15M": 0.0025,   # 0.25%
 }
-ENTRY_MIN, ENTRY_MAX = 0.90, 0.98
+ENTRY_MIN, ENTRY_MAX = 0.90, 0.985
 STOP_TRIGGER = 0.70
 # Sizing is dynamic: 1 coin -> 50% of cash; N>1 coins -> 100%/N each.
 MAX_CONCURRENT = 4
@@ -318,7 +318,7 @@ def main() -> None:
              f"{len(COINS)} coins ({', '.join(coin_name(s) for s in COINS)}); "
              f"T-3 market orders, per-coin gaps (BTC 0.05% / mid 0.10% / "
              f"HYPE 0.20% / NEAR+ZEC 0.25%), "
-             f"{ENTRY_MIN:.0%}-{ENTRY_MAX:.0%}, "
+             f"{ENTRY_MIN*100:.0f}c-{ENTRY_MAX*100:.1f}c, "
              f"stop {STOP_TRIGGER:.0%}, size 1coin=50%/2+=split100%, "
              f"max {MAX_CONCURRENT} at once")
 
