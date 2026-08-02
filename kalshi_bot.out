@@ -199,3 +199,12 @@
 [03:12:01 PM ET] BNB: order placed but 0 filled - skip KXBNB15M-26AUG021515-15
 [03:12:01 PM ET] ETH: order placed but 0 filled - skip KXETH15M-26AUG021515-15
 [autodeploy 2026-08-02T19:16 UTC] pulled b149ff1
+[03:27:00 PM ET] new code deployed (b149ff1) - restarting to update
+[03:27:05 PM ET] *** LIVE MODE *** live auth OK, account balance $6.53, max order $0.00
+[03:27:05 PM ET] LIVE bot v4 start: $6.53, 999999.0h, 6 coins (BTC, ETH, SOL, BNB, XRP, DOGE); T-3 market orders, gap 0.05%, 90c-98.5c, stop 70%, size 1coin=50%/2+=split100%, max 4 at once
+[03:27:05 PM ET] BTC: gap -0.046% too small - skip
+[03:27:06 PM ET] ETH: gap -0.004% too small - skip
+[03:27:06 PM ET] BNB: gap +0.002% too small - skip
+[03:27:06 PM ET] XRP: gap -0.046% too small - skip
+[03:27:06 PM ET] DOGE: LIVE BUY 3x NO @ 0.94 (gap -0.082%) cost $2.82 KXDOGE15M-26AUG021530-30
+[03:27:06 PM ET] SOL: order placed but 0 filled - skip KXSOL15M-26AUG021530-30
