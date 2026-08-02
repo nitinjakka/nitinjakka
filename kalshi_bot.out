@@ -398,3 +398,5 @@
 [07:27:19 AM ET] NEAR: gap -0.258% but no ask 0.98 out of range - skip
 [07:27:19 AM ET] ZEC: MARKET BUY 2x YES @ 0.92 (gap +0.118%) cost $1.85 KXZEC15M-26AUG020730-30
 [07:28:55 AM ET] ZEC: STOP-LOSS sell @ 0.37 pnl $-1.14 cash $9.74
+[watchdog 11:36:00 UTC] bot dead - restarting: cash=9.74 hours=12.57
+[07:36:00 AM ET] paper bot v4 start: $9.74, 12.57h, 9 coins (BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE, NEAR); T-3 market orders, gap>0.05% (ZEC>0.25%), 90%-98%, stop 70%, 25%/trade, max 4 at once
