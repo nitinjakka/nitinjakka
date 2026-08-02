@@ -76,6 +76,20 @@ confirm the price/size match the notification before walking away.
 - On any order rejection it logs, notifies your phone, and skips —
   it never crashes the loop or doubles up.
 
+## Manual selling from the Kalshi app
+
+You can sell any position yourself from the app at any time. In live
+mode the bot checks your actual holdings every ~15s while managing a
+trade:
+- If it sees the position is gone (you sold it), it **backs off** —
+  no duplicate sell — refreshes your balance, and pushes a
+  "CLOSED MANUALLY" notification.
+- If you sold only part, its stop-loss (if it later triggers) sells
+  only what remains.
+
+So bot and manual control coexist safely — whoever sells first wins,
+and the other side won't double up.
+
 ## Reality check before you scale
 
 Live differs from paper in three ways that cost money: real fills can

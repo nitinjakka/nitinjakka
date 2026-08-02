@@ -99,6 +99,18 @@ def balance_dollars() -> float:
     return float(d.get("balance", 0)) / 100.0
 
 
+def held_contracts(ticker: str, side: str) -> int:
+    """How many contracts we currently hold on this ticker/side. Drops
+    if the user sells manually from the Kalshi app. Kalshi's position
+    field is net YES contracts (negative = holding NO)."""
+    d = _signed("GET", "/portfolio/positions")
+    for p in d.get("market_positions", []):
+        if p.get("ticker") == ticker:
+            pos = int(p.get("position", 0))
+            return max(0, pos) if side == "yes" else max(0, -pos)
+    return 0
+
+
 def buy(ticker: str, side: str, count: int, limit_cents: int) -> dict:
     """Marketable LIMIT buy (limit at the ask caps slippage vs a raw
     market order). Returns the API order object. Raises on cap breach."""

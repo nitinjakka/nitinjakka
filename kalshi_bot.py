@@ -155,7 +155,19 @@ def trade_lifecycle(series: str, m: dict, side: str, price: float,
     cost = contracts * (price + fee(price))
 
     stopped, exit_px = False, 0.0
+    manual = False          # user closed the position from the Kalshi app
+    poll = 0
     while time.time() < cts:
+        # In live mode, notice if the position was sold manually and
+        # stop managing it (don't place a duplicate stop-sell).
+        if LIVE and poll % 5 == 0:
+            try:
+                if live.held_contracts(ticker, side) < contracts:
+                    manual = True
+                    break
+            except Exception:
+                pass
+        poll += 1
         mm = get(f"/markets/{ticker}").get("market", {})
         try:
             yb = float(mm.get("yes_bid_dollars") or 0)
@@ -170,12 +182,29 @@ def trade_lifecycle(series: str, m: dict, side: str, price: float,
             break
         time.sleep(3)
 
-    if stopped:
-        if LIVE:
-            # Sell at a few cents below the trigger to guarantee the fill.
+    if manual:
+        with lock:
             try:
-                live.sell(ticker, side, contracts,
-                          max(1, int(round(exit_px * 100)) - 3))
+                state["cash"] = live.balance_dollars()
+            except Exception:
+                pass
+            cash_now = state["cash"]
+            save_cash()
+        result, won, pnl = "manual", False, float("nan")
+        log_line(f"{coin}: position closed manually - bot backing off "
+                 f"(cash ${cash_now:.2f}) {ticker}")
+        notify(f"Kalshi bot: {coin} CLOSED MANUALLY",
+               f"You sold it from the app; bot won't re-sell. "
+               f"Cash ${cash_now:.2f}")
+    elif stopped:
+        if LIVE:
+            # Sell only what is still held (user may have sold some),
+            # a few cents below the trigger to guarantee the fill.
+            try:
+                held = live.held_contracts(ticker, side)
+                if held > 0:
+                    live.sell(ticker, side, held,
+                              max(1, int(round(exit_px * 100)) - 3))
             except Exception as e:
                 log_line(f"{coin}: LIVE stop-sell FAILED: {e}")
                 notify(f"Kalshi bot: {coin} STOP-SELL FAILED", str(e))
