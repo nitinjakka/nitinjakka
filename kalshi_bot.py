@@ -43,6 +43,9 @@ COINS = {
 
 ENTRY_WINDOW = 180     # decide 3 minutes before close
 MIN_GAP = 0.0005       # require spot >0.05% away from target
+GAP_OVERRIDES = {      # per-coin thresholds for volatile coins
+    "KXZEC15M": 0.0025,   # ZEC: require >0.25%
+}
 ENTRY_MIN, ENTRY_MAX = 0.90, 0.98
 STOP_TRIGGER = 0.70
 BET_FRACTION = 0.25
@@ -203,7 +206,7 @@ def main() -> None:
     deadline = time.time() + args.hours * 3600
     log_line(f"paper bot v4 start: ${args.cash:.2f}, {args.hours}h, "
              f"{len(COINS)} coins ({', '.join(coin_name(s) for s in COINS)}); "
-             f"T-3 market orders, gap>{MIN_GAP:.2%}, "
+             f"T-3 market orders, gap>{MIN_GAP:.2%} (ZEC>0.25%), "
              f"{ENTRY_MIN:.0%}-{ENTRY_MAX:.0%}, "
              f"stop {STOP_TRIGGER:.0%}, {BET_FRACTION:.0%}/trade, "
              f"max {MAX_CONCURRENT} at once")
@@ -246,7 +249,8 @@ def main() -> None:
             if not strike or not px:
                 continue
             gap = (px - strike) / strike
-            if abs(gap) <= MIN_GAP:
+            min_gap = GAP_OVERRIDES.get(series, MIN_GAP)
+            if abs(gap) <= min_gap:
                 log_line(f"{coin_name(series)}: gap {gap:+.3%} too small"
                          f" - skip")
                 continue
