@@ -290,3 +290,12 @@
 [12:57:13 AM ET] XRP: MARKET BUY 2x YES @ 0.93 (gap +0.055%) cost $1.86 KXXRP15M-26AUG020100-00
 [12:58:10 AM ET] XRP: STOP-LOSS sell @ 0.58 pnl $-0.74 cash $6.98
 [01:00:13 AM ET] NEAR: result=yes WIN pnl $+0.10 cash $8.98
+[01:12:01 AM ET] BTC: gap -0.203% but no ask 1.00 out of range - skip
+[01:12:02 AM ET] ETH: gap -0.204% but no ask 0.99 out of range - skip
+[01:12:04 AM ET] SOL: gap -0.020% too small - skip
+[01:12:06 AM ET] BNB: gap -0.180% but no ask 0.99 out of range - skip
+[01:12:08 AM ET] XRP: gap -0.046% too small - skip
+[01:12:09 AM ET] HYPE: gap -0.001% too small - skip
+[01:12:11 AM ET] DOGE: gap -0.046% too small - skip
+[01:12:12 AM ET] NEAR: MARKET BUY 2x NO @ 0.93 (gap -0.228%) cost $1.87 KXNEAR15M-26AUG020115-15
+[01:12:13 AM ET] ZEC: MARKET BUY 1x NO @ 0.94 (gap -0.169%) cost $0.94 KXZEC15M-26AUG020115-15
