@@ -135,3 +135,9 @@
 [09:42:04 PM ET] SOL: gap +0.207% but yes ask 0.99 out of range - skip
 [09:42:07 PM ET] BNB: gap +0.113% but yes ask 1.00 out of range - skip
 [09:42:10 PM ET] HYPE: gap +0.077% but yes ask 0.99 out of range - skip
+[09:42:12 PM ET] DOGE: gap -0.108% but no ask 0.99 out of range - skip
+[09:42:14 PM ET] NEAR: gap -0.029% too small - skip
+[09:42:14 PM ET] ZEC: MARKET BUY 2x NO @ 0.94 (gap -0.207%) cost $1.89 KXZEC15M-26AUG012145-45
+[09:42:14 PM ET] XRP: MARKET BUY 2x NO @ 0.95 (gap -0.056%) cost $1.90 KXXRP15M-26AUG012145-45
+[09:45:11 PM ET] ZEC: result=no WIN pnl $+0.11 cash $8.87
+[09:45:14 PM ET] XRP: result=no WIN pnl $+0.10 cash $10.87
