@@ -375,6 +375,14 @@ def main() -> None:
         if time.time() >= deadline:
             break
 
+        # Second update check right before placing orders, so code
+        # pulled mid-cycle applies to THIS window (not the next).
+        cur = repo_commit()
+        if boot_commit and cur and cur != boot_commit:
+            log_line(f"new code deployed ({cur[:7]}) - restarting to update")
+            notify("Kalshi bot: UPDATING", "New code deployed; restarting.")
+            return
+
         # Decision pass across all coins for this window.
         candidates = []
         for series, product in COINS.items():
