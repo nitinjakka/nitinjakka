@@ -111,36 +111,51 @@ def held_contracts(ticker: str, side: str) -> int:
     return 0
 
 
-def buy(ticker: str, side: str, count: int, limit_cents: int) -> dict:
-    """Marketable LIMIT buy (limit at the ask caps slippage vs a raw
-    market order). Returns the API order object. Raises on cap breach."""
-    notional = count * limit_cents / 100.0
-    # MAX_ORDER_USD <= 0 disables the per-order cap.
-    if MAX_ORDER_USD > 0 and notional > MAX_ORDER_USD:
+# Kalshi V2 order endpoint. Everything is quoted from the YES leg:
+#   side="bid" = buy YES ; side="ask" = sell YES (== buy NO).
+# We only ever place marketable orders (immediate_or_cancel) so nothing
+# rests: it fills now at the touch or is canceled.
+ORDERS_PATH = "/portfolio/events/orders"
+
+
+def _place(ticker: str, order_side: str, price_cents: int,
+           count: int) -> dict:
+    price_cents = max(1, min(99, int(price_cents)))
+    body = {
+        "ticker": ticker,
+        "client_order_id": str(uuid.uuid4()),
+        "side": order_side,                    # "bid" (buy YES) / "ask" (sell YES)
+        "count": str(int(count)),
+        "price": f"{price_cents / 100:.4f}",   # YES-leg price, dollars
+        "time_in_force": "immediate_or_cancel",
+        "self_trade_prevention_type": "taker_at_cross",
+    }
+    return _signed("POST", ORDERS_PATH, body)
+
+
+def enter(ticker: str, want: str, yes_ask_c: int, yes_bid_c: int,
+          count: int) -> dict:
+    """Open a position marketably.
+      want == "yes" -> buy YES: bid at the YES ask.
+      want == "no"  -> buy NO : sell YES at the YES bid.
+    Prices are whole cents from the YES book."""
+    if want == "yes":
+        cost = count * yes_ask_c / 100.0
+        side, price = "bid", yes_ask_c
+    else:
+        cost = count * (100 - yes_bid_c) / 100.0   # NO cost = 1 - yes_bid
+        side, price = "ask", yes_bid_c
+    if MAX_ORDER_USD > 0 and cost > MAX_ORDER_USD:
         raise RuntimeError(
-            f"order ${notional:.2f} exceeds MAX_ORDER_USD ${MAX_ORDER_USD}")
-    order = {
-        "ticker": ticker,
-        "client_order_id": str(uuid.uuid4()),
-        "action": "buy",
-        "side": side,
-        "type": "limit",
-        "count": count,
-        ("yes_price" if side == "yes" else "no_price"): limit_cents,
-    }
-    return _signed("POST", "/portfolio/orders", order)
+            f"order ${cost:.2f} exceeds MAX_ORDER_USD ${MAX_ORDER_USD}")
+    return _place(ticker, side, price, count)
 
 
-def sell(ticker: str, side: str, count: int, limit_cents: int) -> dict:
-    """Marketable LIMIT sell to exit (stop-loss). limit_cents should be
-    at or below the current bid to guarantee the fill."""
-    order = {
-        "ticker": ticker,
-        "client_order_id": str(uuid.uuid4()),
-        "action": "sell",
-        "side": side,
-        "type": "limit",
-        "count": count,
-        ("yes_price" if side == "yes" else "no_price"): limit_cents,
-    }
-    return _signed("POST", "/portfolio/orders", order)
+def exit_pos(ticker: str, held_side: str, yes_ask_c: int, yes_bid_c: int,
+             count: int) -> dict:
+    """Close a position marketably (stop-loss).
+      held YES -> sell YES: ask at the YES bid.
+      held NO  -> buy  YES: bid at the YES ask (covers the short)."""
+    if held_side == "yes":
+        return _place(ticker, "ask", yes_bid_c, count)
+    return _place(ticker, "bid", yes_ask_c, count)

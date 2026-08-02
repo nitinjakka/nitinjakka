@@ -233,13 +233,17 @@ def trade_lifecycle(series: str, m: dict, side: str, price: float,
                f"Cash ${cash_now:.2f}")
     elif stopped:
         if LIVE:
-            # Sell only what is still held (user may have sold some),
-            # a few cents below the trigger to guarantee the fill.
+            # Close only what is still held (user may have sold some),
+            # pricing a few cents past the touch to guarantee the fill.
             try:
+                mm = get(f"/markets/{ticker}").get("market", {})
+                ya = float(mm.get("yes_ask_dollars") or 1)
+                yb = float(mm.get("yes_bid_dollars") or 0)
+                yes_ask_c = min(99, math.ceil(ya * 100) + 3)  # NO exit: buy YES
+                yes_bid_c = max(1, int(yb * 100) - 3)         # YES exit: sell YES
                 held = live.held_contracts(ticker, side)
                 if held > 0:
-                    live.sell(ticker, side, held,
-                              max(1, int(round(exit_px * 100)) - 3))
+                    live.exit_pos(ticker, side, yes_ask_c, yes_bid_c, held)
             except Exception as e:
                 log_line(f"{coin}: LIVE stop-sell FAILED: {e}")
                 notify(f"Kalshi bot: {coin} STOP-SELL FAILED", str(e))
@@ -429,11 +433,14 @@ def main() -> None:
 
             if LIVE:
                 try:
-                    # Snap the ask to its true deci-cent tick, then ceil to
-                    # a whole-cent limit >= ask -> marketable buy that
-                    # fills at the resting ask (no float-noise overpay).
-                    limit_cents = math.ceil(round(ask * 1000) / 10)
-                    live.buy(m["ticker"], side, contracts, limit_cents)
+                    ya = float(m.get("yes_ask_dollars") or 0)
+                    yb = float(m.get("yes_bid_dollars") or 0)
+                    # marketable: buy YES bids >= ask (ceil); sell YES
+                    # (buy NO) asks <= bid (floor).
+                    yes_ask_c = math.ceil(round(ya * 1000) / 10)
+                    yes_bid_c = int(round(yb * 1000) / 10)
+                    live.enter(m["ticker"], side, yes_ask_c, yes_bid_c,
+                               contracts)
                 except Exception as e:
                     log_line(f"{coin}: LIVE order REJECTED: {e}")
                     notify(f"Kalshi bot: {coin} ORDER FAILED", str(e))
