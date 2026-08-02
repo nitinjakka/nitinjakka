@@ -363,3 +363,16 @@
 [02:30:14 AM ET] ZEC: result=yes WIN pnl $+0.06 cash $10.31
 [watchdog 10:44:49 UTC] bot dead - restarting: cash=10.31 hours=13.42
 [06:44:50 AM ET] paper bot v4 start: $10.31, 13.42h, 9 coins (BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE, NEAR); T-3 market orders, gap>0.05%, 90%-98%, stop 70%, 25%/trade, max 4 at once
+[06:57:01 AM ET] BTC: gap -0.018% too small - skip
+[06:57:03 AM ET] ETH: gap -0.021% too small - skip
+[06:57:05 AM ET] SOL: gap +0.033% too small - skip
+[06:57:12 AM ET] XRP: gap +0.009% too small - skip
+[06:57:16 AM ET] NEAR: gap -0.193% but no ask 0.99 out of range - skip
+[06:57:16 AM ET] HYPE: MARKET BUY 2x NO @ 0.90 (gap -0.142%) cost $1.81 KXHYPE15M-26AUG020700-00
+[06:57:17 AM ET] ZEC: MARKET BUY 2x NO @ 0.92 (gap -0.127%) cost $1.85 KXZEC15M-26AUG020700-00
+[06:57:18 AM ET] BNB: MARKET BUY 1x NO @ 0.98 (gap -0.096%) cost $0.98 KXBNB15M-26AUG020700-00
+[06:57:18 AM ET] DOGE: MARKET BUY 1x YES @ 0.92 (gap +0.079%) cost $0.92 KXDOGE15M-26AUG020700-00
+[07:00:11 AM ET] ZEC: result=no WIN pnl $+0.15 cash $6.74
+[07:00:11 AM ET] DOGE: result=yes WIN pnl $+0.08 cash $7.74
+[07:00:12 AM ET] BNB: result=no WIN pnl $+0.02 cash $8.74
+[07:00:14 AM ET] HYPE: result=no WIN pnl $+0.19 cash $10.74
