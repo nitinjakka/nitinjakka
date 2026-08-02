@@ -85,3 +85,5 @@
 [12:45:14 PM ET] *** LIVE MODE *** live auth OK, account balance $10.39, max order $0.00
 [12:45:14 PM ET] LIVE bot v4 start: $10.39, 27.25h, 9 coins (BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE, NEAR); T-3 market orders, gaps (most 0.05% / HYPE+NEAR+ZEC 0.10%), 90c-98.5c, stop 70%, size 1coin=50%/2+=split100%, max 4 at once
 [autodeploy 2026-08-02T16:49 UTC] pulled 3d229b6
+[12:50:33 PM ET] *** LIVE MODE *** live auth OK, account balance $10.39, max order $0.00
+[12:50:34 PM ET] LIVE bot v4 start: $10.39, 999999.0h, 9 coins (BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE, NEAR); T-3 market orders, gaps (most 0.05% / HYPE+NEAR+ZEC 0.10%), 90c-98.5c, stop 70%, size 1coin=50%/2+=split100%, max 4 at once
