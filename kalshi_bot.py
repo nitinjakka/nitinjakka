@@ -61,6 +61,9 @@ MAX_CONCURRENT = 4
 
 NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "nitin-kalshi-bot-x7q2")
 
+LIVE = False              # set by --live; when False everything is simulated
+live = None               # kalshi_live module, imported only in live mode
+
 lock = threading.Lock()   # guards cash + csv writer
 state = {"cash": 0.0}
 CASH_FILE = "kalshi_cash.txt"
@@ -168,12 +171,29 @@ def trade_lifecycle(series: str, m: dict, side: str, price: float,
         time.sleep(3)
 
     if stopped:
-        proceeds = contracts * (exit_px - fee(exit_px))
-        with lock:
-            state["cash"] += proceeds
-            cash_now = state["cash"]
-            save_cash()
-        pnl = proceeds - cost
+        if LIVE:
+            # Sell at a few cents below the trigger to guarantee the fill.
+            try:
+                live.sell(ticker, side, contracts,
+                          max(1, int(round(exit_px * 100)) - 3))
+            except Exception as e:
+                log_line(f"{coin}: LIVE stop-sell FAILED: {e}")
+                notify(f"Kalshi bot: {coin} STOP-SELL FAILED", str(e))
+            with lock:
+                try:
+                    state["cash"] = live.balance_dollars()
+                except Exception:
+                    pass
+                cash_now = state["cash"]
+                save_cash()
+            pnl = float("nan")
+        else:
+            proceeds = contracts * (exit_px - fee(exit_px))
+            with lock:
+                state["cash"] += proceeds
+                cash_now = state["cash"]
+                save_cash()
+            pnl = proceeds - cost
         result, won = "stopped", False
         log_line(f"{coin}: STOP-LOSS sell @ {exit_px:.2f} "
                  f"pnl ${pnl:+.2f} cash ${cash_now:.2f}")
@@ -183,12 +203,23 @@ def trade_lifecycle(series: str, m: dict, side: str, price: float,
     else:
         result = settle(ticker)
         won = (result == side)
-        payout = contracts * 1.0 if won else 0.0
-        with lock:
-            state["cash"] += payout
-            cash_now = state["cash"]
-            save_cash()
-        pnl = payout - cost
+        if LIVE:
+            time.sleep(5)  # let Kalshi credit the settlement
+            with lock:
+                try:
+                    state["cash"] = live.balance_dollars()
+                except Exception:
+                    pass
+                cash_now = state["cash"]
+                save_cash()
+            pnl = float("nan")
+        else:
+            payout = contracts * 1.0 if won else 0.0
+            with lock:
+                state["cash"] += payout
+                cash_now = state["cash"]
+                save_cash()
+            pnl = payout - cost
         log_line(f"{coin}: result={result} {'WIN' if won else 'LOSS'} "
                  f"pnl ${pnl:+.2f} cash ${cash_now:.2f}")
         notify(f"Kalshi bot: {coin} {'WIN' if won else 'LOSS'}",
@@ -203,16 +234,36 @@ def trade_lifecycle(series: str, m: dict, side: str, price: float,
 
 
 def main() -> None:
+    global LIVE, live
     ap = argparse.ArgumentParser()
     ap.add_argument("--cash", type=float, default=10.0)
     ap.add_argument("--hours", type=float, default=24.0)
     ap.add_argument("--log", default="kalshi_paper_log.csv")
+    ap.add_argument("--live", action="store_true",
+                    help="place REAL orders (needs Kalshi API key env vars "
+                         "and KALSHI_LIVE_CONFIRM=YES)")
     args = ap.parse_args()
 
-    state["cash"] = args.cash
+    if args.live:
+        import kalshi_live as _live
+        live = _live
+        try:
+            summary = live.preflight()
+        except Exception as e:
+            log_line(f"LIVE preflight FAILED - staying down: {e}")
+            notify("Kalshi bot: LIVE START FAILED", str(e))
+            return
+        LIVE = True
+        state["cash"] = live.balance_dollars()
+        log_line(f"*** LIVE MODE *** {summary}")
+        notify("Kalshi bot: LIVE MODE ON",
+               f"Real trading. Starting balance ${state['cash']:.2f}")
+    else:
+        state["cash"] = args.cash
     save_cash()
     deadline = time.time() + args.hours * 3600
-    log_line(f"paper bot v4 start: ${args.cash:.2f}, {args.hours}h, "
+    mode = "LIVE" if LIVE else "paper"
+    log_line(f"{mode} bot v4 start: ${state['cash']:.2f}, {args.hours}h, "
              f"{len(COINS)} coins ({', '.join(coin_name(s) for s in COINS)}); "
              f"T-3 market orders, per-coin gaps (BTC 0.05% / mid 0.10% / "
              f"HYPE 0.20% / NEAR+ZEC 0.25%), "
@@ -280,6 +331,14 @@ def main() -> None:
         # Sizing: 1 coin -> 50% of cash; 2+ coins -> split 100% evenly.
         n_found = len(candidates)
         frac = 0.50 if n_found == 1 else (1.0 / n_found if n_found else 0)
+        if LIVE:
+            try:
+                with lock:
+                    state["cash"] = live.balance_dollars()  # source of truth
+                    save_cash()
+            except Exception as e:
+                log_line(f"live balance check failed, skipping window: {e}")
+                candidates = []
         with lock:
             window_cash = state["cash"]   # fix the base before deductions
         placed = 0
@@ -289,14 +348,27 @@ def main() -> None:
                 contracts = int(window_cash * frac / unit)
                 if contracts < 1:
                     continue
-                state["cash"] -= contracts * unit
-                save_cash()
             coin = coin_name(series)
-            log_line(f"{coin}: MARKET BUY {contracts}x {side.upper()} "
-                     f"@ {ask:.2f} (gap {gap:+.3%}) cost "
-                     f"${contracts * unit:.2f} {m['ticker']}")
+
+            if LIVE:
+                try:
+                    live.buy(m["ticker"], side, contracts,
+                             int(round(ask * 100)))
+                except Exception as e:
+                    log_line(f"{coin}: LIVE order REJECTED: {e}")
+                    notify(f"Kalshi bot: {coin} ORDER FAILED", str(e))
+                    continue
+            else:
+                with lock:
+                    state["cash"] -= contracts * unit
+                    save_cash()
+
+            log_line(f"{coin}: {'LIVE' if LIVE else 'PAPER'} BUY "
+                     f"{contracts}x {side.upper()} @ {ask:.2f} "
+                     f"(gap {gap:+.3%}) cost ${contracts * unit:.2f} "
+                     f"{m['ticker']}")
             notify(f"Kalshi bot: {coin} BUY",
-                   f"{contracts}x {side.upper()} @ {ask:.2f} market "
+                   f"{contracts}x {side.upper()} @ {ask:.2f} "
                    f"(${contracts * unit:.2f}, gap {gap:+.3%}) "
                    f"{m['ticker']}")
             t = threading.Thread(
