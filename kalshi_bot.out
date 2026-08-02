@@ -73,3 +73,7 @@
 [08:13:05 PM ET] DOGE: gap +0.164% but yes ask 1.00 out of range - skip
 [08:13:06 PM ET] NEAR: gap +0.197% but yes ask 1.00 out of range - skip
 [08:13:06 PM ET] nothing to trade this window (08:15 PM ET close)
+[watchdog 00:21:53 UTC] bot dead - restarting: cash=101.52 hours=23.85
+[08:21:53 PM ET] paper bot v4 start: $101.52, 23.85h, 9 coins (BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE, NEAR); T-3 market orders, gap>0.05%, 90%-98%, stop 70%, 25%/trade, max 4 at once
+[watchdog 00:24:07 UTC] bot dead - restarting: cash=10 hours=23.72
+[08:24:07 PM ET] paper bot v4 start: $10.00, 23.72h, 9 coins (BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE, NEAR); T-3 market orders, gap>0.05%, 90%-98%, stop 70%, 25%/trade, max 4 at once
