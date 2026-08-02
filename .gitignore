@@ -1,1 +1,3 @@
 monitor.out
+__pycache__/
+*.pyc
