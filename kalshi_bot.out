@@ -205,3 +205,7 @@
 [11:12:13 PM ET] NEAR: MARKET BUY 2x NO @ 0.95 (gap -0.129%) cost $1.91 KXNEAR15M-26AUG012315-15
 [11:12:14 PM ET] ETH: MARKET BUY 1x NO @ 0.91 (gap -0.092%) cost $0.91 KXETH15M-26AUG012315-15
 [11:12:14 PM ET] BTC: MARKET BUY 1x NO @ 0.97 (gap -0.076%) cost $0.97 KXBTC15M-26AUG012315-15
+[11:15:11 PM ET] BTC: result=no WIN pnl $+0.03 cash $5.61
+[11:15:11 PM ET] ETH: result=no WIN pnl $+0.09 cash $6.61
+[11:15:13 PM ET] NEAR: result=no WIN pnl $+0.09 cash $8.61
+[11:15:14 PM ET] ZEC: result=yes WIN pnl $+0.07 cash $10.61
