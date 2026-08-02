@@ -178,3 +178,6 @@
 [02:42:01 PM ET] NEAR: gap +0.047% too small - skip
 [02:42:01 PM ET] nothing to trade this window (02:45 PM ET close)
 [autodeploy 2026-08-02T18:42 UTC] pulled 845a8c0
+[02:45:07 PM ET] new code deployed (845a8c0) - restarting to update
+[02:45:13 PM ET] *** LIVE MODE *** live auth OK, account balance $6.47, max order $0.00
+[02:45:13 PM ET] LIVE bot v4 start: $6.47, 999999.0h, 8 coins (BTC, ETH, SOL, ZEC, BNB, XRP, HYPE, DOGE); T-3 market orders, gaps (most 0.05% / HYPE+ZEC 0.10%), 90c-98.5c, stop 70%, size 1coin=50%/2+=split100%, max 4 at once
