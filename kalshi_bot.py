@@ -459,6 +459,9 @@ def main() -> None:
                 if filled < 1:
                     log_line(f"{coin}: order placed but 0 filled - skip "
                              f"{m['ticker']}")
+                    notify(f"Kalshi bot: {coin} no fill",
+                           f"Order placed but 0 filled (no liquidity at "
+                           f"price). {m['ticker']}", priority="low")
                     continue
                 contracts = filled
             else:
