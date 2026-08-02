@@ -19,6 +19,7 @@ PAPER mode: market orders fill at the current ask. No real orders.
 import argparse
 import csv
 import datetime as dt
+import math
 import os
 import subprocess
 import threading
@@ -190,13 +191,18 @@ def trade_lifecycle(series: str, m: dict, side: str, price: float,
 
     stopped, exit_px = False, 0.0
     manual = False          # user closed the position from the Kalshi app
+    peak_held = 0           # max contracts we've actually observed holding
     poll = 0
     while time.time() < cts:
-        # In live mode, notice if the position was sold manually and
-        # stop managing it (don't place a duplicate stop-sell).
+        # In live mode, notice if the position was sold manually. Track
+        # the peak we actually held so the fill latency right after the
+        # buy can't be mistaken for a manual sell (position endpoint can
+        # lag a few seconds behind the fill).
         if LIVE and poll % 5 == 0:
             try:
-                if live.held_contracts(ticker, side) < contracts:
+                h = live.held_contracts(ticker, side)
+                peak_held = max(peak_held, h)
+                if peak_held > 0 and h < peak_held:
                     manual = True
                     break
             except Exception:
@@ -428,8 +434,11 @@ def main() -> None:
 
             if LIVE:
                 try:
-                    live.buy(m["ticker"], side, contracts,
-                             int(round(ask * 100)))
+                    # Snap the ask to its true deci-cent tick, then ceil to
+                    # a whole-cent limit >= ask -> marketable buy that
+                    # fills at the resting ask (no float-noise overpay).
+                    limit_cents = math.ceil(round(ask * 1000) / 10)
+                    live.buy(m["ticker"], side, contracts, limit_cents)
                 except Exception as e:
                     log_line(f"{coin}: LIVE order REJECTED: {e}")
                     notify(f"Kalshi bot: {coin} ORDER FAILED", str(e))
