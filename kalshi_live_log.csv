@@ -82,3 +82,4 @@ et_time,ticker,side,entry_price,contracts,cost,result,won,pnl,cash_after
 2026-08-03 09:27:54 AM ET,KXBNB15M-26AUG030930-30,yes,0.9780,1,0.98,stopped,False,nan,8.00
 2026-08-03 09:28:31 AM ET,KXETH15M-26AUG030930-30,yes,0.9800,1,0.98,stopped,False,nan,8.00
 2026-08-03 09:28:31 AM ET,KXBTC15M-26AUG030930-30,yes,0.9730,2,1.95,stopped,False,nan,8.30
+2026-08-03 09:45:16 AM ET,KXXRP15M-26AUG030945-45,yes,0.9790,2,1.96,yes,True,nan,9.23
