@@ -77,7 +77,17 @@ def fee(p: float) -> float:
     return 0.07 * p * (1.0 - p)
 
 
+_last_low_notify = [0.0]   # throttle timestamp for low-priority pings
+
+
 def notify(title: str, body: str, priority: str = "high") -> None:
+    # Throttle low-priority pings (nothing-to-trade / too-small) to at
+    # most one per hour. Their volume was getting the server IP rate-
+    # limited by ntfy, which silently dropped important trade alerts.
+    if priority == "low":
+        if time.time() - _last_low_notify[0] < 3600:
+            return
+        _last_low_notify[0] = time.time()
     try:
         requests.post(f"https://ntfy.sh/{NTFY_TOPIC}", data=body.encode(),
                       headers={"Title": title, "Priority": priority},
