@@ -686,3 +686,8 @@
 [06:57:38 AM ET] ETH: STOP-LOSS sell @ 0.66 pnl $+nan cash $6.38
 [07:00:26 AM ET] DOGE: result=no WIN pnl $+nan cash $11.35
 [autodeploy 2026-08-03T11:08 UTC] pulled e2922c7
+[07:12:00 AM ET] new code deployed (e2922c7) - restarting to update
+[07:12:05 AM ET] *** LIVE MODE *** live auth OK, account balance $11.35, max order $0.00
+[07:12:05 AM ET] LIVE bot v4 start: $11.35, 999999.0h, 6 coins (BTC, ETH, SOL, BNB, XRP, DOGE); T-3 market orders, gap 0.10%, 90c-98.5c, stop 50%, size 1=25%/2-3=50%/4=75% (all-in single if <$5), max 4 at once
+[07:12:05 AM ET] BTC: gap -0.234% but no ask 1.00 out of range - skip
+[07:12:06 AM ET] nothing to trade this window (07:15 AM ET close)
