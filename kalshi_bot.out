@@ -606,3 +606,10 @@
 [04:12:32 AM ET] ETH: STOP-LOSS sell @ 0.70 pnl $+nan cash $6.59
 [04:15:16 AM ET] DOGE: result=no WIN pnl $+nan cash $11.96
 [04:15:27 AM ET] XRP: result=no WIN pnl $+nan cash $11.96
+[04:27:00 AM ET] BTC: gap -0.288% but no ask 1.00 out of range - skip
+[04:27:00 AM ET] ETH: gap -0.484% but no ask 0.99 out of range - skip
+[04:27:00 AM ET] SOL: gap -0.373% but no ask 1.00 out of range - skip
+[04:27:00 AM ET] BNB: gap -0.336% but no ask 1.00 out of range - skip
+[04:27:00 AM ET] XRP: gap -0.300% but no ask 1.00 out of range - skip
+[04:27:00 AM ET] DOGE: gap -0.239% but no ask 1.00 out of range - skip
+[04:27:00 AM ET] nothing to trade this window (04:30 AM ET close)
