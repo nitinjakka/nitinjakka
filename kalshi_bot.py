@@ -45,7 +45,7 @@ ENTRY_WINDOW = 180     # decide 3 minutes before close
 MIN_GAP = 0.0010       # 0.10% for all coins
 GAP_OVERRIDES = {}     # flat threshold, no per-coin overrides
 ENTRY_MIN, ENTRY_MAX = 0.90, 0.985
-STOP_TRIGGER = 0.70
+STOP_TRIGGER = 0.50
 # Sizing is dynamic: 1 coin -> 50% of cash; N>1 coins -> 100%/N each.
 MAX_CONCURRENT = 4
 
