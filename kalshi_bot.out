@@ -378,3 +378,9 @@
 [08:42:01 PM ET] DOGE: LIVE BUY 5x YES @ 0.91 (gap +0.070%) cost $4.58 KXDOGE15M-26AUG022045-45
 [08:42:32 PM ET] DOGE: STOP-LOSS sell @ 0.62 pnl $+nan cash $1.70
 [08:44:13 PM ET] ETH: STOP-LOSS sell @ 0.66 pnl $+nan cash $1.70
+[08:57:00 PM ET] BTC: gap -0.025% too small - skip
+[08:57:00 PM ET] ETH: gap -0.046% too small - skip
+[08:57:00 PM ET] SOL: gap +0.007% too small - skip
+[08:57:00 PM ET] BNB: gap -0.012% too small - skip
+[08:57:00 PM ET] XRP: gap +0.028% too small - skip
+[autodeploy 2026-08-03T00:57 UTC] pulled f86ee00
