@@ -430,3 +430,12 @@
 [10:27:00 PM ET] ETH: LIVE BUY 1x YES @ 0.98 (gap +0.197%) cost $0.98 KXETH15M-26AUG022230-30
 [10:27:59 PM ET] ETH: STOP-LOSS sell @ 0.64 pnl $+nan cash $0.85
 [autodeploy 2026-08-03T02:33 UTC] pulled c976472
+[10:42:00 PM ET] new code deployed (c976472) - restarting to update
+[10:42:05 PM ET] *** LIVE MODE *** live auth OK, account balance $0.02, max order $0.00
+[10:42:05 PM ET] LIVE bot v4 start: $0.02, 999999.0h, 6 coins (BTC, ETH, SOL, BNB, XRP, DOGE); T-3 market orders, gap 0.10%, 90c-98.5c, stop 70%, size 1coin=50%/2+=split100%, max 4 at once
+[10:42:06 PM ET] ETH: gap +0.151% but yes ask 0.99 out of range - skip
+[10:42:06 PM ET] SOL: gap +0.190% but yes ask 0.99 out of range - skip
+[10:42:06 PM ET] BNB: gap +0.152% but yes ask 0.99 out of range - skip
+[10:42:06 PM ET] XRP: gap +0.177% but yes ask 0.99 out of range - skip
+[10:42:06 PM ET] DOGE: gap +0.180% but yes ask 0.99 out of range - skip
+[10:42:06 PM ET] qualified but nothing placed - balance $0.02 too small (10:45 PM ET close)
