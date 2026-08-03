@@ -800,3 +800,9 @@
 [10:42:00 AM ET] XRP: gap -0.102% but no ask 0.69 out of range - skip
 [10:42:00 AM ET] DOGE: gap -0.065% too small - skip
 [10:42:00 AM ET] nothing to trade this window (10:45 AM ET close)
+[10:57:00 AM ET] BTC: gap +0.224% but yes ask 1.00 out of range - skip
+[10:57:00 AM ET] ETH: gap +0.305% but yes ask 0.99 out of range - skip
+[10:57:00 AM ET] BNB: gap +0.010% too small - skip
+[10:57:01 AM ET] DOGE: gap +0.097% too small - skip
+[10:57:01 AM ET] SOL: LIVE BUY 2x YES @ 0.96 (gap +0.129%) cost $1.93 KXSOL15M-26AUG031100-00
+[10:57:01 AM ET] XRP: LIVE BUY 2x YES @ 0.98 (gap +0.120%) cost $1.97 KXXRP15M-26AUG031100-00
