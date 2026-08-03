@@ -413,3 +413,12 @@
 [09:57:00 PM ET] XRP: gap -0.093% too small - skip
 [09:57:01 PM ET] DOGE: gap -0.030% too small - skip
 [autodeploy 2026-08-03T02:03 UTC] pulled c72a3b1
+[10:12:00 PM ET] new code deployed (c72a3b1) - restarting to update
+[10:12:05 PM ET] *** LIVE MODE *** live auth OK, account balance $1.78, max order $0.00
+[10:12:05 PM ET] LIVE bot v4 start: $1.78, 999999.0h, 6 coins (BTC, ETH, SOL, BNB, XRP, DOGE); T-3 market orders, gap 0.10%, 90c-98.5c, stop 70%, size 1coin=50%/2+=split100%, max 4 at once
+[10:12:06 PM ET] BTC: gap -0.074% too small - skip
+[10:12:06 PM ET] ETH: gap -0.075% too small - skip
+[10:12:06 PM ET] SOL: gap -0.059% too small - skip
+[10:12:06 PM ET] BNB: gap -0.070% too small - skip
+[10:12:06 PM ET] DOGE: gap -0.097% too small - skip
+[10:12:07 PM ET] XRP: LIVE BUY 1x NO @ 0.98 (gap -0.177%) cost $0.99 KXXRP15M-26AUG022215-15
