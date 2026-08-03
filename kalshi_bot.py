@@ -419,11 +419,14 @@ def main() -> None:
                 candidates = []
         with lock:
             window_cash = state["cash"]   # fix the base before deductions
-        n_found = len(candidates)
-        # Recovery mode: below $5 deploy 100% of funds (split across any
-        # qualifying coins). At/above $5: 1 coin -> 50%, 2+ -> split 100%.
+        # Recovery mode: below $5, go all-in on the SINGLE best coin.
+        # Splitting a tiny balance leaves each order too small to buy
+        # even 1 contract, which trades nothing and notifies nothing.
         if window_cash < 5.0:
-            frac = (1.0 / n_found) if n_found else 0
+            candidates = candidates[:1]
+        n_found = len(candidates)
+        if window_cash < 5.0:
+            frac = 1.0 if n_found else 0
         else:
             frac = 0.50 if n_found == 1 else ((1.0 / n_found) if n_found else 0)
         placed = 0
@@ -486,12 +489,20 @@ def main() -> None:
             threads.append(t)
             placed += 1
 
+        wtime = f"{dt.datetime.fromtimestamp(cts, ET):%I:%M %p ET}"
         if not candidates:
-            wtime = f"{dt.datetime.fromtimestamp(cts, ET):%I:%M %p ET}"
             log_line(f"nothing to trade this window ({wtime} close)")
             notify("Kalshi bot: nothing to trade",
                    f"No qualifying coin for the {wtime} window.",
                    priority="low")
+        elif placed == 0:
+            # A coin qualified but the balance was too small to buy even
+            # 1 contract (or every order 0-filled). Don't go silent.
+            log_line(f"qualified but nothing placed - balance "
+                     f"${window_cash:.2f} too small ({wtime} close)")
+            notify("Kalshi bot: too small to trade",
+                   f"A coin qualified but ${window_cash:.2f} is too "
+                   f"small for 1 contract ({wtime}).", priority="low")
         # Move past this window before scanning for the next one.
         while time.time() < cts + 5:
             time.sleep(3)
