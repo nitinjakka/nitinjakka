@@ -177,54 +177,26 @@ def trade_lifecycle(series: str, m: dict, side: str, price: float,
     coin = coin_name(series)
     cost = contracts * (price + fee(price))
 
+    # Monitor the held side's bid; trigger the stop purely on price.
+    # (No position-lookup gating - the reduce_only exit safely no-ops
+    # if the position was already closed or sold manually.)
     stopped, exit_px = False, 0.0
-    manual = False          # user closed the position from the Kalshi app
-    peak_held = 0           # max contracts we've actually observed holding
-    poll = 0
     while time.time() < cts:
-        # In live mode, notice if the position was sold manually. Track
-        # the peak we actually held so the fill latency right after the
-        # buy can't be mistaken for a manual sell (position endpoint can
-        # lag a few seconds behind the fill).
-        if LIVE and poll % 5 == 0:
-            try:
-                h = live.held_contracts(ticker, side)
-                peak_held = max(peak_held, h)
-                if peak_held > 0 and h < peak_held:
-                    manual = True
-                    break
-            except Exception:
-                pass
-        poll += 1
         mm = get(f"/markets/{ticker}").get("market", {})
         try:
             yb = float(mm.get("yes_bid_dollars") or 0)
             ya = float(mm.get("yes_ask_dollars") or 1)
         except (TypeError, ValueError):
-            time.sleep(3)
+            time.sleep(2)
             continue
         bid = yb if side == "yes" else round(1.0 - ya, 4)
         if 0 < bid <= STOP_TRIGGER:
             exit_px = bid
             stopped = True
             break
-        time.sleep(3)
+        time.sleep(2)
 
-    if manual:
-        with lock:
-            try:
-                state["cash"] = live.balance_dollars()
-            except Exception:
-                pass
-            cash_now = state["cash"]
-            save_cash()
-        result, won, pnl = "manual", False, float("nan")
-        log_line(f"{coin}: position closed manually - bot backing off "
-                 f"(cash ${cash_now:.2f}) {ticker}")
-        notify(f"Kalshi bot: {coin} CLOSED MANUALLY",
-               f"You sold it from the app; bot won't re-sell. "
-               f"Cash ${cash_now:.2f}")
-    elif stopped:
+    if stopped:
         if LIVE:
             # Market-exit the whole position. reduce_only means it can
             # only close (never flip), so we sell the original count
