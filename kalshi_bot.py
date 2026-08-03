@@ -295,7 +295,7 @@ def main() -> None:
              f"{len(COINS)} coins ({', '.join(coin_name(s) for s in COINS)}); "
              f"T-3 market orders, gap 0.10%, "
              f"{ENTRY_MIN*100:.0f}c-{ENTRY_MAX*100:.1f}c, "
-             f"stop {STOP_TRIGGER:.0%}, size 1=25%/2=50%/3+=75% "
+             f"stop {STOP_TRIGGER:.0%}, size 1=25%/2-3=50%/4=75% "
              f"(all-in single if <$5), "
              f"max {MAX_CONCURRENT} at once")
 
@@ -396,10 +396,10 @@ def main() -> None:
         if window_cash < 5.0:
             frac = 1.0 if n_found else 0
         else:
-            # Total deployed per window: 1 coin 25%, 2 coins 50%,
-            # 3+ coins 75% - split evenly across the qualifying coins.
+            # Total deployed per window: 1 coin 25%, 2-3 coins 50%,
+            # 4 coins 75% - split evenly across the qualifying coins.
             total_cap = (0.25 if n_found == 1
-                         else 0.50 if n_found == 2 else 0.75)
+                         else 0.50 if n_found in (2, 3) else 0.75)
             frac = (total_cap / n_found) if n_found else 0
         placed = 0
         for _, gap, series, m, side, ask in candidates:
