@@ -409,9 +409,6 @@ def main() -> None:
 
         candidates.sort(reverse=True, key=lambda c: c[0])
         candidates = candidates[:MAX_CONCURRENT]
-        # Sizing: 1 coin -> 50% of cash; 2+ coins -> split 100% evenly.
-        n_found = len(candidates)
-        frac = 0.50 if n_found == 1 else (1.0 / n_found if n_found else 0)
         if LIVE:
             try:
                 with lock:
@@ -422,6 +419,13 @@ def main() -> None:
                 candidates = []
         with lock:
             window_cash = state["cash"]   # fix the base before deductions
+        n_found = len(candidates)
+        # Recovery mode: below $5 deploy 100% of funds (split across any
+        # qualifying coins). At/above $5: 1 coin -> 50%, 2+ -> split 100%.
+        if window_cash < 5.0:
+            frac = (1.0 / n_found) if n_found else 0
+        else:
+            frac = 0.50 if n_found == 1 else ((1.0 / n_found) if n_found else 0)
         placed = 0
         for _, gap, series, m, side, ask in candidates:
             unit = ask + fee(ask)  # taker: pay the ask plus fee
