@@ -318,8 +318,10 @@ def main() -> None:
                         "pnl", "cash_after"])
         f.flush()
 
-    threading.Thread(target=heartbeat_loop, args=(mode,),
-                     daemon=True).start()
+    # Heartbeat disabled: at every 5 min it sent ~288 pings/day, which
+    # by itself exceeded ntfy's free daily limit and got the server IP
+    # rate-limited (dropping all alerts). Liveness is covered by systemd
+    # (Restart=always) and the GitHub log pushes.
 
     boot_commit = repo_commit()
     threads: list[threading.Thread] = []
