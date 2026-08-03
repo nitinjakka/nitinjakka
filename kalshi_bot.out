@@ -442,3 +442,12 @@
 [autodeploy 2026-08-03T02:51 UTC] pulled 88900b3
 [autodeploy 2026-08-03T02:53 UTC] pulled 455ac45
 [10:57:00 PM ET] new code deployed (455ac45) - restarting to update
+[10:57:05 PM ET] *** LIVE MODE *** live auth OK, account balance $11.00, max order $0.00
+[10:57:05 PM ET] LIVE bot v4 start: $11.00, 999999.0h, 6 coins (BTC, ETH, SOL, BNB, XRP, DOGE); T-3 market orders, gap 0.10%, 90c-98.5c, stop 70%, size 1=25%/2-3=50%/4=75% (all-in single if <$5), max 4 at once
+[10:57:05 PM ET] BTC: gap -0.097% too small - skip
+[10:57:05 PM ET] ETH: gap -0.203% but no ask 0.99 out of range - skip
+[10:57:06 PM ET] SOL: gap -0.126% but no ask 0.99 out of range - skip
+[10:57:06 PM ET] BNB: gap -0.137% but no ask 0.99 out of range - skip
+[10:57:06 PM ET] XRP: gap -0.158% but no ask 0.99 out of range - skip
+[10:57:06 PM ET] DOGE: gap -0.164% but no ask 0.99 out of range - skip
+[10:57:06 PM ET] nothing to trade this window (11:00 PM ET close)
