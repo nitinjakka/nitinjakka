@@ -752,3 +752,12 @@
 [09:12:01 AM ET] BNB: LIVE BUY 3x NO @ 0.94 (gap -0.135%) cost $2.83 KXBNB15M-26AUG030915-15
 [09:15:16 AM ET] BNB: result=no WIN pnl $+nan cash $11.72
 [autodeploy 2026-08-03T13:20 UTC] pulled 11a3dc2
+[09:27:00 AM ET] new code deployed (11a3dc2) - restarting to update
+[09:27:05 AM ET] *** LIVE MODE *** live auth OK, account balance $11.72, max order $0.00
+[09:27:05 AM ET] LIVE bot v4 start: $11.72, 999999.0h, 6 coins (BTC, ETH, SOL, BNB, XRP, DOGE); T-3 market orders, gap 0.10%, 90c-98.5c, stop 50%, size 1=25%/2-3=50%/4=75% (all-in single if <$5), max 4 at once
+[09:27:06 AM ET] SOL: gap +0.268% but yes ask 0.99 out of range - skip
+[09:27:06 AM ET] XRP: gap +0.319% but yes ask 0.99 out of range - skip
+[09:27:06 AM ET] DOGE: gap +0.375% but yes ask 1.00 out of range - skip
+[09:27:06 AM ET] ETH: LIVE BUY 1x YES @ 0.98 (gap +0.160%) cost $0.98 KXETH15M-26AUG030930-30
+[09:27:06 AM ET] BNB: LIVE BUY 1x YES @ 0.98 (gap +0.123%) cost $0.98 KXBNB15M-26AUG030930-30
+[09:27:07 AM ET] BTC: LIVE BUY 2x YES @ 0.97 (gap +0.118%) cost $1.95 KXBTC15M-26AUG030930-30
