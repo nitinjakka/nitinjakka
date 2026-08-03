@@ -691,3 +691,10 @@
 [07:12:05 AM ET] LIVE bot v4 start: $11.35, 999999.0h, 6 coins (BTC, ETH, SOL, BNB, XRP, DOGE); T-3 market orders, gap 0.10%, 90c-98.5c, stop 50%, size 1=25%/2-3=50%/4=75% (all-in single if <$5), max 4 at once
 [07:12:05 AM ET] BTC: gap -0.234% but no ask 1.00 out of range - skip
 [07:12:06 AM ET] nothing to trade this window (07:15 AM ET close)
+[07:27:00 AM ET] BTC: gap +0.148% but yes ask 1.00 out of range - skip
+[07:27:00 AM ET] ETH: gap +0.179% but yes ask 0.99 out of range - skip
+[07:27:00 AM ET] SOL: gap +0.162% but yes ask 0.99 out of range - skip
+[07:27:00 AM ET] BNB: gap +0.073% too small - skip
+[07:27:00 AM ET] XRP: gap -0.281% but no ask 1.00 out of range - skip
+[07:27:00 AM ET] DOGE: gap +0.107% but yes ask 0.99 out of range - skip
+[07:27:00 AM ET] nothing to trade this window (07:30 AM ET close)
