@@ -384,3 +384,6 @@
 [08:57:00 PM ET] BNB: gap -0.012% too small - skip
 [08:57:00 PM ET] XRP: gap +0.028% too small - skip
 [autodeploy 2026-08-03T00:57 UTC] pulled f86ee00
+[09:00:06 PM ET] new code deployed (f86ee00) - restarting to update
+[09:00:12 PM ET] *** LIVE MODE *** live auth OK, account balance $1.70, max order $0.00
+[09:00:12 PM ET] LIVE bot v4 start: $1.70, 999999.0h, 6 coins (BTC, ETH, SOL, BNB, XRP, DOGE); T-3 market orders, gap 0.10%, 90c-98.5c, stop 70%, size 1coin=50%/2+=split100%, max 4 at once
