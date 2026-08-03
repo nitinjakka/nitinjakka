@@ -42,8 +42,8 @@ COINS = {
 }
 
 ENTRY_WINDOW = 180     # decide 3 minutes before close
-MIN_GAP = 0.0005       # 0.05% for all coins (jumpy ones removed)
-GAP_OVERRIDES = {}     # no per-coin overrides needed anymore
+MIN_GAP = 0.0010       # 0.10% for all coins
+GAP_OVERRIDES = {}     # flat threshold, no per-coin overrides
 ENTRY_MIN, ENTRY_MAX = 0.90, 0.985
 STOP_TRIGGER = 0.70
 # Sizing is dynamic: 1 coin -> 50% of cash; N>1 coins -> 100%/N each.
@@ -326,7 +326,7 @@ def main() -> None:
     mode = "LIVE" if LIVE else "paper"
     log_line(f"{mode} bot v4 start: ${state['cash']:.2f}, {args.hours}h, "
              f"{len(COINS)} coins ({', '.join(coin_name(s) for s in COINS)}); "
-             f"T-3 market orders, gap 0.05%, "
+             f"T-3 market orders, gap 0.10%, "
              f"{ENTRY_MIN*100:.0f}c-{ENTRY_MAX*100:.1f}c, "
              f"stop {STOP_TRIGGER:.0%}, size 1coin=50%/2+=split100%, "
              f"max {MAX_CONCURRENT} at once")
