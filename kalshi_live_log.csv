@@ -48,3 +48,4 @@ et_time,ticker,side,entry_price,contracts,cost,result,won,pnl,cash_after
 2026-08-02 08:42:32 PM ET,KXDOGE15M-26AUG022045-45,yes,0.9100,5,4.58,stopped,False,nan,1.70
 2026-08-02 08:44:13 PM ET,KXETH15M-26AUG022045-45,yes,0.9690,4,3.88,stopped,False,nan,1.70
 2026-08-02 10:15:28 PM ET,KXXRP15M-26AUG022215-15,no,0.9850,1,0.99,no,True,nan,1.84
+2026-08-02 10:27:59 PM ET,KXETH15M-26AUG022230-30,yes,0.9790,1,0.98,stopped,False,nan,0.85
