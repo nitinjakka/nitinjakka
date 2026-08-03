@@ -119,7 +119,7 @@ ORDERS_PATH = "/portfolio/events/orders"
 
 
 def _place(ticker: str, order_side: str, price_cents: int,
-           count: int) -> dict:
+           count: int, reduce_only: bool = False) -> dict:
     price_cents = max(1, min(99, int(price_cents)))
     body = {
         "ticker": ticker,
@@ -130,6 +130,8 @@ def _place(ticker: str, order_side: str, price_cents: int,
         "time_in_force": "immediate_or_cancel",
         "self_trade_prevention_type": "taker_at_cross",
     }
+    if reduce_only:
+        body["reduce_only"] = True
     return _signed("POST", ORDERS_PATH, body)
 
 
@@ -151,11 +153,14 @@ def enter(ticker: str, want: str, yes_ask_c: int, yes_bid_c: int,
     return _place(ticker, side, price, count)
 
 
-def exit_pos(ticker: str, held_side: str, yes_ask_c: int, yes_bid_c: int,
-             count: int) -> dict:
-    """Close a position marketably (stop-loss).
-      held YES -> sell YES: ask at the YES bid.
-      held NO  -> buy  YES: bid at the YES ask (covers the short)."""
+def exit_pos(ticker: str, held_side: str, count: int) -> dict:
+    """Market-exit a position for a stop-loss. Prices at the extreme so
+    the IOC order crosses whatever liquidity remains and fills at the
+    best available price; reduce_only guarantees it can only close the
+    position, never flip it (safe even if partly sold already, so it
+    does NOT depend on reading the position count).
+      held YES -> sell YES at 1c  (fills at the best bid).
+      held NO  -> buy  YES at 99c (covers the short at the best ask)."""
     if held_side == "yes":
-        return _place(ticker, "ask", yes_bid_c, count)
-    return _place(ticker, "bid", yes_ask_c, count)
+        return _place(ticker, "ask", 1, count, reduce_only=True)
+    return _place(ticker, "bid", 99, count, reduce_only=True)

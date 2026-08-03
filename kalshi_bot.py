@@ -226,17 +226,12 @@ def trade_lifecycle(series: str, m: dict, side: str, price: float,
                f"Cash ${cash_now:.2f}")
     elif stopped:
         if LIVE:
-            # Close only what is still held (user may have sold some),
-            # pricing a few cents past the touch to guarantee the fill.
+            # Market-exit the whole position. reduce_only means it can
+            # only close (never flip), so we sell the original count
+            # without depending on a position lookup (which was
+            # returning 0 and silently skipping the sell).
             try:
-                mm = get(f"/markets/{ticker}").get("market", {})
-                ya = float(mm.get("yes_ask_dollars") or 1)
-                yb = float(mm.get("yes_bid_dollars") or 0)
-                yes_ask_c = min(99, math.ceil(ya * 100) + 3)  # NO exit: buy YES
-                yes_bid_c = max(1, int(yb * 100) - 3)         # YES exit: sell YES
-                held = live.held_contracts(ticker, side)
-                if held > 0:
-                    live.exit_pos(ticker, side, yes_ask_c, yes_bid_c, held)
+                live.exit_pos(ticker, side, contracts)
             except Exception as e:
                 log_line(f"{coin}: LIVE stop-sell FAILED: {e}")
                 notify(f"Kalshi bot: {coin} STOP-SELL FAILED", str(e))
