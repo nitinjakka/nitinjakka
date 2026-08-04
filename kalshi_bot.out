@@ -1338,3 +1338,10 @@
 [05:12:01 AM ET] ETH: LIVE BUY 2x NO @ 0.98 (gap -0.139%) cost $1.96 KXETH15M-26AUG040515-15
 [05:15:16 AM ET] XRP: result=no WIN pnl $+nan cash $11.73
 [05:15:16 AM ET] ETH: result=no WIN pnl $+nan cash $11.73
+[05:27:00 AM ET] BTC: gap +0.001% too small - skip
+[05:27:00 AM ET] ETH: gap -0.039% too small - skip
+[05:27:00 AM ET] SOL: gap +0.011% too small - skip
+[05:27:00 AM ET] BNB: gap -0.063% too small - skip
+[05:27:01 AM ET] XRP: gap -0.037% too small - skip
+[05:27:01 AM ET] DOGE: gap +0.069% too small - skip
+[05:27:01 AM ET] nothing to trade this window (05:30 AM ET close)
