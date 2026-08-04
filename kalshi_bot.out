@@ -1521,3 +1521,10 @@
 [11:30:15 AM ET] SOL: result=no WIN pnl $+nan cash $11.69
 [11:30:15 AM ET] DOGE: result=no WIN pnl $+nan cash $11.69
 [11:30:26 AM ET] BTC: result=no WIN pnl $+nan cash $11.69
+[11:42:00 AM ET] BTC: gap -0.004% too small - skip
+[11:42:00 AM ET] ETH: gap +0.018% too small - skip
+[11:42:00 AM ET] SOL: gap +0.059% too small - skip
+[11:42:00 AM ET] BNB: gap -0.057% too small - skip
+[11:42:00 AM ET] XRP: gap +0.065% too small - skip
+[11:42:01 AM ET] DOGE: order placed but 0 filled - skip KXDOGE15M-26AUG041145-45
+[11:42:01 AM ET] qualified but nothing placed - balance $11.69 too small (11:45 AM ET close)
