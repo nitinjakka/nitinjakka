@@ -1424,3 +1424,10 @@
 [08:12:01 AM ET] SOL: LIVE BUY 2x NO @ 0.98 (gap -0.140%) cost $1.96 KXSOL15M-26AUG040815-15
 [08:15:15 AM ET] ETH: result=no WIN pnl $+nan cash $9.96
 [08:15:15 AM ET] SOL: result=no WIN pnl $+nan cash $9.96
+[08:27:00 AM ET] BTC: gap -0.003% too small - skip
+[08:27:00 AM ET] ETH: gap +0.081% too small - skip
+[08:27:00 AM ET] SOL: gap +0.098% too small - skip
+[08:27:00 AM ET] BNB: gap -0.086% too small - skip
+[08:27:00 AM ET] XRP: gap -0.009% too small - skip
+[08:27:00 AM ET] DOGE: gap -0.041% too small - skip
+[08:27:00 AM ET] nothing to trade this window (08:30 AM ET close)
