@@ -1668,3 +1668,10 @@
 [04:27:01 PM ET] BTC: LIVE BUY 2x NO @ 0.97 (gap -0.105%) cost $1.95 KXBTC15M-26AUG041630-30
 [04:30:15 PM ET] BTC: result=no WIN pnl $+nan cash $10.47
 [04:30:16 PM ET] BNB: result=no WIN pnl $+nan cash $10.47
+[04:42:00 PM ET] BTC: gap +0.347% but yes ask 1.00 out of range - skip
+[04:42:00 PM ET] ETH: gap +0.374% but yes ask 1.00 out of range - skip
+[04:42:00 PM ET] SOL: gap +0.372% but yes ask 1.00 out of range - skip
+[04:42:00 PM ET] BNB: gap +0.238% but yes ask 1.00 out of range - skip
+[04:42:00 PM ET] XRP: gap +0.242% but yes ask 1.00 out of range - skip
+[04:42:00 PM ET] DOGE: gap +0.293% but yes ask 1.00 out of range - skip
+[04:42:00 PM ET] nothing to trade this window (04:45 PM ET close)
