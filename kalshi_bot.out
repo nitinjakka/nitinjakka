@@ -1551,3 +1551,9 @@
 [12:27:00 PM ET] SOL: order placed but 0 filled - skip KXSOL15M-26AUG041230-30
 [12:27:01 PM ET] ETH: LIVE BUY 3x YES @ 0.97 (gap +0.128%) cost $2.91 KXETH15M-26AUG041230-30
 [12:29:37 PM ET] ETH: STOP-LOSS sell @ 0.26 pnl $+nan cash $9.88
+[12:42:00 PM ET] BTC: gap -0.160% but no ask 0.99 out of range - skip
+[12:42:00 PM ET] ETH: gap -0.097% too small - skip
+[12:42:00 PM ET] SOL: gap -0.228% but no ask 0.99 out of range - skip
+[12:42:01 PM ET] XRP: LIVE BUY 1x NO @ 0.98 (gap -0.177%) cost $0.98 KXXRP15M-26AUG041245-45
+[12:42:01 PM ET] BNB: LIVE BUY 1x NO @ 0.97 (gap -0.142%) cost $0.97 KXBNB15M-26AUG041245-45
+[12:42:01 PM ET] DOGE: LIVE BUY 1x NO @ 0.91 (gap -0.107%) cost $0.92 KXDOGE15M-26AUG041245-45
