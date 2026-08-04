@@ -1576,3 +1576,10 @@
 [01:15:16 PM ET] ETH: result=yes WIN pnl $+nan cash $10.21
 [01:15:16 PM ET] BTC: result=yes WIN pnl $+nan cash $10.21
 [01:15:26 PM ET] DOGE: result=yes WIN pnl $+nan cash $10.21
+[01:27:00 PM ET] BTC: gap -0.008% too small - skip
+[01:27:00 PM ET] ETH: gap -0.032% too small - skip
+[01:27:00 PM ET] SOL: gap -0.030% too small - skip
+[01:27:00 PM ET] BNB: gap -0.115% but no ask 0.83 out of range - skip
+[01:27:00 PM ET] XRP: gap -0.065% too small - skip
+[01:27:00 PM ET] DOGE: gap -0.100% too small - skip
+[01:27:00 PM ET] nothing to trade this window (01:30 PM ET close)
