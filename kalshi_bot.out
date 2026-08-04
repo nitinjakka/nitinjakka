@@ -1689,3 +1689,10 @@
 [05:12:00 PM ET] DOGE: gap -0.122% but no ask 0.99 out of range - skip
 [05:12:00 PM ET] ETH: LIVE BUY 2x NO @ 0.98 (gap -0.102%) cost $1.96 KXETH15M-26AUG041715-15
 [05:15:17 PM ET] ETH: result=no WIN pnl $+nan cash $10.50
+[05:27:00 PM ET] BTC: gap +0.060% too small - skip
+[05:27:00 PM ET] ETH: gap +0.117% but yes ask 0.99 out of range - skip
+[05:27:00 PM ET] SOL: gap +0.067% too small - skip
+[05:27:00 PM ET] BNB: gap -0.005% too small - skip
+[05:27:00 PM ET] XRP: gap +0.019% too small - skip
+[05:27:00 PM ET] DOGE: gap +0.067% too small - skip
+[05:27:00 PM ET] nothing to trade this window (05:30 PM ET close)
