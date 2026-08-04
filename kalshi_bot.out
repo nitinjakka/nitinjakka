@@ -1512,3 +1512,9 @@
 [11:12:01 AM ET] XRP: LIVE BUY 3x NO @ 0.92 (gap -0.130%) cost $2.77 KXXRP15M-26AUG041115-15
 [11:15:16 AM ET] BTC: result=no WIN pnl $+nan cash $11.53
 [11:15:16 AM ET] XRP: result=no WIN pnl $+nan cash $11.53
+[11:27:00 AM ET] ETH: gap -0.092% too small - skip
+[11:27:00 AM ET] BNB: gap -0.125% but no ask 0.89 out of range - skip
+[11:27:00 AM ET] XRP: gap -0.056% too small - skip
+[11:27:01 AM ET] SOL: LIVE BUY 1x NO @ 0.97 (gap -0.186%) cost $0.97 KXSOL15M-26AUG041130-30
+[11:27:01 AM ET] DOGE: LIVE BUY 1x NO @ 0.98 (gap -0.171%) cost $0.98 KXDOGE15M-26AUG041130-30
+[11:27:01 AM ET] BTC: LIVE BUY 2x NO @ 0.95 (gap -0.115%) cost $1.91 KXBTC15M-26AUG041130-30
