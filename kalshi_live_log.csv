@@ -192,3 +192,4 @@ et_time,ticker,side,entry_price,contracts,cost,result,won,pnl,cash_after
 2026-08-04 09:00:27 PM ET,KXETH15M-26AUG042100-00,no,0.9850,2,1.97,no,True,nan,11.06
 2026-08-04 09:30:15 PM ET,KXSOL15M-26AUG042130-30,yes,0.9790,2,1.96,yes,True,nan,11.18
 2026-08-04 09:45:15 PM ET,KXXRP15M-26AUG042145-45,yes,0.9770,2,1.96,yes,True,nan,11.22
+2026-08-04 10:00:17 PM ET,KXBNB15M-26AUG042200-00,yes,0.9850,2,1.97,yes,True,nan,11.24
