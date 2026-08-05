@@ -2261,3 +2261,10 @@
 [12:57:01 PM ET] ETH: LIVE BUY 3x NO @ 0.98 (gap -0.129%) cost $2.94 KXETH15M-26AUG051300-00
 [12:57:42 PM ET] ETH: STOP-LOSS sell @ 0.34 pnl $+nan cash $8.77
 [01:00:17 PM ET] SOL: result=no WIN pnl $+nan cash $11.77
+[01:12:00 PM ET] BTC: gap -0.063% too small - skip
+[01:12:00 PM ET] ETH: gap +0.050% too small - skip
+[01:12:00 PM ET] SOL: gap -0.019% too small - skip
+[01:12:00 PM ET] BNB: gap -0.037% too small - skip
+[01:12:00 PM ET] XRP: gap +0.066% too small - skip
+[01:12:00 PM ET] DOGE: gap -0.054% too small - skip
+[01:12:00 PM ET] nothing to trade this window (01:15 PM ET close)
