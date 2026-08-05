@@ -1862,3 +1862,10 @@
 [11:12:01 PM ET] ETH: LIVE BUY 3x NO @ 0.96 (gap -0.123%) cost $2.89 KXETH15M-26AUG042315-15
 [11:15:15 PM ET] SOL: result=no WIN pnl $+nan cash $11.75
 [11:15:25 PM ET] ETH: result=no WIN pnl $+nan cash $11.75
+[11:27:00 PM ET] BTC: gap -0.488% but no ask 1.00 out of range - skip
+[11:27:00 PM ET] ETH: gap -0.358% but no ask 1.00 out of range - skip
+[11:27:00 PM ET] SOL: gap -0.493% but no ask 0.99 out of range - skip
+[11:27:00 PM ET] BNB: gap -0.325% but no ask 1.00 out of range - skip
+[11:27:00 PM ET] XRP: gap -0.514% but no ask 1.00 out of range - skip
+[11:27:00 PM ET] DOGE: gap -0.441% but no ask 1.00 out of range - skip
+[11:27:00 PM ET] nothing to trade this window (11:30 PM ET close)
