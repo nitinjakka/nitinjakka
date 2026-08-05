@@ -2216,3 +2216,9 @@
 [11:27:00 AM ET] DOGE: gap -0.110% but no ask 0.85 out of range - skip
 [11:27:01 AM ET] BTC: order placed but 0 filled - skip KXBTC15M-26AUG051130-30
 [11:27:01 AM ET] qualified but nothing placed - balance $13.09 too small (11:30 AM ET close)
+[11:42:00 AM ET] SOL: gap +0.281% but yes ask 0.99 out of range - skip
+[11:42:00 AM ET] BNB: gap -0.035% too small - skip
+[11:42:00 AM ET] XRP: gap +0.056% too small - skip
+[11:42:00 AM ET] DOGE: gap +0.135% but yes ask 0.99 out of range - skip
+[11:42:01 AM ET] BTC: LIVE BUY 3x YES @ 0.98 (gap +0.135%) cost $2.94 KXBTC15M-26AUG051145-45
+[11:42:01 AM ET] ETH: LIVE BUY 3x YES @ 0.94 (gap +0.109%) cost $2.85 KXETH15M-26AUG051145-45
