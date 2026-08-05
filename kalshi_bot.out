@@ -1934,3 +1934,10 @@
 [01:42:01 AM ET] DOGE: LIVE BUY 2x NO @ 0.96 (gap -0.113%) cost $1.93 KXDOGE15M-26AUG050145-45
 [01:45:15 AM ET] XRP: result=no WIN pnl $+nan cash $10.88
 [01:45:15 AM ET] DOGE: result=no WIN pnl $+nan cash $10.88
+[01:57:00 AM ET] BTC: gap +0.004% too small - skip
+[01:57:00 AM ET] ETH: gap +0.039% too small - skip
+[01:57:00 AM ET] SOL: gap +0.005% too small - skip
+[01:57:00 AM ET] BNB: gap +0.040% too small - skip
+[01:57:00 AM ET] XRP: gap -0.019% too small - skip
+[01:57:00 AM ET] DOGE: gap -0.084% too small - skip
+[01:57:00 AM ET] nothing to trade this window (02:00 AM ET close)
