@@ -2181,3 +2181,10 @@
 [10:15:15 AM ET] XRP: result=yes WIN pnl $+nan cash $12.97
 [10:15:15 AM ET] BTC: result=yes WIN pnl $+nan cash $12.97
 [10:15:17 AM ET] DOGE: result=yes WIN pnl $+nan cash $12.97
+[10:27:00 AM ET] BTC: gap -0.216% but no ask 0.99 out of range - skip
+[10:27:00 AM ET] ETH: gap -0.394% but no ask 1.00 out of range - skip
+[10:27:00 AM ET] SOL: gap -0.322% but no ask 0.99 out of range - skip
+[10:27:00 AM ET] BNB: gap -0.230% but no ask 0.99 out of range - skip
+[10:27:00 AM ET] XRP: gap -0.254% but no ask 0.99 out of range - skip
+[10:27:01 AM ET] DOGE: gap -0.317% but no ask 1.00 out of range - skip
+[10:27:01 AM ET] nothing to trade this window (10:30 AM ET close)
