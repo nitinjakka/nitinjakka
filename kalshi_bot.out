@@ -2171,3 +2171,9 @@
 [10:00:16 AM ET] ETH: result=yes WIN pnl $+nan cash $12.47
 [10:00:25 AM ET] DOGE: result=yes WIN pnl $+nan cash $12.47
 [10:00:25 AM ET] XRP: result=yes WIN pnl $+nan cash $12.47
+[10:12:00 AM ET] ETH: gap +0.090% too small - skip
+[10:12:00 AM ET] BNB: gap -0.082% too small - skip
+[10:12:01 AM ET] DOGE: LIVE BUY 2x YES @ 0.97 (gap +0.173%) cost $1.95 KXDOGE15M-26AUG051015-15
+[10:12:01 AM ET] XRP: LIVE BUY 2x YES @ 0.95 (gap +0.170%) cost $1.91 KXXRP15M-26AUG051015-15
+[10:12:01 AM ET] SOL: LIVE BUY 2x YES @ 0.91 (gap +0.141%) cost $1.83 KXSOL15M-26AUG051015-15
+[10:12:01 AM ET] BTC: LIVE BUY 2x YES @ 0.92 (gap +0.121%) cost $1.85 KXBTC15M-26AUG051015-15
