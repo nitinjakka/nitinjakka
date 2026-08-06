@@ -1,0 +1,19 @@
+# CORE-70 watchlist (stable; review monthly). Satellite-30 rows will be
+# appended below the marker by the weekly rotation job (stage 2).
+# --- tech / growth (45) ---
+NVDA, AAPL, MSFT, AMZN, GOOGL, META, TSLA, AVGO, ORCL, NFLX
+PLTR, AMD, CRM, ADBE, NOW, QCOM, TXN, MU, AMAT, LRCX
+KLAC, ASML, SNPS, CDNS, PANW, CRWD, FTNT, ZS, NET, DDOG
+MDB, SNOW, SHOP, UBER, ABNB, DASH, APP, MELI, COIN, HOOD
+MSTR, MRVL, ARM, SMCI, TSM
+# --- financials (7) ---
+JPM, V, MA, GS, MS, BAC, BLK
+# --- healthcare (6) ---
+LLY, UNH, JNJ, ABBV, ISRG, AMGN
+# --- consumer (5) ---
+WMT, COST, HD, MCD, LULU
+# --- energy / industrials (5) ---
+XOM, CVX, CAT, GE, HON
+# --- power (2) ---
+CEG, VST
+# --- SATELLITE-30 (rotated weekly; stage 2) ---

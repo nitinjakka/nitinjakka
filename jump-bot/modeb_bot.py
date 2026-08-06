@@ -46,10 +46,27 @@ load_dotenv(HERE / "modeb_bot.env")
 
 LIVE = os.getenv("LIVE", "0") == "1"
 ACCOUNT = os.getenv("RH_ACCOUNT_NUMBER", "") or None
-TICKERS = os.getenv(
-    "TICKERS",
-    "NVDA,AAPL,MSFT,AMZN,GOOGL,GOOG,AVGO,META,TSLA,PLTR,NFLX,SOFI,SPY,ORCL,"
-    "SMCI,AMD,ARM,SPMO").split(",")
+WATCHLIST_FILE = Path(__file__).resolve().parent / "watchlist.txt"
+
+
+def load_watchlist():
+    """Symbols from watchlist.txt (comma- or newline-separated); falls back
+    to the TICKERS env var. Deduped, order preserved."""
+    if WATCHLIST_FILE.exists():
+        raw = WATCHLIST_FILE.read_text().replace("\n", ",")
+        syms = [s.strip().upper() for s in raw.split(",")
+                if s.strip() and not s.strip().startswith("#")]
+    else:
+        syms = os.getenv(
+            "TICKERS",
+            "NVDA,AAPL,MSFT,AMZN,GOOGL,GOOG,AVGO,META,TSLA,PLTR,NFLX,SOFI,"
+            "SPY,ORCL,SMCI,AMD,ARM,SPMO").split(",")
+    return list(dict.fromkeys(syms))
+
+
+TICKERS = load_watchlist()
+DAILY_RANGE_MIN_PCT = float(os.getenv("DAILY_RANGE_MIN_PCT", "1.0"))
+EARNINGS_BLACKOUT_DAYS = int(os.getenv("EARNINGS_BLACKOUT_DAYS", "2"))
 POSITION_FRACTION = int(os.getenv("POSITION_FRACTION", "10"))
 ROOM_PCT = float(os.getenv("ROOM_FILTER_PCT", "0.25"))
 TRAIL_ARM = float(os.getenv("TRAIL_ARM_PCT", "2.0")) / 100
@@ -269,6 +286,10 @@ def symbol_context(sym, htf_vote):
         if h[p] == max(h[p - 10:p + 11]):
             piv.append(h[p])
     piv = piv[-3:]
+    trs = [max(h[i] - l[i], abs(h[i] - c[i - 1]), abs(l[i] - c[i - 1]))
+           for i in range(1, len(h))]
+    atrv = rma(trs, 14)[-1]
+    atrp = (atrv / c[-1]) if atrv else 0.0
     e9 = ema_series(c, 9)[-1]
     e21 = ema_series(c, 21)[-1]
     e50 = ema_series(c, 50)[-1]
@@ -284,10 +305,57 @@ def symbol_context(sym, htf_vote):
                  + (1 if rsi > 50 else -1) + (1 if mh > 0 else -1)
                  + (1 if pdi > mdi else -1) + htf_vote)
         bias = 1 if score >= SCORE_MIN else (-1 if score <= -SCORE_MIN else 0)
-    return dict(sess_hi=sess_hi, vwap=vwap, pivots=piv, bias=bias)
+    return dict(sess_hi=sess_hi, vwap=vwap, pivots=piv, bias=bias, atrp=atrp)
 
 
 # ---------------- account / orders ----------------
+def daily_eligibility(symbols):
+    """Which symbols may trade TODAY. Benches: earnings within
+    EARNINGS_BLACKOUT_DAYS (gap risk is fatal to a no-stop strategy),
+    downtrend (close <= 50d SMA -- long-only, losers are held), and
+    too-quiet names (14d avg daily range < DAILY_RANGE_MIN_PCT, which
+    can't reliably reach the take-profit band)."""
+    active, benched = [], []
+    today = datetime.now(ET).date()
+    for sym in symbols:
+        try:
+            blackout = False
+            try:
+                for e in rh.stocks.get_earnings(sym) or []:
+                    d = (e.get("report") or {}).get("date")
+                    if d:
+                        dd = datetime.strptime(d, "%Y-%m-%d").date()
+                        if 0 <= (dd - today).days <= EARNINGS_BLACKOUT_DAYS:
+                            blackout = True
+                            break
+            except Exception:
+                pass
+            if blackout:
+                benched.append((sym, "earnings"))
+                continue
+            bars = rh.stocks.get_stock_historicals(
+                sym, interval="day", span="3month", bounds="regular") or []
+            c = [float(b["close_price"]) for b in bars]
+            h = [float(b["high_price"]) for b in bars]
+            l = [float(b["low_price"]) for b in bars]
+            if len(c) < 50:
+                benched.append((sym, "no-data"))
+                continue
+            sma50 = sum(c[-50:]) / 50
+            rng = sum((hh - ll) / cc for hh, ll, cc in
+                      zip(h[-14:], l[-14:], c[-14:])) / 14 * 100
+            if c[-1] <= sma50:
+                benched.append((sym, "downtrend"))
+            elif rng < DAILY_RANGE_MIN_PCT:
+                benched.append((sym, "too-quiet"))
+            else:
+                active.append(sym)
+        except Exception:
+            benched.append((sym, "error"))
+        time.sleep(0.3)              # gentle on the API; runs once a day
+    return active, benched
+
+
 def buying_power() -> float:
     try:
         prof = rh.profiles.load_account_profile(account_number=ACCOUNT) or {}
@@ -447,14 +515,30 @@ def run():
             day = str(now.date())
             if st["day"] != day:
                 st["day"] = day
+                tickers = load_watchlist()
+                log(f"new day: watchlist reloaded ({len(tickers)} symbols); "
+                    "computing daily eligibility...")
+                elig, benched = daily_eligibility(
+                    [s for s in tickers if s not in st["retired"]])
+                st["eligible"] = elig
+                reasons = {}
+                for _, r in benched:
+                    reasons[r] = reasons.get(r, 0) + 1
+                log(f"eligible today: {len(elig)}  benched: {len(benched)} "
+                    f"{reasons}")
+                if benched:
+                    log("benched: " + ", ".join(f"{s}({r})"
+                                                for s, r in benched))
                 save_state(st)
             hm = now.hour * 60 + now.minute
             if now.weekday() >= 5 or not (240 <= hm < 1200):  # 04:00-20:00
                 time.sleep(120)
                 continue
             regular = 570 <= hm < 960          # 09:30-16:00
-            active = [s for s in TICKERS if s not in st["retired"]]
-            prices = latest_prices(active)
+            active = [s for s in st.get("eligible", TICKERS)
+                      if s not in st["retired"]]
+            watch = list(dict.fromkeys(active + list(st["positions"].keys())))
+            prices = latest_prices(watch)
 
             # ---- exits, every minute (per-position error isolation) ----
             for sym in list(st["positions"].keys()):
@@ -500,17 +584,19 @@ def run():
 
             # ---- entries, every minute (regular hours; no STOP file) ----
             if regular and hm < 955 and not STOP_FILE.exists():
-                bp = buying_power() if LIVE else 1000.0
-                size = bp / POSITION_FRACTION
+                # tiered context refresh: fast for held names, slow for the
+                # broad list (keeps API load flat as the watchlist grows)
+                slow = 900 if len(active) > 40 else 300
+                cands = []
                 for sym in active:
                     if sym in st["positions"]:
                         continue
                     px = prices.get(sym)
                     if not px:
                         continue
-                    # refresh context every 5 minutes per symbol
+                    interval = 300 if sym in st["positions"] else slow
                     if (sym not in ctx_time
-                            or (now - ctx_time[sym]).seconds >= 300):
+                            or (now - ctx_time[sym]).seconds >= interval):
                         if (sym not in htf_time
                                 or (now - htf_time[sym]).seconds >= 3600):
                             htf_cache[sym] = fetch_htf_bull(sym)
@@ -530,14 +616,26 @@ def run():
                                 default=None)
                     if n_res and (n_res - px) / px * 100 < ROOM_PCT:
                         continue
-                    qty = place_buy(sym, size, px)
-                    if qty:
-                        st["positions"][sym] = dict(entry=px, qty=qty,
-                                                    peak=px, trailing=False)
-                        why = "breakout" if breakout else "bias-flip"
-                        log(f"ENTER {sym} @ ~{px:.2f} ${size:.2f} ({why}) "
-                            f"[{len(st['positions'])} open]")
-                        save_state(st)
+                    why = "breakout" if breakout else "bias-flip"
+                    cands.append((ctx["atrp"], sym, px, why))
+                if cands:
+                    # strongest movers first; buy while buying power lasts
+                    cands.sort(reverse=True)
+                    bp = buying_power() if LIVE else 1000.0
+                    size = bp / POSITION_FRACTION
+                    for rank, (score, sym, px, why) in enumerate(cands, 1):
+                        if bp < size or size < 1.0:
+                            break
+                        qty = place_buy(sym, size, px)
+                        if qty:
+                            bp -= size
+                            st["positions"][sym] = dict(entry=px, qty=qty,
+                                                        peak=px,
+                                                        trailing=False)
+                            log(f"ENTER {sym} @ ~{px:.2f} ${size:.2f} "
+                                f"({why}, rank {rank}/{len(cands)}) "
+                                f"[{len(st['positions'])} open]")
+                            save_state(st)
             time.sleep(60 - datetime.now(ET).second % 60)
         except KeyboardInterrupt:
             log("interrupted; positions left as-is.")
