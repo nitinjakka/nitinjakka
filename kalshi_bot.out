@@ -3073,3 +3073,9 @@
 [12:13:00 PM ET] BNB: gap -0.093% too small - skip
 [12:13:00 PM ET] XRP: gap -0.343% but no ask 1.00 out of range - skip
 [12:13:35 PM ET] DOGE: STOP-LOSS sell @ 0.31 pnl $+nan cash $13.70
+[12:27:00 PM ET] BTC: gap -0.057% too small - skip
+[12:27:00 PM ET] ETH: gap +0.004% too small - skip
+[12:27:00 PM ET] BNB: gap -0.068% too small - skip
+[12:27:00 PM ET] XRP: gap +0.067% too small - skip
+[12:27:01 PM ET] DOGE: gap +0.099% too small - skip
+[12:27:01 PM ET] SOL: LIVE BUY 3x YES @ 0.94 (gap +0.107%) cost $2.84 KXSOL15M-26AUG061230-30
