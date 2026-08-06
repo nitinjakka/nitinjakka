@@ -2483,3 +2483,10 @@
 [08:42:00 PM ET] XRP: gap -0.056% too small - skip
 [08:42:00 PM ET] DOGE: gap -0.043% too small - skip
 [08:42:00 PM ET] nothing to trade this window (08:45 PM ET close)
+[08:57:00 PM ET] BTC: gap +0.064% too small - skip
+[08:57:00 PM ET] ETH: gap +0.146% but yes ask 0.99 out of range - skip
+[08:57:00 PM ET] SOL: gap +0.035% too small - skip
+[08:57:00 PM ET] XRP: gap +0.104% but yes ask 0.99 out of range - skip
+[08:57:00 PM ET] DOGE: gap +0.079% too small - skip
+[08:57:00 PM ET] BNB: order placed but 0 filled - skip KXBNB15M-26AUG052100-00
+[08:57:00 PM ET] qualified but nothing placed - balance $13.36 too small (09:00 PM ET close)
