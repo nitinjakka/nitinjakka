@@ -2721,3 +2721,12 @@
 [07:15:16 AM ET] BNB: result=no WIN pnl $+nan cash $15.33
 [07:15:25 AM ET] BTC: result=no WIN pnl $+nan cash $15.33
 [autodeploy 2026-08-06T11:23 UTC] pulled d674dd8
+[07:27:00 AM ET] new code deployed (d674dd8) - restarting to update
+[07:27:05 AM ET] *** LIVE MODE *** live auth OK, account balance $15.33, max order $0.00
+[07:27:05 AM ET] LIVE bot v4 start: $15.33, 999999.0h, 6 coins (BTC, ETH, SOL, BNB, XRP, DOGE); T-3 market orders, gap 0.10%, 90c-98.5c, stop 50%, size 1=25%/2-3=50%/4=75% (all-in single if <$5), max 4 at once
+[07:27:05 AM ET] BTC: gap +0.011% too small - skip
+[07:27:05 AM ET] ETH: gap +0.184% but yes ask 0.99 out of range - skip
+[07:27:06 AM ET] SOL: gap +0.039% too small - skip
+[07:27:06 AM ET] BNB: gap +0.096% too small - skip
+[07:27:06 AM ET] XRP: gap +0.095% too small - skip
+[07:27:06 AM ET] DOGE: gap +0.151% but yes ask 0.99 out of range - skip
