@@ -41,7 +41,10 @@ COINS = {
     "KXDOGE15M": "DOGE-USD",
 }
 
-ENTRY_WINDOW = 180     # decide 3 minutes before close
+ENTRY_WINDOW = 180     # first decision point (3 minutes before close)
+# Retry entry at 3:00, 2:30, and 2:00 before close; stop once a trade
+# is placed. A coin may cross the gap threshold between checks.
+ENTRY_CHECKS = (180, 150, 120)
 MIN_GAP = 0.0010       # 0.10% for all coins
 GAP_OVERRIDES = {}     # flat threshold, no per-coin overrides
 ENTRY_MIN, ENTRY_MAX = 0.90, 0.985
@@ -325,39 +328,15 @@ def main() -> None:
 
     boot_commit = repo_commit()
     threads: list[threading.Thread] = []
-    while time.time() < deadline:
-        # Auto-update: if new code was deployed, exit at this safe point
-        # (between windows, no order being placed) so the watchdog
-        # restarts us on the new code. Non-daemon trade threads still
-        # finish first, so open positions are never abandoned.
-        cur = repo_commit()
-        if boot_commit and cur and cur != boot_commit:
-            log_line(f"new code deployed ({cur[:7]}) - restarting to update")
-            notify("Kalshi bot: UPDATING", "New code deployed; restarting.")
-            return
-        anchor = open_markets("KXBTC15M")
-        if not anchor:
-            time.sleep(30)
-            continue
-        cts = min(close_ts_of(m) for m in anchor)
-        while time.time() < cts - ENTRY_WINDOW:
-            if time.time() >= deadline:
-                break
-            time.sleep(min(5.0, cts - ENTRY_WINDOW - time.time()))
-        if time.time() >= deadline:
-            break
 
-        # Second update check right before placing orders, so code
-        # pulled mid-cycle applies to THIS window (not the next).
-        cur = repo_commit()
-        if boot_commit and cur and cur != boot_commit:
-            log_line(f"new code deployed ({cur[:7]}) - restarting to update")
-            notify("Kalshi bot: UPDATING", "New code deployed; restarting.")
-            return
-
-        # Decision pass across all coins for this window.
+    def try_enter(cts, wstate):
+        """One decision pass. Scans coins NOT already traded this window,
+        sizes within the running total cap, and places orders. Updates
+        wstate in place. Returns (n_new_qualifying, n_placed)."""
         candidates = []
         for series, product in COINS.items():
+            if series in wstate["traded"]:
+                continue                      # already traded this window
             ms = [m for m in open_markets(series)
                   if close_ts_of(m) == cts]
             if not ms:
@@ -386,52 +365,54 @@ def main() -> None:
                          f"{side} ask {ask:.2f} out of range - skip")
                 continue
             candidates.append((abs(gap), gap, series, m, side, ask))
-
         candidates.sort(reverse=True, key=lambda c: c[0])
-        candidates = candidates[:MAX_CONCURRENT]
-        if LIVE:
-            try:
-                with lock:
-                    state["cash"] = live.balance_dollars()  # source of truth
-                    save_cash()
-            except Exception as e:
-                log_line(f"live balance check failed, skipping window: {e}")
-                candidates = []
-        with lock:
-            window_cash = state["cash"]   # fix the base before deductions
-        # Recovery mode: below $5, go all-in on the SINGLE best coin.
-        # Splitting a tiny balance leaves each order too small to buy
-        # even 1 contract, which trades nothing and notifies nothing.
-        if window_cash < 5.0:
+
+        # Establish the window-start balance once (first pass).
+        if wstate["cash0"] is None:
+            if LIVE:
+                try:
+                    with lock:
+                        state["cash"] = live.balance_dollars()
+                        save_cash()
+                except Exception as e:
+                    log_line(f"live balance check failed: {e}")
+                    return 0, 0
+            with lock:
+                wstate["cash0"] = state["cash"]
+        cash0 = wstate["cash0"]
+
+        slots = MAX_CONCURRENT - len(wstate["traded"])
+        candidates = candidates[:max(0, slots)]
+        if not candidates:
+            return 0, 0
+
+        if cash0 < 5.0:
+            # Recovery: all-in on one coin, once per window.
+            if wstate["traded"]:
+                return len(candidates), 0
             candidates = candidates[:1]
-        n_found = len(candidates)
-        if window_cash < 5.0:
-            frac = 1.0 if n_found else 0
+            budget = cash0
         else:
-            # Total deployed per window: 1 coin 25%, 2-3 coins 50%,
-            # 4 coins 75% - split evenly across the qualifying coins.
-            total_cap = (0.25 if n_found == 1
-                         else 0.50 if n_found in (2, 3) else 0.75)
-            frac = (total_cap / n_found) if n_found else 0
+            # Total per window: 1 coin 25%, 2-3 coins 50%, 4 coins 75%.
+            n_total = len(wstate["traded"]) + len(candidates)
+            total_cap = (0.25 if n_total == 1
+                         else 0.50 if n_total in (2, 3) else 0.75)
+            budget = cash0 * total_cap - wstate["deployed"]
+        if budget <= 0:
+            return len(candidates), 0
+        per = budget / len(candidates)
+
         placed = 0
         for _, gap, series, m, side, ask in candidates:
-            unit = ask + fee(ask)  # taker: pay the ask plus fee
-            with lock:
-                contracts = int(window_cash * frac / unit)
-                if contracts < 1:
-                    continue
+            unit = ask + fee(ask)
+            contracts = int(per / unit)
+            if contracts < 1:
+                continue
             coin = coin_name(series)
-
             if LIVE:
                 try:
                     ya = float(m.get("yes_ask_dollars") or 0)
                     yb = float(m.get("yes_bid_dollars") or 0)
-                    # Market-like: price 2c THROUGH the touch so the IOC
-                    # order still crosses and fills even if the quote
-                    # moved since the scan. It fills at the resting
-                    # touch; the aggressive limit only caps worst-case
-                    # slippage (Kalshi V2 requires a price - no true
-                    # market order type exists).
                     yes_ask_c = math.ceil(ya * 100) + 2   # buy YES
                     yes_bid_c = int(yb * 100) - 2          # sell YES (buy NO)
                     resp = live.enter(m["ticker"], side, yes_ask_c,
@@ -440,15 +421,10 @@ def main() -> None:
                     log_line(f"{coin}: LIVE order REJECTED: {e}")
                     notify(f"Kalshi bot: {coin} ORDER FAILED", str(e))
                     continue
-                # Report/manage only what actually filled (IOC may
-                # partial-fill or fill nothing).
                 filled = int(float(resp.get("fill_count", 0) or 0))
                 if filled < 1:
                     log_line(f"{coin}: order placed but 0 filled - skip "
                              f"{m['ticker']}")
-                    notify(f"Kalshi bot: {coin} no fill",
-                           f"Order placed but 0 filled (no liquidity at "
-                           f"price). {m['ticker']}", priority="low")
                     continue
                 contracts = filled
             else:
@@ -456,6 +432,8 @@ def main() -> None:
                     state["cash"] -= contracts * unit
                     save_cash()
 
+            wstate["traded"].add(series)
+            wstate["deployed"] += contracts * unit
             log_line(f"{coin}: {'LIVE' if LIVE else 'PAPER'} BUY "
                      f"{contracts}x {side.upper()} @ {ask:.2f} "
                      f"(gap {gap:+.3%}) cost ${contracts * unit:.2f} "
@@ -472,25 +450,60 @@ def main() -> None:
             t.start()
             threads.append(t)
             placed += 1
+        return len(candidates), placed
+
+    def check_update():
+        cur = repo_commit()
+        if boot_commit and cur and cur != boot_commit:
+            log_line(f"new code deployed ({cur[:7]}) - restarting to update")
+            notify("Kalshi bot: UPDATING", "New code deployed; restarting.")
+            return True
+        return False
+
+    while time.time() < deadline:
+        if check_update():
+            return
+        anchor = open_markets("KXBTC15M")
+        if not anchor:
+            time.sleep(30)
+            continue
+        cts = min(close_ts_of(m) for m in anchor)
+
+        # Check for entries at 3:00, 2:30, and 2:00 before close. ALL
+        # three run - a coin qualifying late still gets traded (new
+        # coins only; ones already traded this window are skipped).
+        wstate = {"cash0": None, "deployed": 0.0, "traded": set()}
+        saw_qualifier = False
+        for offset in ENTRY_CHECKS:
+            while time.time() < cts - offset:
+                if time.time() >= deadline:
+                    break
+                time.sleep(min(2.0, cts - offset - time.time()))
+            if time.time() >= deadline:
+                break
+            # Only restart for a code update if nothing is open yet.
+            if not wstate["traded"] and check_update():
+                return
+            n_found, _ = try_enter(cts, wstate)
+            saw_qualifier = saw_qualifier or n_found > 0
 
         wtime = f"{dt.datetime.fromtimestamp(cts, ET):%I:%M %p ET}"
-        if not candidates:
-            log_line(f"nothing to trade this window ({wtime} close)")
-            notify("Kalshi bot: nothing to trade",
-                   f"No qualifying coin for the {wtime} window.",
-                   priority="low")
-        elif placed == 0:
-            # A coin qualified but the balance was too small to buy even
-            # 1 contract (or every order 0-filled). Don't go silent.
-            log_line(f"qualified but nothing placed - balance "
-                     f"${window_cash:.2f} too small ({wtime} close)")
-            notify("Kalshi bot: too small to trade",
-                   f"A coin qualified but ${window_cash:.2f} is too "
-                   f"small for 1 contract ({wtime}).", priority="low")
+        if not wstate["traded"]:
+            if not saw_qualifier:
+                log_line(f"nothing to trade this window ({wtime} close)")
+                notify("Kalshi bot: nothing to trade",
+                       f"No qualifying coin for the {wtime} window.",
+                       priority="low")
+            else:
+                log_line(f"qualified but nothing placed - too small "
+                         f"({wtime} close)")
+                notify("Kalshi bot: too small to trade",
+                       f"A coin qualified but the balance was too small "
+                       f"for 1 contract ({wtime}).", priority="low")
         # Move past this window before scanning for the next one.
         while time.time() < cts + 5:
             time.sleep(3)
-        threads = [t for t in threads if t.is_alive()]
+        threads[:] = [t for t in threads if t.is_alive()]
 
     for t in threads:
         t.join(timeout=1200)
