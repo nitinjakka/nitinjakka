@@ -1,0 +1,7 @@
+robin_stocks>=3.4.0
+python-dotenv>=1.0.0
+pyotp>=2.9.0
+# ZoneInfo("America/New_York") needs a tz database. Present on most Linux
+# hosts but NOT on Windows, and missing from bare venvs -- pin it so the
+# bot can't fail at import time.
+tzdata>=2024.1

@@ -396,6 +396,7 @@ def run():
     if LIVE:
         log("*** LIVE MODE: places REAL orders; losers are HELD, never sold red ***")
     rh_login()
+    last_login = time.time()
     st = load_state()
     ctx_cache = {}
     ctx_time = {}
@@ -403,6 +404,11 @@ def run():
     htf_time = {}
     while True:
         try:
+            # Robinhood sessions expire (~24h): refresh proactively every 8h
+            if time.time() - last_login > 8 * 3600:
+                log("session refresh: re-logging in")
+                rh_login()
+                last_login = time.time()
             now = datetime.now(ET)
             day = str(now.date())
             if st["day"] != day:
@@ -416,32 +422,38 @@ def run():
             active = [s for s in TICKERS if s not in st["retired"]]
             prices = latest_prices(active)
 
-            # ---- exits, every minute ----
+            # ---- exits, every minute (per-position error isolation) ----
             for sym in list(st["positions"].keys()):
                 px = prices.get(sym)
                 if not px:
                     continue
                 p = st["positions"][sym]
                 unreal = px / p["entry"] - 1
-                if p.get("trailing"):
-                    p["peak"] = max(p["peak"], px)
-                    if px <= p["peak"] * (1 - TRAIL_GIVEBACK) and regular:
-                        if sell_position(sym, p, px, "TRAIL", st):
-                            log(f"EXIT {sym} TRAIL {unreal*100:+.2f}%")
+                try:
+                    if p.get("trailing"):
+                        p["peak"] = max(p["peak"], px)
+                        if px <= p["peak"] * (1 - TRAIL_GIVEBACK) and regular:
+                            if sell_position(sym, p, px, "TRAIL", st):
+                                log(f"EXIT {sym} TRAIL {unreal*100:+.2f}%")
+                                if sym == "SOFI" and unreal > 0:
+                                    st["retired"].append(sym)
+                                    log("SOFI retired permanently")
+                    elif unreal >= TRAIL_ARM:
+                        p["trailing"] = True
+                        p["peak"] = px
+                        log(f"{sym}: trailing armed at {unreal*100:+.2f}%")
+                    elif TP_LO <= unreal < TP_HI and regular:
+                        if sell_position(sym, p, px, "TAKE_PROFIT", st):
+                            log(f"EXIT {sym} TP {unreal*100:+.2f}%")
                             if sym == "SOFI" and unreal > 0:
                                 st["retired"].append(sym)
                                 log("SOFI retired permanently")
-                elif unreal >= TRAIL_ARM:
-                    p["trailing"] = True
-                    p["peak"] = px
-                    log(f"{sym}: trailing armed at {unreal*100:+.2f}%")
-                elif TP_LO <= unreal < TP_HI and regular:
-                    if sell_position(sym, p, px, "TAKE_PROFIT", st):
-                        log(f"EXIT {sym} TP {unreal*100:+.2f}%")
-                        if sym == "SOFI" and unreal > 0:
-                            st["retired"].append(sym)
-                            log("SOFI retired permanently")
-                # else: HOLD (includes all losses -- by design)
+                    # else: HOLD (includes all losses -- by design)
+                except Exception as e:
+                    log(f"{sym}: exit management error {e!r} "
+                        "(other positions continue)")
+                    if "can only be called when logged in" in str(e):
+                        raise      # bubble up so the auth-recovery handler runs
             save_state(st)
 
             # ---- EOD profit sweep at 15:58 ----
@@ -496,7 +508,16 @@ def run():
             log("interrupted; positions left as-is.")
             break
         except Exception:
-            log("ERROR:\n" + traceback.format_exc())
+            tb = traceback.format_exc()
+            log("ERROR:\n" + tb)
+            if "can only be called when logged in" in tb:
+                log("auth lost -> re-logging in")
+                try:
+                    rh_login()
+                    last_login = time.time()
+                    log("re-login OK")
+                except Exception as e:
+                    log(f"re-login FAILED: {e!r} (retrying next cycle)")
             time.sleep(60)
 
 

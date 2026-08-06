@@ -1,0 +1,7 @@
+spread_cycler.env
+state.json
+trades.csv
+logs/
+.venv/
+STOP
+__pycache__/

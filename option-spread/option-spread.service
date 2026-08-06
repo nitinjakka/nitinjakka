@@ -1,0 +1,19 @@
+[Unit]
+Description=Robinhood credit-spread cycler
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/option_spread
+ExecStart=/opt/option_spread/.venv/bin/python /opt/option_spread/spread_cycler.py
+Restart=on-failure
+RestartSec=30
+StandardOutput=append:/opt/option_spread/logs/service.log
+StandardError=append:/opt/option_spread/logs/service.log
+
+# The bot exits on its own at the entry cutoff / after MAX_CYCLES, so run it
+# as a one-shot per session via the timer below rather than a 24/7 daemon.
+
+[Install]
+WantedBy=multi-user.target
