@@ -1,0 +1,32 @@
+# Satellite rotation candidate universe (~185 liquid US names).
+# rotate_pool.py screens these weekly; core-list members are auto-excluded.
+# semis / hardware
+MU INTC WDC STX ON MCHP ADI NXPI SWKS TER ENTG MPWR ALAB DELL HPQ HPE ANET CSCO IBM GLW
+# software / internet
+AI PATH U TWLO ZM DOCU OKTA TEAM WDAY HUBS VEEV TTD PINS SNAP SPOT RBLX ROKU DKNG GTLB S ESTC CFLT
+# fintech / crypto-adjacent
+XYZ PYPL AFRM UPST SOFI MARA RIOT CLSK CIFR WULF HUT BITF GLXY IBKR
+# ev / auto
+RIVN LCID NIO XPEV LI F GM RACE
+# china adr
+BABA JD PDD BIDU NTES TME BILI FUTU
+# energy
+OXY COP SLB HAL DVN FANG EOG MPC VLO PSX
+# metals / materials
+FCX NEM GOLD AA CLF X NUE STLD
+# pharma / biotech (large)
+MRK PFE BMY GILD VRTX REGN MRNA BIIB NVO AZN HIMS
+# aerospace / defense
+BA RTX LMT NOC GD LHX AXON
+# industrials
+DE EMR ETN PH ROK URI PWR VRT MOD
+# power / utilities
+NRG NEE TLN SMR OKLO
+# financials
+WFC C SCHW AXP COF PNC USB KKR BX APO ARES
+# consumer / media
+NKE SBUX CMG TGT LOW TJX ROST DG DLTR EL KO PEP PG PM MO DIS CMCSA WBD LYV CELH ELF DUOL
+# travel
+MAR HLT DAL UAL AAL LUV CCL RCL NCLH EXPE BKNG
+# space / frontier
+RKLB ASTS LUNR ACHR JOBY IONQ RGTI QBTS PL OSCR

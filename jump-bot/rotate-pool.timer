@@ -1,0 +1,10 @@
+[Unit]
+Description=Run satellite rotation Sunday evening ET (before Monday reload)
+
+[Timer]
+# 02:30 UTC Monday = Sunday 22:30 ET (EDT) / 21:30 ET (EST)
+OnCalendar=Mon *-*-* 02:30:00 UTC
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,10 @@
+[Unit]
+Description=Weekly satellite-30 watchlist rotation (writes watchlist.txt)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/modeb-bot
+ExecStart=/opt/modeb-bot/venv/bin/python /opt/modeb-bot/rotate_pool.py
+User=root
