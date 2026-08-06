@@ -62,6 +62,36 @@ STOP_FILE = HERE / "STOP"
 STATE_FILE = HERE / "state.json"
 LOG_DIR = HERE / "logs"
 LOG_DIR.mkdir(exist_ok=True)
+TRADES_CSV = HERE / "trades.csv"
+
+
+def record_trade(sym, qty, entry, exit_px, why):
+    """Append a closed trade to trades.csv at the BOT's OWN basis --
+    independent of Robinhood's average-cost accounting."""
+    new = not TRADES_CSV.exists()
+    pnl_d = (exit_px - entry) * qty
+    pnl_p = (exit_px / entry - 1) * 100 if entry else 0.0
+    with open(TRADES_CSV, "a") as f:
+        if new:
+            f.write("closed_at,symbol,qty,entry,exit,pnl_usd,pnl_pct,reason\n")
+        f.write(f"{datetime.now(ET):%Y-%m-%d %H:%M:%S},{sym},{qty:.6f},"
+                f"{entry:.4f},{exit_px:.4f},{pnl_d:.2f},{pnl_p:.2f},{why}\n")
+
+
+def day_summary():
+    """Log today's bot-ledger results from trades.csv."""
+    if not TRADES_CSV.exists():
+        return
+    today = f"{datetime.now(ET):%Y-%m-%d}"
+    rows = [ln.split(",") for ln in TRADES_CSV.read_text().splitlines()[1:]
+            if ln.startswith(today)]
+    if not rows:
+        log("DAY SUMMARY: no closed trades today")
+        return
+    pnl = [float(r[5]) for r in rows]
+    wins = sum(1 for x in pnl if x > 0)
+    log(f"DAY SUMMARY: {len(rows)} closed, {wins}W/{len(rows)-wins}L, "
+        f"net ${sum(pnl):+.2f} (bot basis)")
 
 import robin_stocks.robinhood as rh  # noqa: E402
 
@@ -345,6 +375,7 @@ def sell_position(sym, p, px, why, st) -> bool:
         st["positions"].pop(sym, None)
         return False
     if place_sell(sym, qty, px, why):
+        record_trade(sym, qty, p["entry"], px, why)
         st["positions"].pop(sym, None)
         return True
     p["fails"] = p.get("fails", 0) + 1
@@ -375,6 +406,9 @@ def eod_sweep(st):
             if avg > 0 and px > avg:
                 if place_sell(sym, qty, px, "EOD_SWEEP"):
                     ret = (px / avg - 1) * 100
+                    tracked = st["positions"].get(sym)
+                    basis = tracked["entry"] if tracked else avg
+                    record_trade(sym, qty, basis, px, "EOD_SWEEP")
                     log(f"sweep sold {sym}: {ret:+.2f}%")
                     if sym == "SOFI" and ret > 0 and sym not in st["retired"]:
                         st["retired"].append(sym)
@@ -462,6 +496,7 @@ def run():
                 st["sweep_done"] = day
                 save_state(st)
                 eod_sweep(st)
+                day_summary()
 
             # ---- entries, every minute (regular hours; no STOP file) ----
             if regular and hm < 955 and not STOP_FILE.exists():
