@@ -2997,3 +2997,9 @@
 [11:12:00 AM ET] SOL: LIVE BUY 2x YES @ 0.98 (gap +0.189%) cost $1.96 KXSOL15M-26AUG061115-15
 [11:12:00 AM ET] ETH: LIVE BUY 2x YES @ 0.96 (gap +0.172%) cost $1.93 KXETH15M-26AUG061115-15
 [11:12:01 AM ET] DOGE: LIVE BUY 2x YES @ 0.98 (gap +0.169%) cost $1.97 KXDOGE15M-26AUG061115-15
+[11:12:30 AM ET] BTC: gap +0.222% but yes ask 0.99 out of range - skip
+[11:12:30 AM ET] BNB: gap +0.005% too small - skip
+[11:12:30 AM ET] XRP: gap +0.172% but yes ask 0.99 out of range - skip
+[11:13:00 AM ET] BTC: gap +0.183% but yes ask 0.99 out of range - skip
+[11:13:00 AM ET] BNB: gap +0.005% too small - skip
+[11:13:01 AM ET] XRP: gap +0.162% but yes ask 0.99 out of range - skip
