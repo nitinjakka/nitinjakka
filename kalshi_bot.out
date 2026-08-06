@@ -3267,3 +3267,9 @@
 [02:58:00 PM ET] DOGE: gap -0.188% but no ask 1.00 out of range - skip
 [03:00:16 PM ET] XRP: result=no WIN pnl $+nan cash $14.77
 [03:00:25 PM ET] SOL: result=no WIN pnl $+nan cash $14.77
+[03:12:00 PM ET] BTC: gap +0.048% too small - skip
+[03:12:00 PM ET] ETH: gap +0.154% but yes ask 0.99 out of range - skip
+[03:12:00 PM ET] SOL: gap -0.001% too small - skip
+[03:12:00 PM ET] XRP: gap -0.087% too small - skip
+[03:12:00 PM ET] DOGE: gap +0.077% too small - skip
+[03:12:00 PM ET] BNB: LIVE BUY 3x NO @ 0.98 (gap -0.115%) cost $2.96 KXBNB15M-26AUG061515-15
