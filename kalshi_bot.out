@@ -2986,3 +2986,6 @@
 [10:57:30 AM ET] BNB: gap -0.162% but no ask 0.99 out of range - skip
 [10:57:31 AM ET] XRP: gap -0.038% too small - skip
 [10:57:31 AM ET] SOL: LIVE BUY 6x NO @ 0.96 (gap -0.130%) cost $5.78 KXSOL15M-26AUG061100-00
+[10:58:00 AM ET] XRP: gap +0.029% too small - skip
+[10:58:53 AM ET] ETH: STOP-LOSS sell @ 0.47 pnl $+nan cash $5.92
+[10:58:57 AM ET] BTC: STOP-LOSS sell @ 0.40 pnl $+nan cash $5.92
