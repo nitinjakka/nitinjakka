@@ -3107,3 +3107,14 @@
 [12:45:15 PM ET] ETH: result=yes WIN pnl $+nan cash $13.97
 [12:45:15 PM ET] XRP: result=yes WIN pnl $+nan cash $13.97
 [12:45:16 PM ET] BTC: result=yes WIN pnl $+nan cash $13.97
+[12:57:00 PM ET] BTC: gap +0.021% too small - skip
+[12:57:00 PM ET] ETH: gap -0.024% too small - skip
+[12:57:00 PM ET] SOL: gap -0.044% too small - skip
+[12:57:00 PM ET] BNB: gap -0.049% too small - skip
+[12:57:01 PM ET] DOGE: gap -0.069% too small - skip
+[12:57:01 PM ET] XRP: LIVE BUY 3x NO @ 0.97 (gap -0.172%) cost $2.93 KXXRP15M-26AUG061300-00
+[12:57:30 PM ET] BTC: gap +0.034% too small - skip
+[12:57:30 PM ET] ETH: gap -0.007% too small - skip
+[12:57:30 PM ET] SOL: gap -0.031% too small - skip
+[12:57:30 PM ET] BNB: gap -0.047% too small - skip
+[12:57:30 PM ET] DOGE: gap -0.069% too small - skip
