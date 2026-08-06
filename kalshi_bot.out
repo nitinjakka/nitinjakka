@@ -3056,3 +3056,9 @@
 [12:00:27 PM ET] BTC: result=no WIN pnl $+nan cash $15.98
 [12:00:27 PM ET] ETH: result=no WIN pnl $+nan cash $15.98
 [12:00:27 PM ET] XRP: result=yes WIN pnl $+nan cash $15.98
+[12:12:00 PM ET] BTC: gap +0.042% too small - skip
+[12:12:00 PM ET] ETH: gap -0.067% too small - skip
+[12:12:00 PM ET] SOL: gap -0.028% too small - skip
+[12:12:00 PM ET] BNB: gap -0.059% too small - skip
+[12:12:00 PM ET] XRP: gap -0.238% but no ask 0.99 out of range - skip
+[12:12:01 PM ET] DOGE: LIVE BUY 4x YES @ 0.97 (gap +0.117%) cost $3.90 KXDOGE15M-26AUG061215-15
