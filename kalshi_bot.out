@@ -3790,3 +3790,6 @@
 [10:27:30 PM ET] ETH: gap -0.099% too small - skip
 [10:27:30 PM ET] BNB: gap -0.148% but no ask 1.00 out of range - skip
 [10:27:30 PM ET] XRP: gap -0.435% but no ask 1.00 out of range - skip
+[10:28:00 PM ET] BTC: gap -0.140% but no ask 0.99 out of range - skip
+[10:28:00 PM ET] BNB: gap -0.148% but no ask 1.00 out of range - skip
+[10:28:00 PM ET] XRP: gap -0.454% but no ask 1.00 out of range - skip
