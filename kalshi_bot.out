@@ -4660,3 +4660,9 @@
 [11:13:00 AM ET] DOGE: gap +0.076% too small - skip
 [11:15:16 AM ET] SOL: result=yes WIN pnl $+nan cash $15.29
 [11:15:16 AM ET] XRP: result=yes WIN pnl $+nan cash $15.29
+[11:27:00 AM ET] SOL: gap -0.080% too small - skip
+[11:27:00 AM ET] BNB: gap -0.010% too small - skip
+[11:27:00 AM ET] XRP: gap -0.010% too small - skip
+[11:27:00 AM ET] DOGE: gap +0.022% too small - skip
+[11:27:01 AM ET] ETH: LIVE BUY 3x YES @ 0.98 (gap +0.155%) cost $2.94 KXETH15M-26AUG071130-30
+[11:27:01 AM ET] BTC: LIVE BUY 3x YES @ 0.98 (gap +0.121%) cost $2.94 KXBTC15M-26AUG071130-30
