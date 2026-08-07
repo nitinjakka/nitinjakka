@@ -3781,3 +3781,12 @@
 [10:13:40 PM ET] DOGE: STOP-LOSS sell @ 0.31 pnl $+nan cash $8.17
 [10:13:50 PM ET] SOL: STOP-LOSS sell @ 0.31 pnl $+nan cash $10.02
 [10:15:15 PM ET] BNB: result=no WIN pnl $+nan cash $13.02
+[10:27:00 PM ET] BTC: gap -0.085% too small - skip
+[10:27:00 PM ET] ETH: gap -0.049% too small - skip
+[10:27:00 PM ET] BNB: gap -0.165% but no ask 0.99 out of range - skip
+[10:27:00 PM ET] XRP: gap -0.367% but no ask 0.99 out of range - skip
+[10:27:00 PM ET] SOL: LIVE BUY 3x NO @ 0.95 (gap -0.154%) cost $2.85 KXSOL15M-26AUG062230-30
+[10:27:00 PM ET] DOGE: LIVE BUY 3x NO @ 0.93 (gap -0.143%) cost $2.80 KXDOGE15M-26AUG062230-30
+[10:27:30 PM ET] ETH: gap -0.099% too small - skip
+[10:27:30 PM ET] BNB: gap -0.148% but no ask 1.00 out of range - skip
+[10:27:30 PM ET] XRP: gap -0.435% but no ask 1.00 out of range - skip
