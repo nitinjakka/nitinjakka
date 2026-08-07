@@ -4091,3 +4091,13 @@
 [02:57:00 AM ET] BNB: gap -0.123% but no ask 0.99 out of range - skip
 [02:57:00 AM ET] XRP: gap -0.068% too small - skip
 [02:57:01 AM ET] DOGE: gap +0.098% too small - skip
+[02:57:30 AM ET] BTC: gap -0.040% too small - skip
+[02:57:30 AM ET] ETH: gap +0.023% too small - skip
+[02:57:30 AM ET] SOL: gap -0.063% too small - skip
+[02:57:30 AM ET] XRP: gap -0.068% too small - skip
+[02:57:30 AM ET] BNB: LIVE BUY 3x NO @ 0.95 (gap -0.123%) cost $2.85 KXBNB15M-26AUG070300-00
+[02:57:30 AM ET] DOGE: LIVE BUY 3x YES @ 0.98 (gap +0.113%) cost $2.94 KXDOGE15M-26AUG070300-00
+[02:58:00 AM ET] BTC: gap -0.046% too small - skip
+[02:58:00 AM ET] ETH: gap +0.013% too small - skip
+[02:58:00 AM ET] SOL: gap -0.063% too small - skip
+[02:58:00 AM ET] XRP: LIVE BUY 1x NO @ 0.98 (gap -0.117%) cost $0.99 KXXRP15M-26AUG070300-00
