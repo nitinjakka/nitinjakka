@@ -5132,3 +5132,8 @@
 [05:57:30 PM ET] XRP: gap -0.020% too small - skip
 [05:57:30 PM ET] DOGE: gap -0.077% too small - skip
 [05:57:30 PM ET] ETH: order placed but 0 filled - skip KXETH15M-26AUG071800-00
+[05:58:00 PM ET] BTC: gap -0.143% but no ask 1.00 out of range - skip
+[05:58:00 PM ET] ETH: gap -0.107% but no ask 0.99 out of range - skip
+[05:58:00 PM ET] SOL: gap -0.149% but no ask 0.99 out of range - skip
+[05:58:00 PM ET] XRP: gap +0.000% too small - skip
+[05:58:00 PM ET] DOGE: gap -0.077% too small - skip
