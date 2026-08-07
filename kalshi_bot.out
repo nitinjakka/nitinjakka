@@ -3746,3 +3746,15 @@
 [09:45:15 PM ET] SOL: result=no WIN pnl $+nan cash $16.59
 [09:45:16 PM ET] ETH: result=no WIN pnl $+nan cash $16.59
 [09:45:17 PM ET] XRP: result=no WIN pnl $+nan cash $16.59
+[09:57:00 PM ET] BTC: gap +0.047% too small - skip
+[09:57:00 PM ET] ETH: gap +0.066% too small - skip
+[09:57:00 PM ET] SOL: gap -0.028% too small - skip
+[09:57:00 PM ET] BNB: gap -0.088% too small - skip
+[09:57:00 PM ET] XRP: gap +0.048% too small - skip
+[09:57:00 PM ET] DOGE: gap +0.080% too small - skip
+[09:57:30 PM ET] BTC: gap +0.067% too small - skip
+[09:57:30 PM ET] ETH: gap +0.062% too small - skip
+[09:57:30 PM ET] SOL: gap -0.001% too small - skip
+[09:57:30 PM ET] BNB: gap -0.088% too small - skip
+[09:57:30 PM ET] XRP: gap +0.048% too small - skip
+[09:57:30 PM ET] DOGE: gap +0.051% too small - skip
