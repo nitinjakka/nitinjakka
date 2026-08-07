@@ -4794,3 +4794,6 @@
 [01:13:00 PM ET] SOL: gap -0.368% but no ask 1.00 out of range - skip
 [01:13:00 PM ET] DOGE: gap -0.236% but no ask 0.99 out of range - skip
 [01:13:00 PM ET] ETH: order placed but 0 filled - skip KXETH15M-26AUG071315-15
+[01:15:15 PM ET] XRP: result=yes WIN pnl $+nan cash $16.32
+[01:15:16 PM ET] BTC: result=no WIN pnl $+nan cash $16.32
+[01:15:16 PM ET] BNB: result=no WIN pnl $+nan cash $16.32
