@@ -4015,3 +4015,15 @@
 [01:43:00 AM ET] DOGE: gap +0.020% too small - skip
 [01:45:15 AM ET] ETH: result=yes WIN pnl $+nan cash $14.63
 [01:45:16 AM ET] SOL: result=yes WIN pnl $+nan cash $14.63
+[01:57:00 AM ET] BTC: gap +0.138% but yes ask 0.99 out of range - skip
+[01:57:00 AM ET] ETH: gap +0.190% but yes ask 0.99 out of range - skip
+[01:57:00 AM ET] SOL: gap +0.270% but yes ask 0.99 out of range - skip
+[01:57:00 AM ET] BNB: gap +0.044% too small - skip
+[01:57:00 AM ET] XRP: gap +0.315% but yes ask 1.00 out of range - skip
+[01:57:00 AM ET] DOGE: gap +0.242% but yes ask 0.99 out of range - skip
+[01:57:30 AM ET] BTC: gap +0.149% but yes ask 1.00 out of range - skip
+[01:57:30 AM ET] ETH: gap +0.195% but yes ask 1.00 out of range - skip
+[01:57:30 AM ET] SOL: gap +0.284% but yes ask 0.99 out of range - skip
+[01:57:30 AM ET] BNB: gap +0.044% too small - skip
+[01:57:30 AM ET] XRP: gap +0.324% but yes ask 1.00 out of range - skip
+[01:57:30 AM ET] DOGE: gap +0.242% but yes ask 0.99 out of range - skip
