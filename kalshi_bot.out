@@ -4764,3 +4764,15 @@
 [12:43:00 PM ET] XRP: gap -0.214% but no ask 0.99 out of range - skip
 [12:43:01 PM ET] DOGE: gap +0.203% but yes ask 1.00 out of range - skip
 [12:45:15 PM ET] SOL: result=no WIN pnl $+nan cash $16.13
+[12:57:00 PM ET] BTC: gap -0.158% but no ask 0.99 out of range - skip
+[12:57:00 PM ET] ETH: gap -0.199% but no ask 1.00 out of range - skip
+[12:57:00 PM ET] BNB: gap -0.051% too small - skip
+[12:57:00 PM ET] XRP: gap -0.332% but no ask 1.00 out of range - skip
+[12:57:00 PM ET] DOGE: gap -0.351% but no ask 1.00 out of range - skip
+[12:57:00 PM ET] SOL: order placed but 0 filled - skip KXSOL15M-26AUG071300-00
+[12:57:30 PM ET] BTC: gap -0.151% but no ask 0.99 out of range - skip
+[12:57:30 PM ET] ETH: gap -0.202% but no ask 1.00 out of range - skip
+[12:57:30 PM ET] BNB: gap -0.051% too small - skip
+[12:57:30 PM ET] XRP: gap -0.400% but no ask 1.00 out of range - skip
+[12:57:31 PM ET] DOGE: gap -0.337% but no ask 1.00 out of range - skip
+[12:57:31 PM ET] SOL: order placed but 0 filled - skip KXSOL15M-26AUG071300-00
