@@ -1,1 +1,3 @@
 [10:06:32 AM ET] paper bot v4 start: $18.34, unlimited (until killed), 6 coins (BTC, ETH, SOL, BNB, XRP, DOGE); entry t-5 (BTC/ETH) + t-3/2:30/2 (all), gap 0.10%, 90c-98.5c, stop 50%, size 1=25%/2-3=50%/4=75% (all-in single if <$5), max 4 at once
+[10:10:00 AM ET] BTC: gap +0.026% too small - skip
+[10:10:00 AM ET] ETH: gap +0.046% too small - skip
