@@ -17,11 +17,12 @@ for p in 'watchdog.sh' 'python3 kalshi_bot' 'auto_deploy.sh' 'push_live_logs'; d
 done
 sleep 2
 
-cp deploy/kalshi-bot.service deploy/kalshi-autodeploy.service \
+cp deploy/kalshi-bot.service deploy/kalshi-paper.service \
+   deploy/kalshi-autodeploy.service \
    deploy/kalshi-logpush.service /etc/systemd/system/
 systemctl daemon-reload
-systemctl enable --now kalshi-bot kalshi-autodeploy kalshi-logpush
+systemctl enable --now kalshi-bot kalshi-paper kalshi-autodeploy kalshi-logpush
 
 echo "Installed. Status:"
 systemctl --no-pager --lines=2 status \
-    kalshi-bot kalshi-autodeploy kalshi-logpush || true
+    kalshi-bot kalshi-paper kalshi-autodeploy kalshi-logpush || true

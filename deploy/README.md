@@ -1,11 +1,19 @@
 # Systemd setup (survives reboots and new SSH sessions)
 
-Replaces the manual nohup + watchdog.sh with three systemd services:
+Replaces the manual nohup + watchdog.sh with four systemd services:
 
-- **kalshi-bot** — the live trading bot (systemd restarts it on exit/crash,
-  so it is its own watchdog; also restarts it after a code self-update).
+- **kalshi-bot** — the LIVE trading bot with real money (systemd restarts
+  it on exit/crash, so it is its own watchdog; also restarts after a code
+  self-update). Runs forever (`--hours 0`) until stopped.
+- **kalshi-paper** — a PAPER copy running the exact same strategy with fake
+  money, for side-by-side A/B testing. Same code, distinct log + cash file,
+  and its own ntfy topic (`nitin-kalshi-paper-x7q2`) so its alerts don't mix
+  with live. Also runs forever until stopped.
 - **kalshi-autodeploy** — polls GitHub every 2 min and resets to new code.
 - **kalshi-logpush** — pushes logs to the `live-logs` branch every 60s.
+
+Both bots stop ONLY when you stop them (`systemctl stop ...`) or kill the
+process — there is no time limit.
 
 Credentials live in `/etc/kalshi-bot.env` (root-only, NOT in git).
 
@@ -36,12 +44,17 @@ bash deploy/install_systemd.sh
 ## Everyday commands
 
 ```bash
-systemctl status kalshi-bot          # is it running?
-journalctl -u kalshi-bot -f          # live service logs
-tail -f /opt/nitinjakka/kalshi_bot.out   # bot decision log
-systemctl restart kalshi-bot         # manual restart
-systemctl stop kalshi-bot            # pause trading
+systemctl status kalshi-bot kalshi-paper     # are they running?
+journalctl -u kalshi-bot -f                  # live service logs
+tail -f /opt/nitinjakka/kalshi_bot.out       # LIVE decision log
+tail -f /opt/nitinjakka/kalshi_paper.out     # PAPER decision log
+systemctl restart kalshi-bot                 # manual restart (live)
+systemctl stop kalshi-bot kalshi-paper       # pause BOTH bots
 ```
+
+To get the paper bot's push alerts too, subscribe to the
+`nitin-kalshi-paper-x7q2` topic in the ntfy app (the live topic stays
+`nitin-kalshi-bot-x7q2`).
 
 After a server reboot, all three services start automatically — no
 re-exporting env vars, no manual restart.

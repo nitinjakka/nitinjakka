@@ -17,12 +17,13 @@ fi
 git -C "$WT" config user.email "bot@server" 2>/dev/null
 git -C "$WT" config user.name  "kalshi-bot" 2>/dev/null
 
+LOGS="kalshi_bot.out kalshi_live_log.csv kalshi_cash.txt \
+kalshi_paper.out kalshi_paper_log.csv kalshi_paper_cash.txt"
 while true; do
-    for f in kalshi_bot.out kalshi_live_log.csv kalshi_cash.txt; do
+    for f in $LOGS; do
         [ -f "$REPO/$f" ] && cp -f "$REPO/$f" "$WT/$f" 2>/dev/null
     done
-    git -C "$WT" add -f kalshi_bot.out kalshi_live_log.csv \
-        kalshi_cash.txt >/dev/null 2>&1
+    git -C "$WT" add -f $LOGS >/dev/null 2>&1
     if git -C "$WT" commit -q -m "live logs $(date -u +%FT%H:%M)" \
             >/dev/null 2>&1; then
         git -C "$WT" push -q origin live-logs >/dev/null 2>&1

@@ -41,10 +41,22 @@ COINS = {
     "KXDOGE15M": "DOGE-USD",
 }
 
-ENTRY_WINDOW = 180     # first decision point (3 minutes before close)
-# Retry entry at 3:00, 2:30, and 2:00 before close; stop once a trade
-# is placed. A coin may cross the gap threshold between checks.
-ENTRY_CHECKS = (180, 150, 120)
+ENTRY_WINDOW = 180     # standard decision point (3 minutes before close)
+# Entry schedule: (seconds-before-close, coins-allowed-at-that-check).
+# All coins are checked at 3:00 / 2:30 / 2:00. BTC and ETH get an extra
+# EARLIER look at 5:00 before close - at t-5 the winning side is usually
+# still priced inside our band (0.90-0.985) instead of pinned at 0.99-
+# 1.00, so it catches trades the later checks would skip. Limited to the
+# two deepest/least-volatile coins, where a 5-min-old gap is most likely
+# to hold. Every check runs (a coin qualifying late still gets traded);
+# a coin already traded this window is never re-entered.
+EARLY_COINS = ("KXBTC15M", "KXETH15M")
+ENTRY_SCHEDULE = (
+    (300, EARLY_COINS),           # t-5: BTC + ETH only
+    (180, tuple(COINS)),          # t-3: all coins
+    (150, tuple(COINS)),          # t-2:30
+    (120, tuple(COINS)),          # t-2
+)
 MIN_GAP = 0.0010       # 0.10% for all coins
 GAP_OVERRIDES = {}     # flat threshold, no per-coin overrides
 ENTRY_MIN, ENTRY_MAX = 0.90, 0.985
@@ -278,12 +290,20 @@ def main() -> None:
     global LIVE, live
     ap = argparse.ArgumentParser()
     ap.add_argument("--cash", type=float, default=10.0)
-    ap.add_argument("--hours", type=float, default=24.0)
+    ap.add_argument("--hours", type=float, default=0.0,
+                    help="run duration in hours; 0 or less = run forever "
+                         "until the process is killed")
     ap.add_argument("--log", default="kalshi_paper_log.csv")
+    ap.add_argument("--cash-file", default="kalshi_cash.txt",
+                    help="where to persist balance (use a distinct file "
+                         "per instance so paper and live don't collide)")
     ap.add_argument("--live", action="store_true",
                     help="place REAL orders (needs Kalshi API key env vars "
                          "and KALSHI_LIVE_CONFIRM=YES)")
     args = ap.parse_args()
+
+    global CASH_FILE
+    CASH_FILE = args.cash_file
 
     if args.live:
         import kalshi_live as _live
@@ -300,13 +320,23 @@ def main() -> None:
         notify("Kalshi bot: LIVE MODE ON",
                f"Real trading. Starting balance ${state['cash']:.2f}")
     else:
+        # Paper mode: resume from the persisted balance across restarts /
+        # auto-deploys so cumulative P&L survives; fall back to --cash on
+        # a fresh start.
         state["cash"] = args.cash
+        if os.path.exists(CASH_FILE):
+            try:
+                with open(CASH_FILE) as cf:
+                    state["cash"] = float(cf.read().strip())
+            except Exception:
+                pass
     save_cash()
-    deadline = time.time() + args.hours * 3600
+    deadline = float("inf") if args.hours <= 0 else time.time() + args.hours * 3600
     mode = "LIVE" if LIVE else "paper"
-    log_line(f"{mode} bot v4 start: ${state['cash']:.2f}, {args.hours}h, "
+    dur = "unlimited (until killed)" if args.hours <= 0 else f"{args.hours}h"
+    log_line(f"{mode} bot v4 start: ${state['cash']:.2f}, {dur}, "
              f"{len(COINS)} coins ({', '.join(coin_name(s) for s in COINS)}); "
-             f"T-3 market orders, gap 0.10%, "
+             f"entry t-5 (BTC/ETH) + t-3/2:30/2 (all), gap 0.10%, "
              f"{ENTRY_MIN*100:.0f}c-{ENTRY_MAX*100:.1f}c, "
              f"stop {STOP_TRIGGER:.0%}, size 1=25%/2-3=50%/4=75% "
              f"(all-in single if <$5), "
@@ -329,12 +359,15 @@ def main() -> None:
     boot_commit = repo_commit()
     threads: list[threading.Thread] = []
 
-    def try_enter(cts, wstate):
-        """One decision pass. Scans coins NOT already traded this window,
-        sizes within the running total cap, and places orders. Updates
-        wstate in place. Returns (n_new_qualifying, n_placed)."""
+    def try_enter(cts, wstate, allowed):
+        """One decision pass. Scans coins in `allowed` NOT already traded
+        this window, sizes within the running total cap, and places
+        orders. Updates wstate in place. Returns (n_new_qualifying,
+        n_placed)."""
         candidates = []
         for series, product in COINS.items():
+            if series not in allowed:
+                continue                      # not eligible at this check
             if series in wstate["traded"]:
                 continue                      # already traded this window
             ms = [m for m in open_markets(series)
@@ -469,12 +502,13 @@ def main() -> None:
             continue
         cts = min(close_ts_of(m) for m in anchor)
 
-        # Check for entries at 3:00, 2:30, and 2:00 before close. ALL
-        # three run - a coin qualifying late still gets traded (new
-        # coins only; ones already traded this window are skipped).
+        # Walk the entry schedule (t-5 BTC/ETH, then t-3 / t-2:30 / t-2
+        # for all coins). EVERY check runs - a coin qualifying late still
+        # gets traded (new coins only; ones already traded this window
+        # are skipped).
         wstate = {"cash0": None, "deployed": 0.0, "traded": set()}
         saw_qualifier = False
-        for offset in ENTRY_CHECKS:
+        for offset, allowed in ENTRY_SCHEDULE:
             while time.time() < cts - offset:
                 if time.time() >= deadline:
                     break
@@ -484,7 +518,7 @@ def main() -> None:
             # Only restart for a code update if nothing is open yet.
             if not wstate["traded"] and check_update():
                 return
-            n_found, _ = try_enter(cts, wstate)
+            n_found, _ = try_enter(cts, wstate, allowed)
             saw_qualifier = saw_qualifier or n_found > 0
 
         wtime = f"{dt.datetime.fromtimestamp(cts, ET):%I:%M %p ET}"

@@ -1,0 +1,22 @@
+[Unit]
+Description=Kalshi 15-min crypto trading bot (paper test, same strategy)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/nitinjakka
+# Separate ntfy topic so paper alerts don't mix with live ones (and
+# don't double the notification volume against ntfy's rate limit).
+Environment=NTFY_TOPIC=nitin-kalshi-paper-x7q2
+# --hours 0 = run forever until killed. Distinct log + cash file so the
+# paper run never collides with the live bot. Resumes its balance across
+# restarts/auto-deploys from kalshi_paper_cash.txt.
+ExecStart=/usr/bin/python3 /opt/nitinjakka/kalshi_bot.py --cash 18.34 --hours 0 --log kalshi_paper_log.csv --cash-file kalshi_paper_cash.txt
+Restart=always
+RestartSec=5
+StandardOutput=append:/opt/nitinjakka/kalshi_paper.out
+StandardError=append:/opt/nitinjakka/kalshi_paper.out
+
+[Install]
+WantedBy=multi-user.target
