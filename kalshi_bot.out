@@ -5977,3 +5977,15 @@
 [05:28:00 AM ET] XRP: gap +0.029% too small - skip
 [05:28:00 AM ET] DOGE: gap +0.185% but yes ask 1.00 out of range - skip
 [05:28:00 AM ET] nothing to trade this window (05:30 AM ET close)
+[05:42:00 AM ET] BTC: gap -0.015% too small - skip
+[05:42:00 AM ET] ETH: gap +0.127% but yes ask 0.99 out of range - skip
+[05:42:00 AM ET] SOL: gap -0.107% but no ask 1.00 out of range - skip
+[05:42:00 AM ET] BNB: gap +0.032% too small - skip
+[05:42:00 AM ET] XRP: gap +0.000% too small - skip
+[05:42:00 AM ET] DOGE: gap -0.158% but no ask 0.99 out of range - skip
+[05:42:30 AM ET] BTC: gap -0.023% too small - skip
+[05:42:30 AM ET] ETH: gap +0.127% but yes ask 1.00 out of range - skip
+[05:42:30 AM ET] SOL: gap -0.107% but no ask 1.00 out of range - skip
+[05:42:30 AM ET] BNB: gap +0.032% too small - skip
+[05:42:30 AM ET] XRP: gap -0.010% too small - skip
+[05:42:30 AM ET] DOGE: gap -0.214% but no ask 0.99 out of range - skip
