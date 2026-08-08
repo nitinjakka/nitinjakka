@@ -154,3 +154,19 @@
 [11:30:11 AM ET] DOGE: result=no WIN pnl $+0.04 (+1.5%) cash $14.66
 [11:40:00 AM ET] BTC: gap -0.039% too small - skip
 [11:40:00 AM ET] ETH: gap -0.044% too small - skip
+[11:42:00 AM ET] new code deployed (6bea79d) - restarting to update
+[11:42:05 AM ET] paper bot v4 start: $14.66, unlimited (until killed), 6 coins (BTC, ETH, SOL, BNB, XRP, DOGE); entry t-5 (BTC/ETH) + t-3/2:30/2 (all), gap 0.10%, 90c-98.5c, stop 50%, size 1=50%/2=75%/3+=100% (all-in single if <$5), max 4 at once
+[11:42:05 AM ET] BTC: gap -0.040% too small - skip
+[11:42:05 AM ET] ETH: gap -0.039% too small - skip
+[11:42:05 AM ET] BTC: gap -0.040% too small - skip
+[11:42:05 AM ET] ETH: gap -0.039% too small - skip
+[11:42:05 AM ET] SOL: gap -0.237% but no ask 0.99 out of range - skip
+[11:42:06 AM ET] BNB: gap +0.055% too small - skip
+[11:42:06 AM ET] XRP: gap -0.038% too small - skip
+[11:42:06 AM ET] DOGE: gap -0.113% but no ask 0.99 out of range - skip
+[11:42:30 AM ET] BTC: gap -0.040% too small - skip
+[11:42:30 AM ET] ETH: gap -0.035% too small - skip
+[11:42:30 AM ET] SOL: gap -0.211% but no ask 1.00 out of range - skip
+[11:42:30 AM ET] BNB: gap +0.055% too small - skip
+[11:42:30 AM ET] XRP: gap +0.019% too small - skip
+[11:42:30 AM ET] DOGE: gap -0.113% but no ask 0.99 out of range - skip
