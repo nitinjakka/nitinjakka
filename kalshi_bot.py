@@ -222,6 +222,11 @@ def trade_lifecycle(series: str, m: dict, side: str, price: float,
         time.sleep(2)
 
     if stopped:
+        # Estimated P&L from known quantities (entry cost + exit proceeds).
+        # In live mode cash_now is still read from the real balance below;
+        # this pnl is a close estimate for the per-trade log/notification.
+        proceeds = contracts * (exit_px - fee(exit_px))
+        pnl = proceeds - cost
         if LIVE:
             # Market-exit the whole position. reduce_only means it can
             # only close (never flip), so we sell the original count
@@ -239,14 +244,11 @@ def trade_lifecycle(series: str, m: dict, side: str, price: float,
                     pass
                 cash_now = state["cash"]
                 save_cash()
-            pnl = float("nan")
         else:
-            proceeds = contracts * (exit_px - fee(exit_px))
             with lock:
                 state["cash"] += proceeds
                 cash_now = state["cash"]
                 save_cash()
-            pnl = proceeds - cost
         result, won = "stopped", False
         pct_txt = f" ({pnl / cost * 100:+.1f}%)" if (cost and pnl == pnl) else ""
         log_line(f"{coin}: STOP-LOSS sell @ {exit_px:.2f} "
@@ -257,6 +259,12 @@ def trade_lifecycle(series: str, m: dict, side: str, price: float,
     else:
         result = settle(ticker)
         won = (result == side)
+        # Winning contracts pay $1 each; losers pay 0. Entry cost already
+        # includes the taker fee and settlement has no exit fee, so this
+        # is exact in paper and a close estimate in live (cash_now is
+        # still the authoritative real balance below).
+        payout = contracts * 1.0 if won else 0.0
+        pnl = payout - cost
         if LIVE:
             time.sleep(5)  # let Kalshi credit the settlement
             with lock:
@@ -266,14 +274,11 @@ def trade_lifecycle(series: str, m: dict, side: str, price: float,
                     pass
                 cash_now = state["cash"]
                 save_cash()
-            pnl = float("nan")
         else:
-            payout = contracts * 1.0 if won else 0.0
             with lock:
                 state["cash"] += payout
                 cash_now = state["cash"]
                 save_cash()
-            pnl = payout - cost
         pct_txt = f" ({pnl / cost * 100:+.1f}%)" if (cost and pnl == pnl) else ""
         log_line(f"{coin}: result={result} {'WIN' if won else 'LOSS'} "
                  f"pnl ${pnl:+.2f}{pct_txt} cash ${cash_now:.2f}")
@@ -341,7 +346,7 @@ def main() -> None:
              f"{len(COINS)} coins ({', '.join(coin_name(s) for s in COINS)}); "
              f"entry t-5 (BTC/ETH) + t-3/2:30/2 (all), gap 0.10%, "
              f"{ENTRY_MIN*100:.0f}c-{ENTRY_MAX*100:.1f}c, "
-             f"stop {STOP_TRIGGER:.0%}, size 1=25%/2-3=50%/4=75% "
+             f"stop {STOP_TRIGGER:.0%}, size 1=50%/2=75%/3+=100% "
              f"(all-in single if <$5), "
              f"max {MAX_CONCURRENT} at once")
 
@@ -429,10 +434,10 @@ def main() -> None:
             candidates = candidates[:1]
             budget = cash0
         else:
-            # Total per window: 1 coin 25%, 2-3 coins 50%, 4 coins 75%.
+            # Total per window: 1 coin 50%, 2 coins 75%, 3+ coins 100%.
             n_total = len(wstate["traded"]) + len(candidates)
-            total_cap = (0.25 if n_total == 1
-                         else 0.50 if n_total in (2, 3) else 0.75)
+            total_cap = (0.50 if n_total == 1
+                         else 0.75 if n_total == 2 else 1.00)
             budget = cash0 * total_cap - wstate["deployed"]
         if budget <= 0:
             return len(candidates), 0
