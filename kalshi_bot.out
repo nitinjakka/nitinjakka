@@ -6376,3 +6376,8 @@
 [10:27:30 AM ET] BNB: gap +1.153% but yes ask 1.00 out of range - skip
 [10:27:30 AM ET] XRP: gap -0.096% too small - skip
 [10:27:30 AM ET] DOGE: gap +0.485% but yes ask 1.00 out of range - skip
+[10:28:00 AM ET] BTC: gap +0.079% too small - skip
+[10:28:00 AM ET] ETH: gap +0.076% too small - skip
+[10:28:00 AM ET] BNB: gap +1.125% but yes ask 1.00 out of range - skip
+[10:28:00 AM ET] XRP: gap -0.125% but no ask 1.00 out of range - skip
+[10:28:00 AM ET] DOGE: gap +0.471% but yes ask 1.00 out of range - skip
