@@ -6301,3 +6301,20 @@
 [09:43:00 AM ET] DOGE: gap +0.082% too small - skip
 [09:43:00 AM ET] nothing to trade this window (09:45 AM ET close)
 [autodeploy 2026-08-08T13:56 UTC] pulled 272035c
+[09:57:00 AM ET] new code deployed (272035c) - restarting to update
+[09:57:05 AM ET] *** LIVE MODE *** live auth OK, account balance $18.93, max order $0.00
+[09:57:05 AM ET] LIVE bot v4 start: $18.93, 999999.0h, 6 coins (BTC, ETH, SOL, BNB, XRP, DOGE); entry t-5 (BTC/ETH) + t-3/2:30/2 (all), gap 0.10%, 90c-98.5c, stop 50%, size 1=25%/2-3=50%/4=75% (all-in single if <$5), max 4 at once
+[09:57:05 AM ET] BTC: gap +0.011% too small - skip
+[09:57:05 AM ET] ETH: gap +0.032% too small - skip
+[09:57:06 AM ET] BTC: gap +0.011% too small - skip
+[09:57:06 AM ET] ETH: gap +0.032% too small - skip
+[09:57:06 AM ET] SOL: gap -0.009% too small - skip
+[09:57:06 AM ET] BNB: gap +0.379% but yes ask 1.00 out of range - skip
+[09:57:06 AM ET] XRP: gap -0.077% too small - skip
+[09:57:06 AM ET] DOGE: gap -0.118% but no ask 0.99 out of range - skip
+[09:57:30 AM ET] BTC: gap +0.009% too small - skip
+[09:57:30 AM ET] ETH: gap +0.032% too small - skip
+[09:57:30 AM ET] SOL: gap -0.009% too small - skip
+[09:57:30 AM ET] BNB: gap +0.377% but yes ask 1.00 out of range - skip
+[09:57:30 AM ET] XRP: gap -0.067% too small - skip
+[09:57:30 AM ET] DOGE: gap -0.118% but no ask 0.99 out of range - skip
