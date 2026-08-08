@@ -6459,3 +6459,6 @@
 [11:28:00 AM ET] BNB: gap -0.056% too small - skip
 [11:28:00 AM ET] XRP: gap -0.057% too small - skip
 [11:30:16 AM ET] DOGE: result=no WIN pnl $+nan cash $19.31
+[11:40:00 AM ET] BTC: gap -0.039% too small - skip
+[11:40:00 AM ET] ETH: gap -0.044% too small - skip
+[autodeploy 2026-08-08T15:40 UTC] pulled 6bea79d
