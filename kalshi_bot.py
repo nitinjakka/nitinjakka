@@ -248,10 +248,11 @@ def trade_lifecycle(series: str, m: dict, side: str, price: float,
                 save_cash()
             pnl = proceeds - cost
         result, won = "stopped", False
+        pct_txt = f" ({pnl / cost * 100:+.1f}%)" if (cost and pnl == pnl) else ""
         log_line(f"{coin}: STOP-LOSS sell @ {exit_px:.2f} "
-                 f"pnl ${pnl:+.2f} cash ${cash_now:.2f}")
+                 f"pnl ${pnl:+.2f}{pct_txt} cash ${cash_now:.2f}")
         notify(f"Kalshi bot: {coin} STOP-LOSS",
-               f"Sold @ {exit_px:.2f}, pnl ${pnl:+.2f}, "
+               f"Sold @ {exit_px:.2f}, pnl ${pnl:+.2f}{pct_txt}, "
                f"cash ${cash_now:.2f}")
     else:
         result = settle(ticker)
@@ -273,16 +274,18 @@ def trade_lifecycle(series: str, m: dict, side: str, price: float,
                 cash_now = state["cash"]
                 save_cash()
             pnl = payout - cost
+        pct_txt = f" ({pnl / cost * 100:+.1f}%)" if (cost and pnl == pnl) else ""
         log_line(f"{coin}: result={result} {'WIN' if won else 'LOSS'} "
-                 f"pnl ${pnl:+.2f} cash ${cash_now:.2f}")
+                 f"pnl ${pnl:+.2f}{pct_txt} cash ${cash_now:.2f}")
         notify(f"Kalshi bot: {coin} {'WIN' if won else 'LOSS'}",
-               f"pnl ${pnl:+.2f}, cash ${cash_now:.2f}")
+               f"pnl ${pnl:+.2f}{pct_txt}, cash ${cash_now:.2f}")
 
+    pct = pnl / cost * 100.0 if (cost and pnl == pnl) else float("nan")
     with lock:
         writer.writerow(
             [dt.datetime.now(ET).strftime("%Y-%m-%d %I:%M:%S %p ET"),
              ticker, side, f"{price:.4f}", contracts, f"{cost:.2f}",
-             result, won, f"{pnl:.2f}", f"{cash_now:.2f}"])
+             result, won, f"{pnl:.2f}", f"{pct:.1f}", f"{cash_now:.2f}"])
         wfile.flush()
 
 
@@ -348,7 +351,7 @@ def main() -> None:
     if new_log:
         writer.writerow(["et_time", "ticker", "side", "entry_price",
                         "contracts", "cost", "result", "won",
-                        "pnl", "cash_after"])
+                        "pnl", "pnl_pct", "cash_after"])
         f.flush()
 
     # Heartbeat disabled: at every 5 min it sent ~288 pings/day, which
