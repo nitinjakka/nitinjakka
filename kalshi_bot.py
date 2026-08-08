@@ -50,9 +50,15 @@ ENTRY_WINDOW = 180     # standard decision point (3 minutes before close)
 # two deepest/least-volatile coins, where a 5-min-old gap is most likely
 # to hold. Every check runs (a coin qualifying late still gets traded);
 # a coin already traded this window is never re-entered.
-EARLY_COINS = ("KXBTC15M", "KXETH15M")
+#
+# t-5 is BTC-ONLY. A 7-day backtest showed BTC settles on the gap's side
+# 99.0% of the time at t-5 (0.10% gap) - safely +EV at any price the bot
+# takes. ETH's t-5 win rate is only 96.7%, which is below the 0.985 entry
+# cap, so its pricier t-5 entries would be slightly -EV; ETH therefore
+# trades only from t-3 onward, where it is closer to settlement.
+EARLY_COINS = ("KXBTC15M",)
 ENTRY_SCHEDULE = (
-    (300, EARLY_COINS),           # t-5: BTC + ETH only
+    (300, EARLY_COINS),           # t-5: BTC only
     (180, tuple(COINS)),          # t-3: all coins
     (150, tuple(COINS)),          # t-2:30
     (120, tuple(COINS)),          # t-2
@@ -344,7 +350,7 @@ def main() -> None:
     dur = "unlimited (until killed)" if args.hours <= 0 else f"{args.hours}h"
     log_line(f"{mode} bot v4 start: ${state['cash']:.2f}, {dur}, "
              f"{len(COINS)} coins ({', '.join(coin_name(s) for s in COINS)}); "
-             f"entry t-5 (BTC/ETH) + t-3/2:30/2 (all), gap 0.10%, "
+             f"entry t-5 (BTC) + t-3/2:30/2 (all), gap 0.10%, "
              f"{ENTRY_MIN*100:.0f}c-{ENTRY_MAX*100:.1f}c, "
              f"stop {STOP_TRIGGER:.0%}, size 1=50%/2=75%/3+=100% "
              f"(all-in single if <$5), "
