@@ -6648,3 +6648,15 @@
 [01:55:05 PM ET] *** LIVE MODE *** live auth OK, account balance $19.98, max order $0.00
 [01:55:05 PM ET] LIVE bot v4 start: $19.98, unlimited (until killed), 6 coins (BTC, ETH, SOL, BNB, XRP, DOGE); entry t-5 (BTC) + t-3/2:30/2 (all), gap 0.10%, 90c-98.5c, stop 50%, size 1=50%/2=75%/3+=100% (all-in single if <$5), max 4 at once
 [01:55:05 PM ET] BTC: gap -0.021% too small - skip
+[01:57:00 PM ET] BTC: gap -0.024% too small - skip
+[01:57:00 PM ET] ETH: gap -0.054% too small - skip
+[01:57:00 PM ET] SOL: gap -0.061% too small - skip
+[01:57:00 PM ET] BNB: gap -0.081% too small - skip
+[01:57:00 PM ET] XRP: gap -0.115% but no ask 0.99 out of range - skip
+[01:57:00 PM ET] DOGE: gap -0.115% but no ask 0.99 out of range - skip
+[01:57:30 PM ET] BTC: gap -0.019% too small - skip
+[01:57:30 PM ET] ETH: gap -0.053% too small - skip
+[01:57:30 PM ET] SOL: gap +0.018% too small - skip
+[01:57:30 PM ET] BNB: gap -0.063% too small - skip
+[01:57:30 PM ET] XRP: gap -0.105% but no ask 0.99 out of range - skip
+[01:57:30 PM ET] DOGE: LIVE BUY 10x NO @ 0.98 (gap -0.129%) cost $9.85 KXDOGE15M-26AUG081400-00
