@@ -177,3 +177,6 @@
 [11:43:00 AM ET] XRP: gap +0.010% too small - skip
 [11:43:00 AM ET] DOGE: gap -0.113% but no ask 0.99 out of range - skip
 [11:43:00 AM ET] nothing to trade this window (11:45 AM ET close)
+[11:55:00 AM ET] new code deployed (3aae3c7) - restarting to update
+[11:55:05 AM ET] paper bot v4 start: $14.66, unlimited (until killed), 6 coins (BTC, ETH, SOL, BNB, XRP, DOGE); entry t-5 (BTC) + t-3/2:30/2 (all), gap 0.10%, 90c-98.5c, stop 50%, size 1=50%/2=75%/3+=100% (all-in single if <$5), max 4 at once
+[11:55:05 AM ET] BTC: gap +0.036% too small - skip
