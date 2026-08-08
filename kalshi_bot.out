@@ -6340,3 +6340,25 @@
 [10:12:30 AM ET] XRP: gap +0.058% too small - skip
 [10:12:30 AM ET] DOGE: gap -0.011% too small - skip
 [autodeploy 2026-08-08T14:12 UTC] pulled e8b0322
+[10:13:00 AM ET] new code deployed (e8b0322) - restarting to update
+[10:13:05 AM ET] *** LIVE MODE *** live auth OK, account balance $18.93, max order $0.00
+[10:13:05 AM ET] LIVE bot v4 start: $18.93, unlimited (until killed), 6 coins (BTC, ETH, SOL, BNB, XRP, DOGE); entry t-5 (BTC/ETH) + t-3/2:30/2 (all), gap 0.10%, 90c-98.5c, stop 50%, size 1=25%/2-3=50%/4=75% (all-in single if <$5), max 4 at once
+[10:13:05 AM ET] BTC: gap +0.052% too small - skip
+[10:13:05 AM ET] ETH: gap +0.042% too small - skip
+[10:13:06 AM ET] BTC: gap +0.052% too small - skip
+[10:13:06 AM ET] ETH: gap +0.042% too small - skip
+[10:13:06 AM ET] SOL: gap +0.154% but yes ask 0.99 out of range - skip
+[10:13:06 AM ET] BNB: gap +0.058% too small - skip
+[10:13:06 AM ET] XRP: gap +0.067% too small - skip
+[10:13:06 AM ET] DOGE: gap -0.011% too small - skip
+[10:13:06 AM ET] BTC: gap +0.052% too small - skip
+[10:13:06 AM ET] ETH: gap +0.042% too small - skip
+[10:13:06 AM ET] SOL: gap +0.154% but yes ask 0.99 out of range - skip
+[10:13:07 AM ET] XRP: gap +0.077% too small - skip
+[10:13:07 AM ET] DOGE: gap -0.011% too small - skip
+[10:13:07 AM ET] BNB: LIVE BUY 4x YES @ 0.98 (gap +0.105%) cost $3.94 KXBNB15M-26AUG081015-15
+[10:13:07 AM ET] BTC: gap +0.055% too small - skip
+[10:13:07 AM ET] ETH: gap +0.053% too small - skip
+[10:13:07 AM ET] SOL: gap +0.128% but yes ask 0.99 out of range - skip
+[10:13:07 AM ET] XRP: gap +0.086% too small - skip
+[10:13:07 AM ET] DOGE: gap -0.011% too small - skip
