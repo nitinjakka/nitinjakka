@@ -6644,3 +6644,7 @@
 [01:43:00 PM ET] DOGE: gap +0.059% too small - skip
 [01:45:16 PM ET] BNB: result=no WIN pnl $+0.40 (+4.2%) cash $19.98
 [autodeploy 2026-08-08T17:47 UTC] pulled 6debe20
+[01:55:00 PM ET] new code deployed (6debe20) - restarting to update
+[01:55:05 PM ET] *** LIVE MODE *** live auth OK, account balance $19.98, max order $0.00
+[01:55:05 PM ET] LIVE bot v4 start: $19.98, unlimited (until killed), 6 coins (BTC, ETH, SOL, BNB, XRP, DOGE); entry t-5 (BTC) + t-3/2:30/2 (all), gap 0.10%, 90c-98.5c, stop 50%, size 1=50%/2=75%/3+=100% (all-in single if <$5), max 4 at once
+[01:55:05 PM ET] BTC: gap -0.021% too small - skip

@@ -329,3 +329,6 @@
 [01:43:00 PM ET] XRP: gap -0.019% too small - skip
 [01:43:00 PM ET] DOGE: gap +0.059% too small - skip
 [01:45:11 PM ET] BNB: result=no WIN pnl $+0.28 (+4.2%) cash $15.48
+[01:55:00 PM ET] new code deployed (6debe20) - restarting to update
+[01:55:05 PM ET] paper bot v4 start: $15.48, unlimited (until killed), 6 coins (BTC, ETH, SOL, BNB, XRP, DOGE); entry t-5 (BTC) + t-3/2:30/2 (all), gap 0.10%, 90c-98.5c, stop 50%, size 1=50%/2=75%/3+=100% (all-in single if <$5), max 4 at once
+[01:55:05 PM ET] BTC: gap -0.021% too small - skip
