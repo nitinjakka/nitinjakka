@@ -1556,3 +1556,15 @@
 [05:13:00 AM ET] DOGE: PAPER BUY 8x NO @ 0.95 (gap -0.107%) cost $7.65 KXDOGE15M-26AUG090515-15
 [05:13:23 AM ET] DOGE: STOP-LOSS sell @ 0.49 pnl $-3.87 (-50.6%) cash $13.24
 [05:25:00 AM ET] BTC: gap +0.005% too small - skip
+[05:27:00 AM ET] BTC: gap +0.001% too small - skip
+[05:27:00 AM ET] ETH: gap -0.047% too small - skip
+[05:27:00 AM ET] SOL: gap -0.216% but no ask 0.99 out of range - skip
+[05:27:00 AM ET] BNB: gap -0.155% but no ask 1.00 out of range - skip
+[05:27:00 AM ET] XRP: gap -0.126% but no ask 0.99 out of range - skip
+[05:27:00 AM ET] DOGE: gap -0.098% too small - skip
+[05:27:30 AM ET] BTC: gap -0.015% too small - skip
+[05:27:30 AM ET] ETH: gap -0.089% too small - skip
+[05:27:30 AM ET] SOL: gap -0.242% but no ask 0.99 out of range - skip
+[05:27:30 AM ET] BNB: gap -0.155% but no ask 1.00 out of range - skip
+[05:27:30 AM ET] XRP: gap -0.155% but no ask 0.99 out of range - skip
+[05:27:30 AM ET] DOGE: gap -0.098% too small - skip
