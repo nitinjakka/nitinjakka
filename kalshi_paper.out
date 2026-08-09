@@ -2394,3 +2394,9 @@
 [03:58:00 PM ET] DOGE: gap +0.003% too small - skip
 [04:00:11 PM ET] BNB: result=no WIN pnl $+0.14 (+2.0%) cash $14.71
 [04:10:00 PM ET] BTC: gap -0.061% too small - skip
+[04:12:00 PM ET] BTC: gap -0.101% but no ask 0.99 out of range - skip
+[04:12:00 PM ET] ETH: gap -0.027% too small - skip
+[04:12:00 PM ET] BNB: gap +0.025% too small - skip
+[04:12:00 PM ET] XRP: gap -0.019% too small - skip
+[04:12:00 PM ET] DOGE: gap -0.095% too small - skip
+[04:12:00 PM ET] SOL: PAPER BUY 7x NO @ 0.98 (gap -0.108%) cost $6.87 KXSOL15M-26AUG091615-15
