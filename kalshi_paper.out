@@ -1379,3 +1379,14 @@
 [02:58:00 AM ET] DOGE: gap +0.040% too small - skip
 [02:58:00 AM ET] nothing to trade this window (03:00 AM ET close)
 [03:10:00 AM ET] BTC: gap -0.016% too small - skip
+[03:12:00 AM ET] BTC: gap -0.022% too small - skip
+[03:12:00 AM ET] ETH: gap -0.021% too small - skip
+[03:12:00 AM ET] SOL: gap -0.055% too small - skip
+[03:12:00 AM ET] XRP: gap -0.250% but no ask 1.00 out of range - skip
+[03:12:00 AM ET] DOGE: gap -0.148% but no ask 0.99 out of range - skip
+[03:12:00 AM ET] BNB: PAPER BUY 8x NO @ 0.96 (gap -0.108%) cost $7.69 KXBNB15M-26AUG090315-15
+[03:12:30 AM ET] BTC: gap -0.017% too small - skip
+[03:12:30 AM ET] ETH: gap -0.021% too small - skip
+[03:12:30 AM ET] SOL: gap -0.042% too small - skip
+[03:12:30 AM ET] XRP: gap -0.221% but no ask 1.00 out of range - skip
+[03:12:30 AM ET] DOGE: gap -0.177% but no ask 1.00 out of range - skip
