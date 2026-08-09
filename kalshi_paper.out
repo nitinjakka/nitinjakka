@@ -2675,3 +2675,13 @@
 [07:45:11 PM ET] SOL: result=no WIN pnl $+0.26 (+5.4%) cash $11.90
 [07:45:21 PM ET] BNB: result=no WIN pnl $+0.15 (+3.2%) cash $16.90
 [07:55:00 PM ET] BTC: gap -0.042% too small - skip
+[07:57:00 PM ET] BTC: gap -0.060% too small - skip
+[07:57:00 PM ET] ETH: gap -0.096% too small - skip
+[07:57:00 PM ET] XRP: gap -0.078% too small - skip
+[07:57:00 PM ET] DOGE: gap -0.196% but no ask 0.99 out of range - skip
+[07:57:00 PM ET] BNB: PAPER BUY 6x NO @ 0.98 (gap -0.169%) cost $5.87 KXBNB15M-26AUG092000-00
+[07:57:00 PM ET] SOL: PAPER BUY 6x NO @ 0.97 (gap -0.125%) cost $5.81 KXSOL15M-26AUG092000-00
+[07:57:30 PM ET] BTC: gap -0.031% too small - skip
+[07:57:30 PM ET] XRP: gap -0.058% too small - skip
+[07:57:30 PM ET] DOGE: gap -0.196% but no ask 1.00 out of range - skip
+[07:57:30 PM ET] ETH: PAPER BUY 5x NO @ 0.97 (gap -0.102%) cost $4.87 KXETH15M-26AUG092000-00
