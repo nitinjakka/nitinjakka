@@ -10090,3 +10090,7 @@
 [10:44:00 AM ET] HYPE: gap -0.120% too small - skip
 [10:45:26 AM ET] XRP: result=yes WIN pnl $+0.19 (+2.5%) cash $17.12
 [10:55:00 AM ET] BTC: LIVE BUY 8x NO @ 0.98 (gap -0.251%) cost $7.89 KXBTC15M-26AUG101100-00
+[10:57:00 AM ET] SOL: gap -0.415% but no ask 0.99 out of range - skip
+[10:57:00 AM ET] BNB: gap -0.103% but no ask 0.99 out of range - skip
+[10:57:00 AM ET] XRP: gap -0.359% but no ask 0.99 out of range - skip
+[autodeploy 2026-08-10T14:57 UTC] pulled 9c989b3
