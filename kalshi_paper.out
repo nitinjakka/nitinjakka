@@ -3659,3 +3659,7 @@
 [09:13:00 AM ET] BTC: gap -0.040% too small - skip
 [09:13:00 AM ET] XRP: gap +0.029% too small - skip
 [09:13:00 AM ET] BNB: PAPER BUY 5x NO @ 0.97 (gap -0.139%) cost $4.86 KXBNB15M-26AUG100915-15
+[09:14:00 AM ET] ETH: gap +0.176% but yes ask 1.00 out of range - skip
+[09:14:00 AM ET] NEAR: gap +0.625% but yes ask 1.00 out of range - skip
+[09:14:00 AM ET] ZEC: gap +0.321% but yes ask 0.99 out of range - skip
+[09:14:00 AM ET] HYPE: gap -0.230% but no ask 1.00 out of range - skip
