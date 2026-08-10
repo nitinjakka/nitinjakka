@@ -70,8 +70,15 @@ ENTRY_SCHEDULE = (
     (120, MID_COINS),             # t-2
     (60,  LATE_COINS),            # t-1: ETH, DOGE only
 )
-MIN_GAP = 0.0010       # 0.10% for all coins
-GAP_OVERRIDES = {}     # flat threshold, no per-coin overrides
+MIN_GAP = 0.0010       # 0.10% default gap threshold
+# The thin/volatile t-1 coins need a stronger signal to enter: require a
+# 0.15% gap (50% more than the majors) so noise on these low-liquidity
+# markets doesn't trigger a trade.
+GAP_OVERRIDES = {
+    "KXNEAR15M": 0.0015,
+    "KXZEC15M": 0.0015,
+    "KXHYPE15M": 0.0015,
+}
 ENTRY_MIN, ENTRY_MAX = 0.90, 0.985
 STOP_TRIGGER = 0.50
 # Sizing is dynamic: 1 coin -> 50% of cash; N>1 coins -> 100%/N each.
@@ -358,7 +365,8 @@ def main() -> None:
     log_line(f"{mode} bot v4 start: ${state['cash']:.2f}, {dur}, "
              f"{len(COINS)} coins ({', '.join(coin_name(s) for s in COINS)}); "
              f"entry t-5(BTC) t-3/2:30/2(BTC,SOL,BNB,XRP) "
-             f"t-1(ETH,DOGE,NEAR,ZEC,HYPE), gap 0.10%, "
+             f"t-1(ETH,DOGE,NEAR,ZEC,HYPE), "
+             f"gap 0.10% (0.15% NEAR/ZEC/HYPE), "
              f"{ENTRY_MIN*100:.0f}c-{ENTRY_MAX*100:.1f}c, "
              f"stop {STOP_TRIGGER:.0%}, size 1=50%/2=75%/3+=100% "
              f"(all-in single if <$5), "
