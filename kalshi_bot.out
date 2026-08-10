@@ -10079,3 +10079,8 @@
 [10:42:00 AM ET] BNB: gap -0.040% too small - skip
 [10:42:00 AM ET] XRP: LIVE BUY 8x YES @ 0.97 (gap +0.136%) cost $7.81 KXXRP15M-26AUG101045-45
 [10:42:00 AM ET] SOL: LIVE BUY 8x NO @ 0.93 (gap -0.112%) cost $7.48 KXSOL15M-26AUG101045-45
+[10:42:30 AM ET] BTC: gap +0.062% too small - skip
+[10:42:30 AM ET] BNB: gap -0.040% too small - skip
+[10:43:00 AM ET] BNB: gap -0.005% too small - skip
+[10:43:00 AM ET] BTC: order placed but 0 filled - skip KXBTC15M-26AUG101045-45
+[10:43:02 AM ET] SOL: STOP-LOSS sell @ 0.46 pnl $-3.94 (-52.6%) cash $5.66
