@@ -3743,3 +3743,7 @@
 [10:29:00 AM ET] HYPE: gap -0.152% but no ask 0.99 out of range - skip
 [10:29:00 AM ET] nothing to trade this window (10:30 AM ET close)
 [10:40:00 AM ET] BTC: gap -0.024% too small - skip
+[10:42:00 AM ET] BTC: gap +0.042% too small - skip
+[10:42:00 AM ET] BNB: gap -0.040% too small - skip
+[10:42:00 AM ET] XRP: PAPER BUY 7x YES @ 0.97 (gap +0.136%) cost $6.83 KXXRP15M-26AUG101045-45
+[10:42:00 AM ET] SOL: PAPER BUY 7x NO @ 0.93 (gap -0.112%) cost $6.54 KXSOL15M-26AUG101045-45
