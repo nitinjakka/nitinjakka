@@ -4090,3 +4090,7 @@
 [05:55:05 PM ET] paper bot v4 start: $6.74, unlimited (until killed), 6 coins (BTC, ETH, BNB, NEAR, ZEC, HYPE); entry t-3/2:30/2(BTC,BNB) t-1(ETH,NEAR,ZEC,HYPE), gap 0.10% (0.15% NEAR/ZEC/HYPE), 90c-98.5c, stop 50%, size 1=50%/2=75%/3+=100% (all-in single if <$5), max 4 at once
 [05:57:00 PM ET] BTC: gap -0.072% too small - skip
 [05:57:00 PM ET] BNB: gap -0.130% but no ask 0.99 out of range - skip
+[05:57:30 PM ET] BTC: gap -0.076% too small - skip
+[05:57:30 PM ET] BNB: gap -0.130% but no ask 0.99 out of range - skip
+[05:58:00 PM ET] BTC: gap -0.076% too small - skip
+[05:58:00 PM ET] BNB: gap -0.102% but no ask 1.00 out of range - skip
