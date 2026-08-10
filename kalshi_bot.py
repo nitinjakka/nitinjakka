@@ -68,7 +68,7 @@ ENTRY_SCHEDULE = (
     (180, MID_COINS),             # t-3: BTC, SOL, BNB, XRP
     (150, MID_COINS),             # t-2:30
     (120, MID_COINS),             # t-2
-    (60,  LATE_COINS),            # t-1: ETH, DOGE only
+    (60,  LATE_COINS),            # t-1: ETH, DOGE, NEAR, ZEC, HYPE
 )
 MIN_GAP = 0.0010       # 0.10% default gap threshold
 # The thin/volatile t-1 coins need a stronger signal to enter: require a
