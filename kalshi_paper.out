@@ -3802,3 +3802,7 @@
 [11:27:30 AM ET] BTC: gap -0.323% but no ask 1.00 out of range - skip
 [11:27:30 AM ET] SOL: gap -0.282% but no ask 0.99 out of range - skip
 [11:27:30 AM ET] XRP: gap -0.176% too small - skip
+[11:28:00 AM ET] BTC: gap -0.329% but no ask 1.00 out of range - skip
+[11:28:00 AM ET] SOL: gap -0.256% but no ask 1.00 out of range - skip
+[11:28:00 AM ET] XRP: gap -0.176% too small - skip
+[11:28:22 AM ET] BNB: STOP-LOSS sell @ 0.25 pnl $-5.38 (-73.9%) cash $10.31
