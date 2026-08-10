@@ -9458,3 +9458,7 @@
 [01:57:30 AM ET] SOL: gap +0.091% too small - skip
 [01:57:30 AM ET] BNB: gap -0.081% too small - skip
 [01:57:30 AM ET] XRP: order placed but 0 filled - skip KXXRP15M-26AUG100200-00
+[01:58:00 AM ET] BTC: gap +0.078% too small - skip
+[01:58:00 AM ET] SOL: gap +0.065% too small - skip
+[01:58:00 AM ET] BNB: gap -0.096% too small - skip
+[01:58:00 AM ET] XRP: gap +0.116% but yes ask 0.99 out of range - skip
