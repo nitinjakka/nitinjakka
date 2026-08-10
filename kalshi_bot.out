@@ -9277,3 +9277,8 @@
 [11:44:44 PM ET] DOGE: STOP-LOSS sell @ 0.43 pnl $-7.71 (-57.2%) cash $13.58
 [autodeploy 2026-08-10T03:51 UTC] pulled c277f0c
 [autodeploy 2026-08-10T03:53 UTC] pulled 4faf8a7
+[11:55:00 PM ET] new code deployed (4faf8a7) - restarting to update
+[11:55:05 PM ET] *** LIVE MODE *** live auth OK, account balance $18.72, max order $0.00
+[11:55:05 PM ET] LIVE bot v4 start: $18.72, unlimited (until killed), 9 coins (BTC, ETH, SOL, BNB, XRP, DOGE, NEAR, ZEC, HYPE); entry t-5(BTC) t-3/2:30/2(BTC,SOL,BNB,XRP) t-1(ETH,DOGE,NEAR,ZEC,HYPE), gap 0.10%, 90c-98.5c, stop 50%, size 1=50%/2=75%/3+=100% (all-in single if <$5), max 4 at once
+[11:55:05 PM ET] BTC: gap -0.057% too small - skip
+[autodeploy 2026-08-10T03:55 UTC] pulled ccfa034

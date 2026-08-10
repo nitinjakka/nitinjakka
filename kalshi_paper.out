@@ -2958,3 +2958,6 @@
 [11:43:00 PM ET] BNB: gap +0.018% too small - skip
 [11:43:00 PM ET] XRP: gap +0.097% too small - skip
 [11:44:45 PM ET] DOGE: STOP-LOSS sell @ 0.43 pnl $-5.75 (-55.9%) cash $15.25
+[11:55:00 PM ET] new code deployed (4faf8a7) - restarting to update
+[11:55:05 PM ET] paper bot v4 start: $15.25, unlimited (until killed), 9 coins (BTC, ETH, SOL, BNB, XRP, DOGE, NEAR, ZEC, HYPE); entry t-5(BTC) t-3/2:30/2(BTC,SOL,BNB,XRP) t-1(ETH,DOGE,NEAR,ZEC,HYPE), gap 0.10%, 90c-98.5c, stop 50%, size 1=50%/2=75%/3+=100% (all-in single if <$5), max 4 at once
+[11:55:05 PM ET] BTC: gap -0.057% too small - skip
