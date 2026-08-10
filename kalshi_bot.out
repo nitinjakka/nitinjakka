@@ -9294,3 +9294,22 @@
 [11:57:30 PM ET] SOL: gap -0.197% but no ask 0.99 out of range - skip
 [11:57:30 PM ET] BNB: gap -0.093% too small - skip
 [11:57:30 PM ET] XRP: gap -0.165% but no ask 0.99 out of range - skip
+[11:58:00 PM ET] BTC: gap -0.092% too small - skip
+[11:58:00 PM ET] SOL: gap -0.197% but no ask 1.00 out of range - skip
+[11:58:00 PM ET] BNB: gap -0.126% but no ask 0.99 out of range - skip
+[11:58:00 PM ET] XRP: gap -0.175% but no ask 1.00 out of range - skip
+[11:58:25 PM ET] *** LIVE MODE *** live auth OK, account balance $18.72, max order $0.00
+[11:58:25 PM ET] LIVE bot v4 start: $18.72, unlimited (until killed), 9 coins (BTC, ETH, SOL, BNB, XRP, DOGE, NEAR, ZEC, HYPE); entry t-5(BTC) t-3/2:30/2(BTC,SOL,BNB,XRP) t-1(ETH,DOGE,NEAR,ZEC,HYPE), gap 0.10% (0.15% NEAR/ZEC/HYPE), 90c-98.5c, stop 50%, size 1=50%/2=75%/3+=100% (all-in single if <$5), max 4 at once
+[11:58:25 PM ET] BTC: gap -0.081% too small - skip
+[11:58:25 PM ET] BTC: gap -0.081% too small - skip
+[11:58:25 PM ET] SOL: gap -0.197% but no ask 1.00 out of range - skip
+[11:58:25 PM ET] BNB: gap -0.101% but no ask 1.00 out of range - skip
+[11:58:25 PM ET] XRP: gap -0.155% but no ask 1.00 out of range - skip
+[11:58:25 PM ET] BTC: gap -0.081% too small - skip
+[11:58:26 PM ET] SOL: gap -0.197% but no ask 1.00 out of range - skip
+[11:58:26 PM ET] BNB: gap -0.101% but no ask 1.00 out of range - skip
+[11:58:26 PM ET] XRP: gap -0.155% but no ask 1.00 out of range - skip
+[11:58:26 PM ET] BTC: gap -0.081% too small - skip
+[11:58:26 PM ET] SOL: gap -0.197% but no ask 1.00 out of range - skip
+[11:58:26 PM ET] BNB: gap -0.101% but no ask 1.00 out of range - skip
+[11:58:26 PM ET] XRP: gap -0.155% but no ask 1.00 out of range - skip
