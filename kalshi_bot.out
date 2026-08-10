@@ -9650,3 +9650,11 @@
 [04:29:00 AM ET] HYPE: gap +0.130% too small - skip
 [04:29:00 AM ET] nothing to trade this window (04:30 AM ET close)
 [04:40:00 AM ET] BTC: gap -0.079% too small - skip
+[04:42:00 AM ET] BTC: gap -0.133% but no ask 1.00 out of range - skip
+[04:42:00 AM ET] SOL: gap -0.323% but no ask 1.00 out of range - skip
+[04:42:00 AM ET] BNB: gap -0.124% but no ask 0.99 out of range - skip
+[04:42:00 AM ET] XRP: gap -0.290% but no ask 1.00 out of range - skip
+[04:42:30 AM ET] BTC: gap -0.154% but no ask 1.00 out of range - skip
+[04:42:30 AM ET] SOL: gap -0.362% but no ask 1.00 out of range - skip
+[04:42:30 AM ET] BNB: gap -0.141% but no ask 1.00 out of range - skip
+[04:42:30 AM ET] XRP: gap -0.338% but no ask 1.00 out of range - skip
