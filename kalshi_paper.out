@@ -3737,3 +3737,8 @@
 [10:28:00 AM ET] SOL: gap +0.008% too small - skip
 [10:28:00 AM ET] BNB: gap +0.075% too small - skip
 [10:28:00 AM ET] XRP: gap +0.019% too small - skip
+[10:29:00 AM ET] ETH: gap -0.015% too small - skip
+[10:29:00 AM ET] NEAR: gap -0.230% but no ask 1.00 out of range - skip
+[10:29:00 AM ET] ZEC: gap -0.199% but no ask 1.00 out of range - skip
+[10:29:00 AM ET] HYPE: gap -0.152% but no ask 0.99 out of range - skip
+[10:29:00 AM ET] nothing to trade this window (10:30 AM ET close)
