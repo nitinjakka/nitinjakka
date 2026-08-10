@@ -10424,3 +10424,5 @@
 [05:55:00 PM ET] new code deployed (c2ff1a7) - restarting to update
 [05:55:05 PM ET] *** LIVE MODE *** live auth OK, account balance $7.38, max order $0.00
 [05:55:05 PM ET] LIVE bot v4 start: $7.38, unlimited (until killed), 6 coins (BTC, ETH, BNB, NEAR, ZEC, HYPE); entry t-3/2:30/2(BTC,BNB) t-1(ETH,NEAR,ZEC,HYPE), gap 0.10% (0.15% NEAR/ZEC/HYPE), 90c-98.5c, stop 50%, size 1=50%/2=75%/3+=100% (all-in single if <$5), max 4 at once
+[05:57:00 PM ET] BTC: gap -0.072% too small - skip
+[05:57:00 PM ET] BNB: gap -0.130% but no ask 0.99 out of range - skip
