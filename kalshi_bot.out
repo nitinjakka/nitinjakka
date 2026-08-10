@@ -10138,3 +10138,7 @@
 [11:28:00 AM ET] SOL: gap -0.256% but no ask 1.00 out of range - skip
 [11:28:00 AM ET] XRP: gap -0.176% too small - skip
 [11:28:23 AM ET] BNB: STOP-LOSS sell @ 0.25 pnl $-6.05 (-73.9%) cash $8.99
+[11:29:00 AM ET] ETH: gap -0.082% too small - skip
+[11:29:00 AM ET] NEAR: gap +0.300% but yes ask 1.00 out of range - skip
+[11:29:00 AM ET] ZEC: gap -0.159% but no ask 1.00 out of range - skip
+[11:29:00 AM ET] HYPE: gap -0.077% too small - skip
