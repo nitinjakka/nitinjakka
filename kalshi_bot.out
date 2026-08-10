@@ -9405,3 +9405,8 @@
 [01:13:00 AM ET] BTC: gap -0.017% too small - skip
 [01:13:00 AM ET] BNB: gap +0.037% too small - skip
 [01:13:00 AM ET] XRP: gap +0.058% too small - skip
+[01:14:00 AM ET] ETH: gap +0.010% too small - skip
+[01:14:00 AM ET] DOGE: gap -0.009% too small - skip
+[01:14:00 AM ET] NEAR: gap +0.727% but yes ask 1.00 out of range - skip
+[01:14:00 AM ET] ZEC: gap +0.166% but yes ask 0.99 out of range - skip
+[01:14:00 AM ET] HYPE: gap +0.190% but yes ask 0.99 out of range - skip
