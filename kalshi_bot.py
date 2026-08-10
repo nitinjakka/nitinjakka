@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Paper-trading bot v4 for Kalshi 15-min crypto markets (9 coins).
 
-Coins: BTC, ETH, SOL, BNB, XRP, DOGE.
+Coins: BTC, ETH, SOL, BNB, XRP, DOGE, NEAR, ZEC, HYPE.
 
 Strategy per 15-minute window (all coins share the same close grid):
   - At T-3 minutes: for each coin, compute the gap between spot
@@ -39,6 +39,9 @@ COINS = {
     "KXBNB15M": "BNB-USD",
     "KXXRP15M": "XRP-USD",
     "KXDOGE15M": "DOGE-USD",
+    "KXNEAR15M": "NEAR-USD",
+    "KXZEC15M": "ZEC-USD",
+    "KXHYPE15M": "HYPE-USD",
 }
 
 ENTRY_WINDOW = 180     # standard decision point (3 minutes before close)
@@ -50,13 +53,15 @@ ENTRY_WINDOW = 180     # standard decision point (3 minutes before close)
 #   BTC (EARLY)  - deepest, least volatile. Extra t-5 look (backtest:
 #                  99.0% settle-on-gap at 0.10%), plus t-3/2:30/2.
 #   SOL/BNB/XRP  - traded t-3/2:30/2 (MID checks).
-#   ETH + DOGE (LATE) - the two biggest stop-loss offenders, so they are
-#                  restricted to t-1 ONLY - the latest, most-certain
-#                  check, where there is minimal time left to reverse, so
-#                  win rate is highest and stops least likely. They are
-#                  deliberately OFF the earlier t-5/t-3/2:30/2 checks.
+#   ETH/DOGE/NEAR/ZEC/HYPE (LATE) - the riskiest coins (ETH+DOGE are the
+#                  two biggest stop-loss offenders; NEAR/ZEC/HYPE are
+#                  thin/volatile and were previously pulled). Restricted
+#                  to t-1 ONLY - the latest, most-certain check, where
+#                  there is minimal time left to reverse, so win rate is
+#                  highest and stops least likely. Deliberately OFF the
+#                  earlier t-5/t-3/2:30/2 checks.
 EARLY_COINS = ("KXBTC15M",)
-LATE_COINS = ("KXETH15M", "KXDOGE15M")
+LATE_COINS = ("KXETH15M", "KXDOGE15M", "KXNEAR15M", "KXZEC15M", "KXHYPE15M")
 MID_COINS = tuple(c for c in COINS if c not in LATE_COINS)  # BTC,SOL,BNB,XRP
 ENTRY_SCHEDULE = (
     (300, EARLY_COINS),           # t-5: BTC only
@@ -352,8 +357,8 @@ def main() -> None:
     dur = "unlimited (until killed)" if args.hours <= 0 else f"{args.hours}h"
     log_line(f"{mode} bot v4 start: ${state['cash']:.2f}, {dur}, "
              f"{len(COINS)} coins ({', '.join(coin_name(s) for s in COINS)}); "
-             f"entry t-5(BTC) t-3/2:30/2(BTC,SOL,BNB,XRP) t-1(ETH,DOGE), "
-             f"gap 0.10%, "
+             f"entry t-5(BTC) t-3/2:30/2(BTC,SOL,BNB,XRP) "
+             f"t-1(ETH,DOGE,NEAR,ZEC,HYPE), gap 0.10%, "
              f"{ENTRY_MIN*100:.0f}c-{ENTRY_MAX*100:.1f}c, "
              f"stop {STOP_TRIGGER:.0%}, size 1=50%/2=75%/3+=100% "
              f"(all-in single if <$5), "
