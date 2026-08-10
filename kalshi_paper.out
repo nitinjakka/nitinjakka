@@ -2961,3 +2961,14 @@
 [11:55:00 PM ET] new code deployed (4faf8a7) - restarting to update
 [11:55:05 PM ET] paper bot v4 start: $15.25, unlimited (until killed), 9 coins (BTC, ETH, SOL, BNB, XRP, DOGE, NEAR, ZEC, HYPE); entry t-5(BTC) t-3/2:30/2(BTC,SOL,BNB,XRP) t-1(ETH,DOGE,NEAR,ZEC,HYPE), gap 0.10%, 90c-98.5c, stop 50%, size 1=50%/2=75%/3+=100% (all-in single if <$5), max 4 at once
 [11:55:05 PM ET] BTC: gap -0.057% too small - skip
+[11:57:00 PM ET] new code deployed (ccfa034) - restarting to update
+[11:57:05 PM ET] paper bot v4 start: $15.25, unlimited (until killed), 9 coins (BTC, ETH, SOL, BNB, XRP, DOGE, NEAR, ZEC, HYPE); entry t-5(BTC) t-3/2:30/2(BTC,SOL,BNB,XRP) t-1(ETH,DOGE,NEAR,ZEC,HYPE), gap 0.10% (0.15% NEAR/ZEC/HYPE), 90c-98.5c, stop 50%, size 1=50%/2=75%/3+=100% (all-in single if <$5), max 4 at once
+[11:57:05 PM ET] BTC: gap -0.078% too small - skip
+[11:57:05 PM ET] BTC: gap -0.078% too small - skip
+[11:57:05 PM ET] SOL: gap -0.197% but no ask 0.99 out of range - skip
+[11:57:06 PM ET] BNB: gap -0.063% too small - skip
+[11:57:06 PM ET] XRP: gap -0.194% but no ask 0.99 out of range - skip
+[11:57:30 PM ET] BTC: gap -0.078% too small - skip
+[11:57:30 PM ET] SOL: gap -0.197% but no ask 0.99 out of range - skip
+[11:57:30 PM ET] BNB: gap -0.093% too small - skip
+[11:57:30 PM ET] XRP: gap -0.165% but no ask 0.99 out of range - skip
