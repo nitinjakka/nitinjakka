@@ -3418,3 +3418,11 @@
 [05:57:00 AM ET] SOL: gap -0.161% but no ask 1.00 out of range - skip
 [05:57:00 AM ET] BNB: gap -0.053% too small - skip
 [05:57:00 AM ET] XRP: gap -0.087% too small - skip
+[05:57:30 AM ET] BTC: gap -0.127% but no ask 0.99 out of range - skip
+[05:57:30 AM ET] SOL: gap -0.135% but no ask 1.00 out of range - skip
+[05:57:30 AM ET] BNB: gap -0.081% too small - skip
+[05:57:30 AM ET] XRP: gap -0.097% too small - skip
+[05:58:00 AM ET] BTC: gap -0.128% but no ask 1.00 out of range - skip
+[05:58:00 AM ET] SOL: gap -0.122% but no ask 0.99 out of range - skip
+[05:58:00 AM ET] BNB: gap -0.081% too small - skip
+[05:58:00 AM ET] XRP: gap -0.049% too small - skip
