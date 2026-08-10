@@ -3780,3 +3780,11 @@
 [11:12:00 AM ET] SOL: gap +0.118% too small - skip
 [11:12:00 AM ET] BNB: gap -0.073% too small - skip
 [11:12:00 AM ET] XRP: gap -0.097% too small - skip
+[11:12:30 AM ET] BTC: gap +0.019% too small - skip
+[11:12:30 AM ET] SOL: gap +0.066% too small - skip
+[11:12:30 AM ET] BNB: gap -0.095% too small - skip
+[11:12:30 AM ET] XRP: gap -0.127% too small - skip
+[11:13:00 AM ET] SOL: gap -0.065% too small - skip
+[11:13:00 AM ET] BNB: gap -0.161% but no ask 0.99 out of range - skip
+[11:13:00 AM ET] XRP: gap -0.302% but no ask 0.99 out of range - skip
+[11:13:00 AM ET] BTC: PAPER BUY 8x NO @ 0.94 (gap -0.100%) cost $7.54 KXBTC15M-26AUG101115-15
