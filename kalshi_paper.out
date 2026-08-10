@@ -3942,3 +3942,8 @@
 [02:27:30 PM ET] BNB: gap +0.015% too small - skip
 [02:28:00 PM ET] BTC: gap -0.085% too small - skip
 [02:28:00 PM ET] BNB: gap -0.033% too small - skip
+[02:29:00 PM ET] ETH: gap -0.033% too small - skip
+[02:29:00 PM ET] NEAR: gap -0.311% but no ask 1.00 out of range - skip
+[02:29:00 PM ET] ZEC: gap +0.057% too small - skip
+[02:29:00 PM ET] HYPE: gap +0.663% but yes ask 1.00 out of range - skip
+[02:29:00 PM ET] nothing to trade this window (02:30 PM ET close)
