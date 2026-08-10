@@ -9095,3 +9095,9 @@
 [09:15:15 PM ET] DOGE: result=yes WIN pnl $+0.18 (+2.3%) cash $24.63
 [09:15:17 PM ET] SOL: result=yes WIN pnl $+0.27 (+3.5%) cash $24.63
 [09:25:00 PM ET] BTC: gap +0.072% too small - skip
+[09:27:00 PM ET] BTC: gap +0.099% too small - skip
+[09:27:00 PM ET] ETH: gap +0.214% but yes ask 0.99 out of range - skip
+[09:27:00 PM ET] SOL: gap +0.157% but yes ask 0.99 out of range - skip
+[09:27:00 PM ET] BNB: gap +0.030% too small - skip
+[09:27:00 PM ET] DOGE: LIVE BUY 9x YES @ 0.98 (gap +0.151%) cost $8.86 KXDOGE15M-26AUG092130-30
+[09:27:01 PM ET] XRP: LIVE BUY 9x YES @ 0.98 (gap +0.145%) cost $8.85 KXXRP15M-26AUG092130-30
