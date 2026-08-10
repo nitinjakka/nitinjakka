@@ -47,22 +47,20 @@ ENTRY_WINDOW = 180     # standard decision point (3 minutes before close)
 # traded, and a coin already traded this window is never re-entered.
 #
 # Coins are tiered by volatility / stop-loss history:
-#   BTC (EARLY)  - deepest, least volatile. Extra t-5 look (backtest:
-#                  99.0% settle-on-gap at 0.10%), plus t-3/2:30/2.
-#   BNB (MID)    - traded t-3/2:30/2. (SOL and XRP were removed.)
+#   BTC/BNB (MID) - traded at t-3/2:30/2. (BTC's earlier t-5 check was
+#                  removed - the extra 5 minutes added reversal/gap-through
+#                  risk and it took a stop-loss; BTC now trades no earlier
+#                  than t-3. SOL and XRP were removed entirely.)
 #   ETH/NEAR/ZEC/HYPE (LATE) - the riskiest coins (ETH is a big stop-loss
 #                  offender; NEAR/ZEC/HYPE are thin/volatile). Restricted
 #                  to t-1 ONLY - the latest, most-certain check, where
 #                  there is minimal time left to reverse, so win rate is
 #                  highest and stops least likely. Deliberately OFF the
-#                  earlier t-5/t-3/2:30/2 checks. (DOGE was removed
-#                  entirely - it caused the most stops and the two worst
-#                  losses on the account.)
-EARLY_COINS = ("KXBTC15M",)
+#                  earlier t-3/2:30/2 checks. (DOGE was removed entirely -
+#                  it caused the most stops and the two worst losses.)
 LATE_COINS = ("KXETH15M", "KXNEAR15M", "KXZEC15M", "KXHYPE15M")
 MID_COINS = tuple(c for c in COINS if c not in LATE_COINS)  # BTC, BNB
 ENTRY_SCHEDULE = (
-    (300, EARLY_COINS),           # t-5: BTC only
     (180, MID_COINS),             # t-3: BTC, BNB
     (150, MID_COINS),             # t-2:30
     (120, MID_COINS),             # t-2
@@ -361,7 +359,7 @@ def main() -> None:
     dur = "unlimited (until killed)" if args.hours <= 0 else f"{args.hours}h"
     log_line(f"{mode} bot v4 start: ${state['cash']:.2f}, {dur}, "
              f"{len(COINS)} coins ({', '.join(coin_name(s) for s in COINS)}); "
-             f"entry t-5(BTC) t-3/2:30/2(BTC,BNB) "
+             f"entry t-3/2:30/2(BTC,BNB) "
              f"t-1(ETH,NEAR,ZEC,HYPE), "
              f"gap 0.10% (0.15% NEAR/ZEC/HYPE), "
              f"{ENTRY_MIN*100:.0f}c-{ENTRY_MAX*100:.1f}c, "
