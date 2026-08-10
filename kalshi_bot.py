@@ -70,14 +70,16 @@ ENTRY_SCHEDULE = (
     (120, MID_COINS),             # t-2
     (60,  LATE_COINS),            # t-1: ETH, NEAR, ZEC, HYPE
 )
-MIN_GAP = 0.0010       # 0.10% default gap threshold
-# The thin/volatile t-1 coins need a stronger signal to enter: require a
-# 0.15% gap (50% more than the majors) so noise on these low-liquidity
-# markets doesn't trigger a trade.
+MIN_GAP = 0.0010       # 0.10% default gap threshold (BTC, ETH, BNB)
+# Per-coin gap thresholds. Thin/volatile t-1 coins (NEAR/ZEC/HYPE) need a
+# stronger 0.15% signal so low-liquidity noise doesn't trigger a trade.
+# SOL/XRP are held to 0.20% - only enter on a decisive move.
 GAP_OVERRIDES = {
     "KXNEAR15M": 0.0015,
     "KXZEC15M": 0.0015,
     "KXHYPE15M": 0.0015,
+    "KXSOL15M": 0.0020,
+    "KXXRP15M": 0.0020,
 }
 ENTRY_MIN, ENTRY_MAX = 0.90, 0.985
 STOP_TRIGGER = 0.50
@@ -366,7 +368,7 @@ def main() -> None:
              f"{len(COINS)} coins ({', '.join(coin_name(s) for s in COINS)}); "
              f"entry t-5(BTC) t-3/2:30/2(BTC,SOL,BNB,XRP) "
              f"t-1(ETH,NEAR,ZEC,HYPE), "
-             f"gap 0.10% (0.15% NEAR/ZEC/HYPE), "
+             f"gap 0.10% (0.15% NEAR/ZEC/HYPE, 0.20% SOL/XRP), "
              f"{ENTRY_MIN*100:.0f}c-{ENTRY_MAX*100:.1f}c, "
              f"stop {STOP_TRIGGER:.0%}, size 1=50%/2=75%/3+=100% "
              f"(all-in single if <$5), "
