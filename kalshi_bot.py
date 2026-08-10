@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Paper-trading bot v4 for Kalshi 15-min crypto markets (9 coins).
 
-Coins: BTC, ETH, SOL, BNB, XRP, NEAR, ZEC, HYPE.
+Coins: BTC, ETH, BNB, NEAR, ZEC, HYPE.
 
 Strategy per 15-minute window (all coins share the same close grid):
   - At T-3 minutes: for each coin, compute the gap between spot
@@ -35,9 +35,7 @@ ET = ZoneInfo("America/New_York")
 COINS = {
     "KXBTC15M": "BTC-USD",
     "KXETH15M": "ETH-USD",
-    "KXSOL15M": "SOL-USD",
     "KXBNB15M": "BNB-USD",
-    "KXXRP15M": "XRP-USD",
     "KXNEAR15M": "NEAR-USD",
     "KXZEC15M": "ZEC-USD",
     "KXHYPE15M": "HYPE-USD",
@@ -51,7 +49,7 @@ ENTRY_WINDOW = 180     # standard decision point (3 minutes before close)
 # Coins are tiered by volatility / stop-loss history:
 #   BTC (EARLY)  - deepest, least volatile. Extra t-5 look (backtest:
 #                  99.0% settle-on-gap at 0.10%), plus t-3/2:30/2.
-#   SOL/BNB/XRP  - traded t-3/2:30/2 (MID checks).
+#   BNB (MID)    - traded t-3/2:30/2. (SOL and XRP were removed.)
 #   ETH/NEAR/ZEC/HYPE (LATE) - the riskiest coins (ETH is a big stop-loss
 #                  offender; NEAR/ZEC/HYPE are thin/volatile). Restricted
 #                  to t-1 ONLY - the latest, most-certain check, where
@@ -62,10 +60,10 @@ ENTRY_WINDOW = 180     # standard decision point (3 minutes before close)
 #                  losses on the account.)
 EARLY_COINS = ("KXBTC15M",)
 LATE_COINS = ("KXETH15M", "KXNEAR15M", "KXZEC15M", "KXHYPE15M")
-MID_COINS = tuple(c for c in COINS if c not in LATE_COINS)  # BTC,SOL,BNB,XRP
+MID_COINS = tuple(c for c in COINS if c not in LATE_COINS)  # BTC, BNB
 ENTRY_SCHEDULE = (
     (300, EARLY_COINS),           # t-5: BTC only
-    (180, MID_COINS),             # t-3: BTC, SOL, BNB, XRP
+    (180, MID_COINS),             # t-3: BTC, BNB
     (150, MID_COINS),             # t-2:30
     (120, MID_COINS),             # t-2
     (60,  LATE_COINS),            # t-1: ETH, NEAR, ZEC, HYPE
@@ -73,13 +71,10 @@ ENTRY_SCHEDULE = (
 MIN_GAP = 0.0010       # 0.10% default gap threshold (BTC, ETH, BNB)
 # Per-coin gap thresholds. Thin/volatile t-1 coins (NEAR/ZEC/HYPE) need a
 # stronger 0.15% signal so low-liquidity noise doesn't trigger a trade.
-# SOL/XRP are held to 0.20% - only enter on a decisive move.
 GAP_OVERRIDES = {
     "KXNEAR15M": 0.0015,
     "KXZEC15M": 0.0015,
     "KXHYPE15M": 0.0015,
-    "KXSOL15M": 0.0020,
-    "KXXRP15M": 0.0020,
 }
 ENTRY_MIN, ENTRY_MAX = 0.90, 0.985
 STOP_TRIGGER = 0.50
@@ -366,9 +361,9 @@ def main() -> None:
     dur = "unlimited (until killed)" if args.hours <= 0 else f"{args.hours}h"
     log_line(f"{mode} bot v4 start: ${state['cash']:.2f}, {dur}, "
              f"{len(COINS)} coins ({', '.join(coin_name(s) for s in COINS)}); "
-             f"entry t-5(BTC) t-3/2:30/2(BTC,SOL,BNB,XRP) "
+             f"entry t-5(BTC) t-3/2:30/2(BTC,BNB) "
              f"t-1(ETH,NEAR,ZEC,HYPE), "
-             f"gap 0.10% (0.15% NEAR/ZEC/HYPE, 0.20% SOL/XRP), "
+             f"gap 0.10% (0.15% NEAR/ZEC/HYPE), "
              f"{ENTRY_MIN*100:.0f}c-{ENTRY_MAX*100:.1f}c, "
              f"stop {STOP_TRIGGER:.0%}, size 1=50%/2=75%/3+=100% "
              f"(all-in single if <$5), "
