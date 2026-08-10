@@ -3210,3 +3210,9 @@
 [02:58:00 AM ET] SOL: gap +0.004% too small - skip
 [02:58:00 AM ET] BNB: gap +0.031% too small - skip
 [02:58:00 AM ET] XRP: gap +0.106% but yes ask 0.99 out of range - skip
+[02:59:00 AM ET] ETH: gap +0.044% too small - skip
+[02:59:00 AM ET] DOGE: gap +0.110% but yes ask 1.00 out of range - skip
+[02:59:00 AM ET] NEAR: gap -0.151% but no ask 0.99 out of range - skip
+[02:59:00 AM ET] ZEC: gap -0.048% too small - skip
+[02:59:00 AM ET] HYPE: gap +0.426% but yes ask 1.00 out of range - skip
+[02:59:00 AM ET] nothing to trade this window (03:00 AM ET close)
