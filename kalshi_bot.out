@@ -10010,3 +10010,11 @@
 [09:30:15 AM ET] SOL: result=no WIN pnl $+0.16 (+3.3%) cash $21.91
 [09:30:16 AM ET] XRP: result=no WIN pnl $+0.43 (+4.1%) cash $21.91
 [09:40:00 AM ET] BTC: gap -0.406% but no ask 0.99 out of range - skip
+[09:42:00 AM ET] BTC: gap -0.437% but no ask 1.00 out of range - skip
+[09:42:00 AM ET] SOL: gap -0.433% but no ask 1.00 out of range - skip
+[09:42:00 AM ET] XRP: gap -0.282% but no ask 1.00 out of range - skip
+[09:42:00 AM ET] BNB: order placed but 0 filled - skip KXBNB15M-26AUG100945-45
+[09:42:30 AM ET] BTC: gap -0.410% but no ask 1.00 out of range - skip
+[09:42:30 AM ET] SOL: gap -0.368% but no ask 1.00 out of range - skip
+[09:42:30 AM ET] BNB: gap -0.184% but no ask 0.99 out of range - skip
+[09:42:30 AM ET] XRP: gap -0.263% but no ask 1.00 out of range - skip
