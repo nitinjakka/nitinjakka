@@ -2999,3 +2999,9 @@
 [12:10:00 AM ET] new code deployed (8facb4f) - restarting to update
 [12:10:05 AM ET] paper bot v4 start: $15.25, unlimited (until killed), 9 coins (BTC, ETH, SOL, BNB, XRP, DOGE, NEAR, ZEC, HYPE); entry t-5(BTC) t-3/2:30/2(BTC,SOL,BNB,XRP) t-1(ETH,DOGE,NEAR,ZEC,HYPE), gap 0.10% (0.15% NEAR/ZEC/HYPE), 90c-98.5c, stop 50%, size 1=50%/2=75%/3+=100% (all-in single if <$5), max 4 at once
 [12:10:05 AM ET] BTC: PAPER BUY 7x YES @ 0.97 (gap +0.107%) cost $6.80 KXBTC15M-26AUG100015-15
+[12:12:00 AM ET] SOL: gap +0.061% too small - skip
+[12:12:00 AM ET] BNB: gap +0.000% too small - skip
+[12:12:00 AM ET] XRP: gap +0.087% too small - skip
+[12:12:30 AM ET] SOL: gap +0.074% too small - skip
+[12:12:30 AM ET] BNB: gap +0.033% too small - skip
+[12:12:30 AM ET] XRP: gap +0.097% too small - skip

@@ -9324,3 +9324,9 @@
 [12:10:05 AM ET] *** LIVE MODE *** live auth OK, account balance $18.72, max order $0.00
 [12:10:05 AM ET] LIVE bot v4 start: $18.72, unlimited (until killed), 9 coins (BTC, ETH, SOL, BNB, XRP, DOGE, NEAR, ZEC, HYPE); entry t-5(BTC) t-3/2:30/2(BTC,SOL,BNB,XRP) t-1(ETH,DOGE,NEAR,ZEC,HYPE), gap 0.10% (0.15% NEAR/ZEC/HYPE), 90c-98.5c, stop 50%, size 1=50%/2=75%/3+=100% (all-in single if <$5), max 4 at once
 [12:10:06 AM ET] BTC: LIVE BUY 9x YES @ 0.97 (gap +0.107%) cost $8.74 KXBTC15M-26AUG100015-15
+[12:12:00 AM ET] SOL: gap +0.061% too small - skip
+[12:12:00 AM ET] BNB: gap +0.000% too small - skip
+[12:12:00 AM ET] XRP: gap +0.087% too small - skip
+[12:12:30 AM ET] SOL: gap +0.074% too small - skip
+[12:12:30 AM ET] BNB: gap +0.033% too small - skip
+[12:12:30 AM ET] XRP: gap +0.097% too small - skip
