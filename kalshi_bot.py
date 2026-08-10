@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Paper-trading bot v4 for Kalshi 15-min crypto markets (9 coins).
 
-Coins: BTC, ETH, SOL, BNB, XRP, DOGE, NEAR, ZEC, HYPE.
+Coins: BTC, ETH, SOL, BNB, XRP, NEAR, ZEC, HYPE.
 
 Strategy per 15-minute window (all coins share the same close grid):
   - At T-3 minutes: for each coin, compute the gap between spot
@@ -38,7 +38,6 @@ COINS = {
     "KXSOL15M": "SOL-USD",
     "KXBNB15M": "BNB-USD",
     "KXXRP15M": "XRP-USD",
-    "KXDOGE15M": "DOGE-USD",
     "KXNEAR15M": "NEAR-USD",
     "KXZEC15M": "ZEC-USD",
     "KXHYPE15M": "HYPE-USD",
@@ -53,22 +52,23 @@ ENTRY_WINDOW = 180     # standard decision point (3 minutes before close)
 #   BTC (EARLY)  - deepest, least volatile. Extra t-5 look (backtest:
 #                  99.0% settle-on-gap at 0.10%), plus t-3/2:30/2.
 #   SOL/BNB/XRP  - traded t-3/2:30/2 (MID checks).
-#   ETH/DOGE/NEAR/ZEC/HYPE (LATE) - the riskiest coins (ETH+DOGE are the
-#                  two biggest stop-loss offenders; NEAR/ZEC/HYPE are
-#                  thin/volatile and were previously pulled). Restricted
+#   ETH/NEAR/ZEC/HYPE (LATE) - the riskiest coins (ETH is a big stop-loss
+#                  offender; NEAR/ZEC/HYPE are thin/volatile). Restricted
 #                  to t-1 ONLY - the latest, most-certain check, where
 #                  there is minimal time left to reverse, so win rate is
 #                  highest and stops least likely. Deliberately OFF the
-#                  earlier t-5/t-3/2:30/2 checks.
+#                  earlier t-5/t-3/2:30/2 checks. (DOGE was removed
+#                  entirely - it caused the most stops and the two worst
+#                  losses on the account.)
 EARLY_COINS = ("KXBTC15M",)
-LATE_COINS = ("KXETH15M", "KXDOGE15M", "KXNEAR15M", "KXZEC15M", "KXHYPE15M")
+LATE_COINS = ("KXETH15M", "KXNEAR15M", "KXZEC15M", "KXHYPE15M")
 MID_COINS = tuple(c for c in COINS if c not in LATE_COINS)  # BTC,SOL,BNB,XRP
 ENTRY_SCHEDULE = (
     (300, EARLY_COINS),           # t-5: BTC only
     (180, MID_COINS),             # t-3: BTC, SOL, BNB, XRP
     (150, MID_COINS),             # t-2:30
     (120, MID_COINS),             # t-2
-    (60,  LATE_COINS),            # t-1: ETH, DOGE, NEAR, ZEC, HYPE
+    (60,  LATE_COINS),            # t-1: ETH, NEAR, ZEC, HYPE
 )
 MIN_GAP = 0.0010       # 0.10% default gap threshold
 # The thin/volatile t-1 coins need a stronger signal to enter: require a
@@ -365,7 +365,7 @@ def main() -> None:
     log_line(f"{mode} bot v4 start: ${state['cash']:.2f}, {dur}, "
              f"{len(COINS)} coins ({', '.join(coin_name(s) for s in COINS)}); "
              f"entry t-5(BTC) t-3/2:30/2(BTC,SOL,BNB,XRP) "
-             f"t-1(ETH,DOGE,NEAR,ZEC,HYPE), "
+             f"t-1(ETH,NEAR,ZEC,HYPE), "
              f"gap 0.10% (0.15% NEAR/ZEC/HYPE), "
              f"{ENTRY_MIN*100:.0f}c-{ENTRY_MAX*100:.1f}c, "
              f"stop {STOP_TRIGGER:.0%}, size 1=50%/2=75%/3+=100% "
