@@ -9820,3 +9820,11 @@
 [06:55:05 AM ET] *** LIVE MODE *** live auth OK, account balance $20.29, max order $0.00
 [06:55:05 AM ET] LIVE bot v4 start: $20.29, unlimited (until killed), 8 coins (BTC, ETH, SOL, BNB, XRP, NEAR, ZEC, HYPE); entry t-5(BTC) t-3/2:30/2(BTC,SOL,BNB,XRP) t-1(ETH,NEAR,ZEC,HYPE), gap 0.10% (0.15% NEAR/ZEC/HYPE), 90c-98.5c, stop 50%, size 1=50%/2=75%/3+=100% (all-in single if <$5), max 4 at once
 [06:55:05 AM ET] BTC: gap +0.008% too small - skip
+[06:57:00 AM ET] BTC: gap +0.017% too small - skip
+[06:57:00 AM ET] SOL: gap +0.078% too small - skip
+[06:57:00 AM ET] BNB: gap +0.160% but yes ask 1.00 out of range - skip
+[06:57:00 AM ET] XRP: gap +0.058% too small - skip
+[06:57:30 AM ET] BTC: gap +0.015% too small - skip
+[06:57:30 AM ET] SOL: gap +0.078% too small - skip
+[06:57:30 AM ET] BNB: gap +0.160% but yes ask 1.00 out of range - skip
+[06:57:30 AM ET] XRP: gap +0.048% too small - skip
