@@ -3160,3 +3160,11 @@
 [02:14:00 AM ET] HYPE: gap -0.161% but no ask 0.99 out of range - skip
 [02:15:11 AM ET] BTC: result=yes WIN pnl $+0.11 (+1.4%) cash $16.07
 [02:25:00 AM ET] BTC: gap -0.001% too small - skip
+[02:27:00 AM ET] BTC: gap -0.067% too small - skip
+[02:27:00 AM ET] SOL: gap -0.007% too small - skip
+[02:27:00 AM ET] BNB: gap -0.096% too small - skip
+[02:27:00 AM ET] XRP: gap -0.029% too small - skip
+[02:27:30 AM ET] BTC: gap -0.074% too small - skip
+[02:27:30 AM ET] SOL: gap -0.046% too small - skip
+[02:27:30 AM ET] BNB: gap -0.096% too small - skip
+[02:27:30 AM ET] XRP: gap -0.048% too small - skip
