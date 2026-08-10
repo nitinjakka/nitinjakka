@@ -9320,3 +9320,7 @@
 [11:59:00 PM ET] HYPE: gap -0.348% but no ask 1.00 out of range - skip
 [11:59:00 PM ET] nothing to trade this window (12:00 AM ET close)
 [autodeploy 2026-08-10T04:01 UTC] pulled 8facb4f
+[12:10:00 AM ET] new code deployed (8facb4f) - restarting to update
+[12:10:05 AM ET] *** LIVE MODE *** live auth OK, account balance $18.72, max order $0.00
+[12:10:05 AM ET] LIVE bot v4 start: $18.72, unlimited (until killed), 9 coins (BTC, ETH, SOL, BNB, XRP, DOGE, NEAR, ZEC, HYPE); entry t-5(BTC) t-3/2:30/2(BTC,SOL,BNB,XRP) t-1(ETH,DOGE,NEAR,ZEC,HYPE), gap 0.10% (0.15% NEAR/ZEC/HYPE), 90c-98.5c, stop 50%, size 1=50%/2=75%/3+=100% (all-in single if <$5), max 4 at once
+[12:10:06 AM ET] BTC: LIVE BUY 9x YES @ 0.97 (gap +0.107%) cost $8.74 KXBTC15M-26AUG100015-15
