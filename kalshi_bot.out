@@ -10042,3 +10042,9 @@
 [10:00:25 AM ET] SOL: result=no WIN pnl $+0.08 (+1.6%) cash $20.29
 [10:00:25 AM ET] HYPE: result=yes WIN pnl $+0.02 (+1.6%) cash $20.29
 [10:10:00 AM ET] BTC: LIVE BUY 10x YES @ 0.94 (gap +0.131%) cost $9.41 KXBTC15M-26AUG101015-15
+[10:12:00 AM ET] SOL: gap +0.288% but yes ask 0.99 out of range - skip
+[10:12:00 AM ET] BNB: gap +0.012% too small - skip
+[10:12:00 AM ET] XRP: gap +0.302% but yes ask 0.99 out of range - skip
+[10:12:30 AM ET] SOL: gap +0.340% but yes ask 0.99 out of range - skip
+[10:12:30 AM ET] BNB: gap +0.022% too small - skip
+[10:12:30 AM ET] XRP: gap +0.302% but yes ask 1.00 out of range - skip

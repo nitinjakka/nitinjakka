@@ -3710,3 +3710,9 @@
 [10:00:10 AM ET] BTC: result=no WIN pnl $+0.63 (+6.7%) cash $12.76
 [10:00:12 AM ET] SOL: result=no WIN pnl $+0.08 (+1.6%) cash $17.76
 [10:10:00 AM ET] BTC: PAPER BUY 9x YES @ 0.94 (gap +0.131%) cost $8.47 KXBTC15M-26AUG101015-15
+[10:12:00 AM ET] SOL: gap +0.288% but yes ask 0.99 out of range - skip
+[10:12:00 AM ET] BNB: gap +0.012% too small - skip
+[10:12:00 AM ET] XRP: gap +0.302% but yes ask 0.99 out of range - skip
+[10:12:30 AM ET] SOL: gap +0.340% but yes ask 0.99 out of range - skip
+[10:12:30 AM ET] BNB: gap +0.022% too small - skip
+[10:12:30 AM ET] XRP: gap +0.302% but yes ask 1.00 out of range - skip
