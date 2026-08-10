@@ -3675,3 +3675,7 @@
 [09:27:30 AM ET] SOL: PAPER BUY 5x NO @ 0.97 (gap -0.102%) cost $4.84 KXSOL15M-26AUG100930-30
 [09:28:00 AM ET] BTC: gap +0.005% too small - skip
 [09:28:00 AM ET] BNB: gap -0.121% but no ask 0.89 out of range - skip
+[09:29:00 AM ET] ETH: gap -0.082% too small - skip
+[09:29:00 AM ET] NEAR: gap -0.006% too small - skip
+[09:29:00 AM ET] ZEC: gap +0.163% but yes ask 0.99 out of range - skip
+[09:29:00 AM ET] HYPE: gap -0.054% too small - skip
