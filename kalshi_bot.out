@@ -10127,3 +10127,10 @@
 [11:14:00 AM ET] ZEC: order placed but 0 filled - skip KXZEC15M-26AUG101115-15
 [11:14:00 AM ET] qualified but nothing placed - too small (11:15 AM ET close)
 [11:25:00 AM ET] BTC: gap -0.301% but no ask 0.99 out of range - skip
+[11:27:00 AM ET] BTC: gap -0.369% but no ask 1.00 out of range - skip
+[11:27:00 AM ET] SOL: gap -0.321% but no ask 1.00 out of range - skip
+[11:27:00 AM ET] XRP: gap -0.264% but no ask 0.99 out of range - skip
+[11:27:00 AM ET] BNB: LIVE BUY 9x NO @ 0.90 (gap -0.138%) cost $8.18 KXBNB15M-26AUG101130-30
+[11:27:30 AM ET] BTC: gap -0.323% but no ask 1.00 out of range - skip
+[11:27:30 AM ET] SOL: gap -0.282% but no ask 0.99 out of range - skip
+[11:27:30 AM ET] XRP: gap -0.176% too small - skip

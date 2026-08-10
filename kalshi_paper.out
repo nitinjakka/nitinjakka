@@ -3795,3 +3795,10 @@
 [11:15:10 AM ET] ZEC: result=no WIN pnl $+0.06 (+2.1%) cash $7.69
 [11:15:11 AM ET] BTC: result=no WIN pnl $+0.46 (+6.0%) cash $15.69
 [11:25:00 AM ET] BTC: gap -0.301% but no ask 0.99 out of range - skip
+[11:27:00 AM ET] BTC: gap -0.369% but no ask 1.00 out of range - skip
+[11:27:00 AM ET] SOL: gap -0.321% but no ask 1.00 out of range - skip
+[11:27:00 AM ET] XRP: gap -0.264% but no ask 0.99 out of range - skip
+[11:27:00 AM ET] BNB: PAPER BUY 8x NO @ 0.90 (gap -0.138%) cost $7.27 KXBNB15M-26AUG101130-30
+[11:27:30 AM ET] BTC: gap -0.323% but no ask 1.00 out of range - skip
+[11:27:30 AM ET] SOL: gap -0.282% but no ask 0.99 out of range - skip
+[11:27:30 AM ET] XRP: gap -0.176% too small - skip
