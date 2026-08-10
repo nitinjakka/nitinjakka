@@ -9944,3 +9944,7 @@
 [08:29:00 AM ET] HYPE: order placed but 0 filled - skip KXHYPE15M-26AUG100830-30
 [08:29:00 AM ET] qualified but nothing placed - too small (08:30 AM ET close)
 [08:40:00 AM ET] BTC: gap -0.205% but no ask 0.99 out of range - skip
+[08:42:00 AM ET] BTC: gap -0.195% but no ask 1.00 out of range - skip
+[08:42:00 AM ET] SOL: gap -0.203% but no ask 0.99 out of range - skip
+[08:42:00 AM ET] BNB: gap -0.166% but no ask 0.99 out of range - skip
+[08:42:00 AM ET] XRP: gap -0.194% but no ask 1.00 out of range - skip
