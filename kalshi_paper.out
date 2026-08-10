@@ -3835,3 +3835,7 @@
 [12:12:30 PM ET] BNB: gap -0.023% too small - skip
 [12:13:00 PM ET] SOL: gap +0.021% too small - skip
 [12:13:00 PM ET] BNB: gap +0.018% too small - skip
+[12:14:00 PM ET] ETH: gap -0.079% too small - skip
+[12:14:00 PM ET] NEAR: gap +0.062% too small - skip
+[12:14:00 PM ET] ZEC: gap +0.301% but yes ask 1.00 out of range - skip
+[12:14:00 PM ET] HYPE: gap -0.014% too small - skip
