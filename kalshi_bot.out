@@ -9759,3 +9759,7 @@
 [05:59:00 AM ET] NEAR: order placed but 0 filled - skip KXNEAR15M-26AUG100600-00
 [05:59:00 AM ET] qualified but nothing placed - too small (06:00 AM ET close)
 [06:10:00 AM ET] BTC: gap +0.097% too small - skip
+[06:12:00 AM ET] BTC: gap +0.093% too small - skip
+[06:12:00 AM ET] SOL: gap -0.032% too small - skip
+[06:12:00 AM ET] BNB: gap +0.053% too small - skip
+[06:12:00 AM ET] XRP: gap -0.049% too small - skip
