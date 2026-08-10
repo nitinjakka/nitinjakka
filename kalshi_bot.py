@@ -43,25 +43,27 @@ COINS = {
 
 ENTRY_WINDOW = 180     # standard decision point (3 minutes before close)
 # Entry schedule: (seconds-before-close, coins-allowed-at-that-check).
-# All coins are checked at 3:00 / 2:30 / 2:00. BTC and ETH get an extra
-# EARLIER look at 5:00 before close - at t-5 the winning side is usually
-# still priced inside our band (0.90-0.985) instead of pinned at 0.99-
-# 1.00, so it catches trades the later checks would skip. Limited to the
-# two deepest/least-volatile coins, where a 5-min-old gap is most likely
-# to hold. Every check runs (a coin qualifying late still gets traded);
-# a coin already traded this window is never re-entered.
+# Every listed check runs each window; a coin qualifying late still gets
+# traded, and a coin already traded this window is never re-entered.
 #
-# t-5 is BTC-ONLY. A 7-day backtest showed BTC settles on the gap's side
-# 99.0% of the time at t-5 (0.10% gap) - safely +EV at any price the bot
-# takes. ETH's t-5 win rate is only 96.7%, which is below the 0.985 entry
-# cap, so its pricier t-5 entries would be slightly -EV; ETH therefore
-# trades only from t-3 onward, where it is closer to settlement.
+# Coins are tiered by volatility / stop-loss history:
+#   BTC (EARLY)  - deepest, least volatile. Extra t-5 look (backtest:
+#                  99.0% settle-on-gap at 0.10%), plus t-3/2:30/2.
+#   SOL/BNB/XRP  - traded t-3/2:30/2 (MID checks).
+#   ETH + DOGE (LATE) - the two biggest stop-loss offenders, so they are
+#                  restricted to t-1 ONLY - the latest, most-certain
+#                  check, where there is minimal time left to reverse, so
+#                  win rate is highest and stops least likely. They are
+#                  deliberately OFF the earlier t-5/t-3/2:30/2 checks.
 EARLY_COINS = ("KXBTC15M",)
+LATE_COINS = ("KXETH15M", "KXDOGE15M")
+MID_COINS = tuple(c for c in COINS if c not in LATE_COINS)  # BTC,SOL,BNB,XRP
 ENTRY_SCHEDULE = (
     (300, EARLY_COINS),           # t-5: BTC only
-    (180, tuple(COINS)),          # t-3: all coins
-    (150, tuple(COINS)),          # t-2:30
-    (120, tuple(COINS)),          # t-2
+    (180, MID_COINS),             # t-3: BTC, SOL, BNB, XRP
+    (150, MID_COINS),             # t-2:30
+    (120, MID_COINS),             # t-2
+    (60,  LATE_COINS),            # t-1: ETH, DOGE only
 )
 MIN_GAP = 0.0010       # 0.10% for all coins
 GAP_OVERRIDES = {}     # flat threshold, no per-coin overrides
@@ -350,7 +352,8 @@ def main() -> None:
     dur = "unlimited (until killed)" if args.hours <= 0 else f"{args.hours}h"
     log_line(f"{mode} bot v4 start: ${state['cash']:.2f}, {dur}, "
              f"{len(COINS)} coins ({', '.join(coin_name(s) for s in COINS)}); "
-             f"entry t-5 (BTC) + t-3/2:30/2 (all), gap 0.10%, "
+             f"entry t-5(BTC) t-3/2:30/2(BTC,SOL,BNB,XRP) t-1(ETH,DOGE), "
+             f"gap 0.10%, "
              f"{ENTRY_MIN*100:.0f}c-{ENTRY_MAX*100:.1f}c, "
              f"stop {STOP_TRIGGER:.0%}, size 1=50%/2=75%/3+=100% "
              f"(all-in single if <$5), "
