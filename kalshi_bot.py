@@ -217,10 +217,23 @@ def trade_lifecycle(series: str, m: dict, side: str, price: float,
     coin = coin_name(series)
     cost = contracts * (price + fee(price))
 
-    # Monitor the held side's bid; trigger the stop purely on price.
-    # (No position-lookup gating - the reduce_only exit safely no-ops
-    # if the position was already closed or sold manually.)
+    # Stop-loss monitor. The Kalshi bid ALONE is too noisy near expiry:
+    # in the final minute or two the offers go thin and the bid can wick
+    # down to <=STOP_TRIGGER for a few seconds even while the underlying
+    # is safely on our side. That was turning would-be wins into -50/-60%
+    # losses. So a stop now requires BOTH conditions:
+    #   (a) the Kalshi bid <= STOP_TRIGGER, AND
+    #   (b) the UNDERLYING (Coinbase spot vs strike) has actually crossed
+    #       to the losing side of the trade.
+    # A YES position loses if spot falls to/below strike (gap <= 0); a NO
+    # position loses if spot rises to/above strike (gap >= 0). If the
+    # underlying is still onside, the low bid is treated as an order-book
+    # wick and ignored. (The reduce_only exit still safely no-ops if the
+    # position was already closed or sold manually.)
+    product = COINS[series]
+    strike = float(m.get("floor_strike") or 0)
     stopped, exit_px = False, 0.0
+    warned_wick = False
     while time.time() < cts:
         mm = get(f"/markets/{ticker}").get("market", {})
         try:
@@ -231,9 +244,25 @@ def trade_lifecycle(series: str, m: dict, side: str, price: float,
             continue
         bid = yb if side == "yes" else round(1.0 - ya, 4)
         if 0 < bid <= STOP_TRIGGER:
-            exit_px = bid
-            stopped = True
-            break
+            # Kalshi says danger - confirm against the underlying before
+            # selling, so a thin-book wick can't force a false stop.
+            px = spot(product)
+            cur_gap = (px - strike) / strike if (px and strike) else None
+            if cur_gap is None:
+                adverse = False           # can't verify -> don't stop
+            elif side == "yes":
+                adverse = cur_gap <= 0
+            else:
+                adverse = cur_gap >= 0
+            if adverse:
+                exit_px = bid
+                stopped = True
+                break
+            if not warned_wick:
+                g = f"{cur_gap:+.3%}" if cur_gap is not None else "n/a"
+                log_line(f"{coin}: stop-bid {bid:.2f} but underlying still "
+                         f"onside (gap {g}) - ignoring wick, holding")
+                warned_wick = True
         time.sleep(2)
 
     if stopped:
