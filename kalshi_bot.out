@@ -10581,3 +10581,8 @@
 [09:12:30 PM ET] BNB: gap +0.018% too small - skip
 [09:13:00 PM ET] BTC: gap +0.040% too small - skip
 [09:13:00 PM ET] BNB: gap +0.037% too small - skip
+[09:14:01 PM ET] ETH: gap +0.106% but yes ask 1.00 out of range - skip
+[09:14:02 PM ET] ZEC: gap -0.645% but no ask 1.00 out of range - skip
+[09:14:02 PM ET] HYPE: gap +0.033% too small - skip
+[09:14:02 PM ET] NEAR: order placed but 0 filled - skip KXNEAR15M-26AUG102115-15
+[09:14:02 PM ET] qualified but nothing placed - too small (09:15 PM ET close)
