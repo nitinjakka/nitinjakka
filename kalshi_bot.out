@@ -10547,3 +10547,15 @@
 [08:29:00 PM ET] nothing to trade this window (08:30 PM ET close)
 [08:42:00 PM ET] BTC: gap -0.006% too small - skip
 [08:42:00 PM ET] BNB: gap -0.160% but no ask 0.99 out of range - skip
+[08:42:30 PM ET] BTC: gap +0.005% too small - skip
+[08:42:30 PM ET] BNB: gap -0.107% but no ask 1.00 out of range - skip
+[autodeploy 2026-08-11T00:42 UTC] pulled 42e9f78
+[08:43:00 PM ET] new code deployed (42e9f78) - restarting to update
+[08:43:05 PM ET] *** LIVE MODE *** live auth OK, account balance $7.41, max order $0.00
+[08:43:05 PM ET] LIVE bot v4 start: $7.41, unlimited (until killed), 6 coins (BTC, ETH, BNB, NEAR, ZEC, HYPE); entry t-3/2:30/2(BTC,BNB) t-1(ETH,NEAR,ZEC,HYPE), gap 0.10% (0.15% NEAR/ZEC/HYPE), 90c-98.5c, stop 50%, size 1=50%/2=75%/3+=100% (all-in single if <$5), max 4 at once
+[08:43:05 PM ET] BTC: gap +0.013% too small - skip
+[08:43:05 PM ET] BNB: gap -0.085% too small - skip
+[08:43:06 PM ET] BTC: gap +0.013% too small - skip
+[08:43:06 PM ET] BNB: gap -0.085% too small - skip
+[08:43:06 PM ET] BTC: gap +0.013% too small - skip
+[08:43:06 PM ET] BNB: gap -0.085% too small - skip
