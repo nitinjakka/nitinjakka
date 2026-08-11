@@ -4823,3 +4823,7 @@
 [10:42:00 AM ET] BTC: PAPER BUY 4x NO @ 0.94 (gap -0.139%) cost $3.79 KXBTC15M-26AUG111045-45
 [10:42:30 AM ET] BNB: gap -0.038% too small - skip
 [10:43:00 AM ET] BNB: gap -0.021% too small - skip
+[10:44:00 AM ET] ETH: gap -0.231% but no ask 1.00 out of range - skip
+[10:44:00 AM ET] NEAR: gap -1.422% but no ask 1.00 out of range - skip
+[10:44:00 AM ET] ZEC: gap -0.384% but no ask 1.00 out of range - skip
+[10:44:00 AM ET] HYPE: gap -0.315% but no ask 1.00 out of range - skip
