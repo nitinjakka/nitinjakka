@@ -4805,3 +4805,7 @@
 [10:12:00 AM ET] BNB: PAPER BUY 3x NO @ 0.98 (gap -0.211%) cost $2.96 KXBNB15M-26AUG111015-15
 [10:12:30 AM ET] BTC: gap +0.002% too small - skip
 [10:13:00 AM ET] BTC: gap +0.029% too small - skip
+[10:14:00 AM ET] ETH: gap -0.045% too small - skip
+[10:14:00 AM ET] NEAR: gap -0.044% too small - skip
+[10:14:00 AM ET] ZEC: gap -0.773% but no ask 1.00 out of range - skip
+[10:14:00 AM ET] HYPE: gap -0.680% but no ask 1.00 out of range - skip
