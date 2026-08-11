@@ -10976,3 +10976,7 @@
 [06:14:00 AM ET] ZEC: gap -0.426% but no ask 1.00 out of range - skip
 [06:14:00 AM ET] HYPE: gap -0.180% but no ask 1.00 out of range - skip
 [06:14:00 AM ET] nothing to trade this window (06:15 AM ET close)
+[06:27:00 AM ET] BTC: gap +0.005% too small - skip
+[06:27:00 AM ET] BNB: gap -0.005% too small - skip
+[06:27:30 AM ET] BTC: gap +0.012% too small - skip
+[06:27:30 AM ET] BNB: gap +0.018% too small - skip
