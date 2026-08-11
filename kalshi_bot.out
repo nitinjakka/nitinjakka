@@ -10586,3 +10586,5 @@
 [09:14:02 PM ET] HYPE: gap +0.033% too small - skip
 [09:14:02 PM ET] NEAR: order placed but 0 filled - skip KXNEAR15M-26AUG102115-15
 [09:14:02 PM ET] qualified but nothing placed - too small (09:15 PM ET close)
+[09:27:00 PM ET] BTC: gap -0.042% too small - skip
+[09:27:00 PM ET] BNB: gap -0.135% but no ask 0.89 out of range - skip
