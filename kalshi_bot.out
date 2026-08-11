@@ -11150,3 +11150,7 @@
 [10:15:26 AM ET] BNB: result=no WIN pnl $+0.06 (+1.4%) cash $8.30
 [10:27:00 AM ET] BTC: LIVE BUY 3x NO @ 0.98 (gap -0.308%) cost $2.94 KXBTC15M-26AUG111030-30
 [10:27:00 AM ET] BNB: LIVE BUY 3x NO @ 0.96 (gap -0.138%) cost $2.90 KXBNB15M-26AUG111030-30
+[10:29:00 AM ET] ETH: gap -0.416% but no ask 1.00 out of range - skip
+[10:29:00 AM ET] ZEC: gap -0.163% but no ask 0.99 out of range - skip
+[10:29:00 AM ET] HYPE: gap +0.334% but yes ask 1.00 out of range - skip
+[10:29:00 AM ET] NEAR: LIVE BUY 2x NO @ 0.98 (gap -0.214%) cost $1.96 KXNEAR15M-26AUG111030-30
