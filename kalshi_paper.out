@@ -4926,3 +4926,7 @@
 [12:59:00 PM ET] nothing to trade this window (01:00 PM ET close)
 [01:12:00 PM ET] BTC: gap -0.017% too small - skip
 [01:12:00 PM ET] BNB: gap +0.056% too small - skip
+[01:12:30 PM ET] BTC: gap -0.019% too small - skip
+[01:12:30 PM ET] BNB: gap +0.097% too small - skip
+[01:13:00 PM ET] BTC: gap +0.042% too small - skip
+[01:13:00 PM ET] BNB: gap +0.103% but yes ask 1.00 out of range - skip
