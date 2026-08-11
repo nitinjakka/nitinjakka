@@ -143,11 +143,25 @@ def save_state(st: dict) -> None:
     STATE_FILE.write_text(json.dumps(st, indent=1))
 
 
-def rh_login() -> None:
+def rh_login(force_fresh: bool = False) -> None:
     user, pw = os.getenv("RH_USERNAME"), os.getenv("RH_PASSWORD")
     if not user or not pw:
         sys.exit("RH_USERNAME/RH_PASSWORD missing in modeb_bot.env")
-    rh.login(username=user, password=pw, store_session=True, expiresIn=86400)
+    if force_fresh:
+        for tok in (Path.home() / ".tokens").glob("*.pickle"):
+            tok.unlink(missing_ok=True)
+        log("stale session pickle removed; attempting fresh login")
+    rh.login(username=user, password=pw, store_session=True,
+             expiresIn=86400 * 30)
+
+
+def login_verified() -> bool:
+    """A login only counts if an authenticated call actually works --
+    robin_stocks can load a dead session pickle and report success."""
+    try:
+        return bool(rh.profiles.load_account_profile())
+    except Exception:
+        return False
 
 
 # ---------------- indicators (5-min bars; TradingView-style seeds) ----------
@@ -647,10 +661,22 @@ def run():
                 log("auth lost -> re-logging in")
                 try:
                     rh_login()
-                    last_login = time.time()
-                    log("re-login OK")
+                    if not login_verified():
+                        log("session pickle is dead -> forcing fresh login")
+                        rh_login(force_fresh=True)
+                    if login_verified():
+                        last_login = time.time()
+                        log("re-login OK (verified)")
+                    else:
+                        log("*** AUTH DEAD: headless login blocked by device "
+                            "verification. Run on the server: "
+                            "systemctl stop modeb-bot && cd /opt/modeb-bot && "
+                            "venv/bin/python modeb_bot.py  (approve on phone, "
+                            "Ctrl+C, systemctl start modeb-bot) ***")
+                        time.sleep(240)
                 except Exception as e:
-                    log(f"re-login FAILED: {e!r} (retrying next cycle)")
+                    log(f"re-login FAILED: {e!r} (retrying)")
+                    time.sleep(240)
             time.sleep(60)
 
 
