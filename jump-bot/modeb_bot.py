@@ -67,6 +67,7 @@ def load_watchlist():
 TICKERS = load_watchlist()
 DAILY_RANGE_MIN_PCT = float(os.getenv("DAILY_RANGE_MIN_PCT", "1.0"))
 EARNINGS_BLACKOUT_DAYS = int(os.getenv("EARNINGS_BLACKOUT_DAYS", "2"))
+MARGIN_BUFFER_PCT = float(os.getenv("MARGIN_BUFFER_PCT", "10"))
 POSITION_FRACTION = int(os.getenv("POSITION_FRACTION", "10"))
 ROOM_PCT = float(os.getenv("ROOM_FILTER_PCT", "0.25"))
 TRAIL_ARM = float(os.getenv("TRAIL_ARM_PCT", "2.0")) / 100
@@ -378,6 +379,23 @@ def buying_power() -> float:
         return 0.0
 
 
+def margin_buffer_ok(next_size: float) -> bool:
+    """Refuse a new buy if it would leave maintenance-margin headroom below
+    MARGIN_BUFFER_PCT% of portfolio equity. Conservatively assumes half the
+    purchase eats headroom. Fail-closed: no readable data -> no new buys.
+    Never blocks sells."""
+    try:
+        pf = rh.profiles.load_portfolio_profile(account_number=ACCOUNT) or {}
+        equity = float(pf.get("equity") or 0)
+        excess = float(pf.get("excess_maintenance")
+                       or pf.get("excess_margin") or 0)
+        if equity <= 0:
+            return False
+        return (excess - 0.5 * next_size) >= MARGIN_BUFFER_PCT / 100 * equity
+    except Exception:
+        return False
+
+
 def account_qty(sym):
     """ACTUAL sellable shares of sym in the account (None on fetch failure)."""
     try:
@@ -635,10 +653,19 @@ def run():
                 if cands:
                     # strongest movers first; buy while buying power lasts
                     cands.sort(reverse=True)
-                    bp = buying_power() if LIVE else 1000.0
-                    size = bp / POSITION_FRACTION
+                    bp0 = buying_power() if LIVE else 1000.0
+                    bp = bp0
+                    reserve = bp0 * MARGIN_BUFFER_PCT / 100
+                    size = bp0 / POSITION_FRACTION
                     for rank, (score, sym, px, why) in enumerate(cands, 1):
-                        if bp < size or size < 1.0:
+                        if bp - size < reserve or size < 1.0:
+                            log(f"buying-power reserve reached "
+                                f"(keeping {MARGIN_BUFFER_PCT:.0f}% = "
+                                f"${reserve:.0f}) -> no more entries")
+                            break
+                        if LIVE and not margin_buffer_ok(size):
+                            log(f"margin buffer < {MARGIN_BUFFER_PCT:.0f}% "
+                                "of equity -> new entries blocked")
                             break
                         qty = place_buy(sym, size, px)
                         if qty:
