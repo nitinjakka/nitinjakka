@@ -68,6 +68,7 @@ TICKERS = load_watchlist()
 DAILY_RANGE_MIN_PCT = float(os.getenv("DAILY_RANGE_MIN_PCT", "1.0"))
 EARNINGS_BLACKOUT_DAYS = int(os.getenv("EARNINGS_BLACKOUT_DAYS", "2"))
 MARGIN_BUFFER_PCT = float(os.getenv("MARGIN_BUFFER_PCT", "10"))
+DAILY_FUNDS_PCT = float(os.getenv("DAILY_FUNDS_PCT", "50"))
 POSITION_FRACTION = int(os.getenv("POSITION_FRACTION", "10"))
 ROOM_PCT = float(os.getenv("ROOM_FILTER_PCT", "0.25"))
 TRAIL_ARM = float(os.getenv("TRAIL_ARM_PCT", "2.0")) / 100
@@ -137,6 +138,8 @@ def load_state() -> dict:
     st.setdefault("prev_bias", {})
     st.setdefault("sweep_done", "")
     st.setdefault("day", "")
+    st.setdefault("day_budget", None)
+    st.setdefault("budget_left", 0.0)
     return st
 
 
@@ -553,6 +556,8 @@ def run():
                 elig, benched = daily_eligibility(
                     [s for s in tickers if s not in st["retired"]])
                 st["eligible"] = elig
+                st["day_budget"] = None      # snapshot at first open cycle
+                st["budget_left"] = 0.0
                 reasons = {}
                 for _, r in benched:
                     reasons[r] = reasons.get(r, 0) + 1
@@ -614,6 +619,17 @@ def run():
                 eod_sweep(st)
                 day_summary()
 
+            # ---- morning funds snapshot: budget = DAILY_FUNDS_PCT% of BP ----
+            if regular and st.get("day_budget") is None:
+                bp_now = buying_power() if LIVE else 1000.0
+                st["day_budget"] = bp_now * DAILY_FUNDS_PCT / 100
+                st["budget_left"] = st["day_budget"]
+                save_state(st)
+                log(f"morning snapshot: buying power ${bp_now:.2f} -> "
+                    f"day budget ${st['day_budget']:.2f} "
+                    f"({DAILY_FUNDS_PCT:.0f}%), per-trade "
+                    f"${st['day_budget']/POSITION_FRACTION:.2f}")
+
             # ---- entries, every minute (regular hours; no STOP file) ----
             if regular and hm < 955 and not STOP_FILE.exists():
                 # tiered context refresh: fast for held names, slow for the
@@ -653,12 +669,17 @@ def run():
                 if cands:
                     # strongest movers first; buy while buying power lasts
                     cands.sort(reverse=True)
-                    bp0 = buying_power() if LIVE else 1000.0
-                    bp = bp0
-                    reserve = bp0 * MARGIN_BUFFER_PCT / 100
-                    size = bp0 / POSITION_FRACTION
+                    budget = st.get("day_budget") or 0.0
+                    size = budget / POSITION_FRACTION
+                    bp_real = buying_power() if LIVE else 1000.0
+                    reserve = bp_real * MARGIN_BUFFER_PCT / 100
                     for rank, (score, sym, px, why) in enumerate(cands, 1):
-                        if bp - size < reserve or size < 1.0:
+                        if st["budget_left"] < size or size < 1.0:
+                            log(f"daily budget spent "
+                                f"(${st['budget_left']:.2f} left of "
+                                f"${budget:.2f}) -> no more entries today")
+                            break
+                        if LIVE and bp_real - size < reserve:
                             log(f"buying-power reserve reached "
                                 f"(keeping {MARGIN_BUFFER_PCT:.0f}% = "
                                 f"${reserve:.0f}) -> no more entries")
@@ -669,7 +690,8 @@ def run():
                             break
                         qty = place_buy(sym, size, px)
                         if qty:
-                            bp -= size
+                            st["budget_left"] -= size
+                            bp_real -= size
                             st["positions"][sym] = dict(entry=px, qty=qty,
                                                         peak=px,
                                                         trailing=False)
