@@ -1,3 +1,4 @@
 [06:54:37 PM ET] *** GOLD BOT LIVE *** live auth OK, account balance $1.80, max order $0.00
 [06:54:38 PM ET] gold source: PAXG/Coinbase differencing; current ~$4602.41
 [06:54:38 PM ET] KXGOLD15M-26AUG271900-00: window ref $4602.41 (sampled 578s after open) strike=4607.96
+[06:59:28 PM ET] KXGOLD15M-26AUG271900-00: window ref sampled 578s after open (joined late) - gap unreliable, skip this window
