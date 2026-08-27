@@ -15,3 +15,4 @@
 [07:44:28 PM ET] KXGOLD15M-26AUG271945-45: LIVE NO IOC@99.8 ask~0.997 sent 1, filled 1 (gap $-1.90, est $4599.20 vs strike $4601.10)
 [07:45:24 PM ET] KXGOLD15M-26AUG271945-45: result=no WIN balance $0.81
 [07:45:39 PM ET] KXGOLD15M-26AUG272000-00: window ref $4599.13 [pyth] (sampled 40s after open) strike=4599.89
+[07:59:28 PM ET] KXGOLD15M-26AUG272000-00: LIVE NO IOC@99.8 ask~0.998 sent 1, filled 1 (gap $-4.30, est $4595.59 vs strike $4599.89)
