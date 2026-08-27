@@ -8,3 +8,4 @@
 [07:09:05 PM ET] gold source: Pyth XAU/USD (keyed) differencing; current ~$4609.18
 [07:09:05 PM ET] KXGOLD15M-26AUG271915-15: window ref $4609.18 [pyth] (sampled 546s after open) strike=4610.8
 [07:14:28 PM ET] KXGOLD15M-26AUG271915-15: window ref sampled 546s after open (joined late) - gap unreliable, skip this window
+[07:15:19 PM ET] KXGOLD15M-26AUG271930-30: window ref $4603.38 [pyth] (sampled 19s after open) strike=4603.05
