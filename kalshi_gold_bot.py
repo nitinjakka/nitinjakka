@@ -52,7 +52,12 @@ DECIDE_OFFSET = 30      # act exactly 30s before close
 SAMPLE_LEAD = 1.5       # start price fetch this many seconds early
 
 PAXG = "https://api.exchange.coinbase.com/products/PAXG-USD/ticker"
-PYTH_ID = "fa0f57505be633c026896e15afef2c7ce2cf8ff9a45349d1da737f4f01266b01"
+# Pyth Metal.XAU/USD (gold spot, 1s updates). Kalshi settles on the
+# gated Metal.Index.GOLD/USD feed, which this key's plan cannot read -
+# but XAU spot tracks it within pennies, and the strategy only uses the
+# CHANGE since window open anchored to the strike, so any small basis
+# cancels. Falls back to PAXG if the feed is stale/unreachable.
+PYTH_ID = "765d2ba906dbc32ca17cc11f5310a89e9ee1f6420508c63861f2f8ba4ee34bb2"
 PYTH_KEY = os.environ.get("PYTH_API_KEY", "")
 
 NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "nitin-kalshi-bot-x7q2")
@@ -86,22 +91,29 @@ def fee(p: float) -> float:
     return 0.07 * p * (1.0 - p)
 
 
-def gold_price() -> float | None:
-    """Best available live gold price. Pyth (exact settlement feed) if a
-    key is configured, else PAXG spot. Retries fast; ~1s budget."""
-    if PYTH_KEY:
-        for _ in range(2):
-            try:
-                r = requests.get(
-                    "https://hermes.pyth.network/v2/updates/price/latest",
-                    params={"ids[]": PYTH_ID, "parsed": "true"},
-                    headers={"Authorization": f"Bearer {PYTH_KEY}"},
-                    timeout=3)
-                if r.ok:
-                    p = r.json()["parsed"][0]["price"]
+def _pyth_px() -> float | None:
+    if not PYTH_KEY:
+        return None
+    for _ in range(2):
+        try:
+            r = requests.get(
+                "https://hermes.pyth.network/v2/updates/price/latest",
+                params={"ids[]": PYTH_ID, "parsed": "true"},
+                headers={"Authorization": f"Bearer {PYTH_KEY}"},
+                timeout=3)
+            if r.ok:
+                p = r.json()["parsed"][0]["price"]
+                # Stale feed (metals pause weekends + a daily break):
+                # treat as unavailable rather than a frozen price.
+                if time.time() - p["publish_time"] < 60:
                     return int(p["price"]) * 10 ** p["expo"]
-            except Exception:
-                pass
+                return None
+        except Exception:
+            pass
+    return None
+
+
+def _paxg_px() -> float | None:
     for _ in range(3):
         try:
             r = requests.get(PAXG, timeout=3)
@@ -109,6 +121,26 @@ def gold_price() -> float | None:
                 return float(r.json()["price"])
         except Exception:
             time.sleep(0.3)
+    return None
+
+
+def gold_price(source: str | None = None):
+    """Live gold price as (price, source). The window-open reference and
+    the t-30 sample MUST come from the same source (pass source=...) -
+    differencing across sources would inject the Pyth-vs-PAXG basis
+    straight into the gap."""
+    if source == "pyth":
+        p = _pyth_px()
+        return (p, "pyth") if p is not None else None
+    if source == "paxg":
+        p = _paxg_px()
+        return (p, "paxg") if p is not None else None
+    p = _pyth_px()
+    if p is not None:
+        return (p, "pyth")
+    p = _paxg_px()
+    if p is not None:
+        return (p, "paxg")
     return None
 
 
@@ -199,13 +231,14 @@ def main() -> None:
     else:
         log("GOLD BOT dry-run (no --live): will log decisions only")
 
-    src = "Pyth (keyed)" if PYTH_KEY else "PAXG/Coinbase differencing"
-    px = gold_price()
-    if px is None:
+    got = gold_price()
+    if got is None:
         log("FATAL: no gold price source reachable")
         notify("Gold bot: START FAILED", "No gold price source reachable.")
         return
-    log(f"gold source: {src}; current ~${px:.2f}")
+    px, src = got
+    log(f"gold source: {'Pyth XAU/USD (keyed)' if src == 'pyth' else 'PAXG/Coinbase'}"
+        f" differencing; current ~${px:.2f}")
 
     new_log = not os.path.exists(LOG_CSV)
     f = open(LOG_CSV, "a", newline="")
@@ -252,13 +285,14 @@ def main() -> None:
         # in the settlement index. If we joined the window late (e.g.
         # bot just started), the pair is invalid - skip that window.
         if cts not in window_open_px:
-            p0 = gold_price()
-            if p0 is None:
+            got = gold_price()
+            if got is None:
                 time.sleep(5)
                 continue
+            p0, src0 = got
             opened_ago = 900 - (cts - time.time())
-            window_open_px[cts] = (p0, opened_ago)
-            log(f"{ticker}: window ref ${p0:.2f} "
+            window_open_px[cts] = (p0, opened_ago, src0)
+            log(f"{ticker}: window ref ${p0:.2f} [{src0}] "
                 f"(sampled {opened_ago:.0f}s after open) strike={strike}")
         for k in [k for k in window_open_px if k < time.time() - 60]:
             del window_open_px[k]
@@ -271,12 +305,13 @@ def main() -> None:
         if not strike:
             m = get(f"/markets/{ticker}").get("market", {})
             strike = m.get("floor_strike")
-        p1 = gold_price()
         ref = window_open_px.get(cts)
-        p0, ref_age = ref if ref else (None, None)
+        p0, ref_age, src0 = ref if ref else (None, None, None)
+        got = gold_price(source=src0) if src0 else None
+        p1 = got[0] if got else None
         if not strike or p1 is None or p0 is None:
             log(f"{ticker}: missing data at t-30 (strike={strike}, "
-                f"p0={p0}, p1={p1}) - skip")
+                f"p0={p0}, p1={p1}, src={src0}) - skip")
         elif ref_age > 120:
             log(f"{ticker}: window ref sampled {ref_age:.0f}s after open "
                 f"(joined late) - gap unreliable, skip this window")
