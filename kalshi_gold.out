@@ -9,3 +9,4 @@
 [07:09:05 PM ET] KXGOLD15M-26AUG271915-15: window ref $4609.18 [pyth] (sampled 546s after open) strike=4610.8
 [07:14:28 PM ET] KXGOLD15M-26AUG271915-15: window ref sampled 546s after open (joined late) - gap unreliable, skip this window
 [07:15:19 PM ET] KXGOLD15M-26AUG271930-30: window ref $4603.38 [pyth] (sampled 19s after open) strike=4603.05
+[07:29:28 PM ET] KXGOLD15M-26AUG271930-30: LIVE NO IOC@99.8 ask~0.968 sent 1, filled 1 (gap $-1.81, est $4601.24 vs strike $4603.05)
