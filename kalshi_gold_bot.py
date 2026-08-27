@@ -217,7 +217,8 @@ def main() -> None:
         f.flush()
 
     boot = repo_commit()
-    window_open_px: dict[int, float] = {}   # close_ts -> PAXG at window open
+    window_open_px: dict[int, tuple] = {}   # close_ts -> (PAXG@open, age_s)
+    no_window_streak = 0
 
     while True:
         cur = repo_commit()
@@ -226,13 +227,21 @@ def main() -> None:
             notify("Gold bot: UPDATING", "New code deployed; restarting.")
             return
 
+        # Kalshi lists the next 15-min market a few seconds AFTER the
+        # previous close, so poll fast: a 2-minute nap here would make us
+        # sample the window reference too late and skip every window.
         m = current_window()
         if not m:
-            log("no active gold window (market closed?) - sleeping 120s")
-            notify("Gold bot: gold market closed",
-                   "No active 15-min gold window.", priority="low")
-            time.sleep(120)
+            no_window_streak += 1
+            if no_window_streak == 24:      # ~2 min of misses: truly closed
+                log("no active gold window (market closed) - polling 30s")
+                notify("Gold bot: gold market closed",
+                       "No active 15-min gold window.", priority="low")
+            time.sleep(30 if no_window_streak >= 24 else 5)
             continue
+        if no_window_streak >= 24:
+            log("gold market back - resuming")
+        no_window_streak = 0
         ticker, cts = m["ticker"], close_ts(m)
         strike = m.get("floor_strike")
 
