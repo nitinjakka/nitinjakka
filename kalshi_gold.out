@@ -119,3 +119,4 @@
 [07:29:28 AM ET] KXGOLD15M-26AUG280730-30: gap $-0.76 < $1.00 - no trade
 [07:30:39 AM ET] KXGOLD15M-26AUG280745-45: window ref $4600.44 [pyth] (sampled 39s after open) strike=4598.98
 [07:44:28 AM ET] KXGOLD15M-26AUG280745-45: balance too small for 1 contract at 0.998
+[07:45:13 AM ET] KXGOLD15M-26AUG280800-00: window ref $4594.40 [pyth] (sampled 13s after open) strike=4594.61
