@@ -36,3 +36,4 @@
 [09:45:34 PM ET] KXGOLD15M-26AUG272145-45: result=no WIN balance $1.83
 [09:45:35 PM ET] KXGOLD15M-26AUG272200-00: window ref $4580.72 [pyth] (sampled 35s after open) strike=4582.31
 [09:59:28 PM ET] KXGOLD15M-26AUG272200-00: gap $-4.79 NO but ask 0.999 > 99.8c - priced out, skip
+[10:00:34 PM ET] KXGOLD15M-26AUG272215-15: window ref $4576.87 [pyth] (sampled 34s after open) strike=4575.86
