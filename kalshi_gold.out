@@ -59,3 +59,4 @@
 [12:15:39 AM ET] KXGOLD15M-26AUG280030-30: window ref $4580.73 [pyth] (sampled 39s after open) strike=4579.84
 [12:29:28 AM ET] KXGOLD15M-26AUG280030-30: gap $+2.62 YES but ask 1.000 > 99.8c - priced out, skip
 [12:30:14 AM ET] KXGOLD15M-26AUG280045-45: window ref $4584.41 [pyth] (sampled 14s after open) strike=None
+[12:44:28 AM ET] KXGOLD15M-26AUG280045-45: gap $-4.13 NO but ask 1.000 > 99.8c - priced out, skip
