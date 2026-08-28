@@ -82,3 +82,4 @@
 [02:45:19 AM ET] KXGOLD15M-26AUG280300-00: window ref $4589.07 [pyth] (sampled 19s after open) strike=4588.35
 [02:59:28 AM ET] KXGOLD15M-26AUG280300-00: gap $+22.09 YES but ask 1.000 > 99.8c - priced out, skip
 [03:00:44 AM ET] KXGOLD15M-26AUG280315-15: window ref $4609.47 [pyth] (sampled 44s after open) strike=4612.65
+[03:14:28 AM ET] KXGOLD15M-26AUG280315-15: balance too small for 1 contract at 0.997
