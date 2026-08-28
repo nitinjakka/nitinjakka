@@ -51,3 +51,4 @@
 [11:29:28 PM ET] KXGOLD15M-26AUG272330-30: LIVE YES IOC@99.8 ask~0.996 sent 1, filled 1 (gap $+3.20, est $4587.45 vs strike $4584.25)
 [11:30:34 PM ET] KXGOLD15M-26AUG272330-30: result=yes WIN balance $1.85
 [11:30:34 PM ET] KXGOLD15M-26AUG272345-45: window ref $4586.91 [pyth] (sampled 35s after open) strike=4588.04
+[11:44:28 PM ET] KXGOLD15M-26AUG272345-45: gap $-4.51 NO but ask 0.999 > 99.8c - priced out, skip
