@@ -72,3 +72,5 @@
 [01:44:28 AM ET] KXGOLD15M-26AUG280145-45: gap $-6.74 NO but ask 1.000 > 99.8c - priced out, skip
 [01:45:04 AM ET] KXGOLD15M-26AUG280200-00: window ref $4572.72 [pyth] (sampled 4s after open) strike=None
 [01:59:28 AM ET] KXGOLD15M-26AUG280200-00: LIVE YES IOC@99.8 ask~0.992 sent 1, filled 1 (gap $+2.54, est $4575.69 vs strike $4573.15)
+[02:00:34 AM ET] KXGOLD15M-26AUG280200-00: result=no LOSS balance $0.86
+[02:00:34 AM ET] KXGOLD15M-26AUG280215-15: window ref $4573.19 [pyth] (sampled 35s after open) strike=4572.87
