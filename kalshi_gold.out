@@ -95,3 +95,4 @@
 [04:29:28 AM ET] KXGOLD15M-26AUG280430-30: balance too small for 1 contract at 0.989
 [04:30:28 AM ET] KXGOLD15M-26AUG280445-45: window ref $4609.68 [pyth] (sampled 28s after open) strike=4608.92
 [04:44:28 AM ET] KXGOLD15M-26AUG280445-45: balance too small for 1 contract at 0.998
+[04:45:44 AM ET] KXGOLD15M-26AUG280500-00: window ref $4602.22 [pyth] (sampled 45s after open) strike=4603.69
