@@ -42,8 +42,15 @@ the 2026-09-01 screen: higher IV costs *more* to carry AND delivers *less* lever
 JPM (IV 23%) gives 3.28x at 4.4%/yr while MU (IV 65%) gives 1.92x at 14.2%/yr.
 
 ```
-cd leaps && python3 screen.py     # reproduces every table in leaps/README.md
+cd leaps
+python3 evaluate.py --manual      # judge ONE contract from any broker's chain
+python3 evaluate.py --preset msft # replay a worked example, no setup
+python3 screen.py                 # reproduces every table in leaps/README.md
 ```
+
+`evaluate.py` prints the four numbers that decide a LEAPS (carry, leverage,
+breakeven, extrinsic), every filter as PASS/FAIL, and a pre-computed exit card
+with the actual dollar stop, roll date and profit levels. See `leaps/README.md` §11.
 
 Note: unlike the intraday spec, the LEAPS screen is a point-in-time cross-sectional
 screen on live quotes, **not** a backtested edge. See `leaps/README.md` §9.

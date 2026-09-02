@@ -78,9 +78,33 @@ See UNH at rank 5.
   materially more open interest than the Jun/Sep/Dec long-dated series.
 
 ### 3.2 Strike
-**Target delta 0.75–0.85. In practice: strike ≈ 78–80% of spot.**
+**Hard floor: delta ≥ 0.70. Target 0.75–0.85. In practice: strike ≈ 78–80% of spot.**
 
 Verified across all 17 contracts screened — 78–80% moneyness landed delta 0.78–0.89 every time.
+
+**The delta rule is asymmetric, and the reason matters.** Delta means two different things
+depending on which way you are comparing:
+
+- **Within one name**, delta is the leverage dial. Deeper ITM = lower carry, lower breakeven,
+  *less* leverage per dollar. The 0.75–0.85 target is the balance point.
+- **Across names at the same moneyness**, a high delta just means *low IV* — which is better
+  on every axis. JPM prints **0.89** at 79% of spot and is simultaneously the cheapest carry
+  (4.4%/yr) and the highest leverage (3.28×) on the board.
+
+So: **fail below 0.70, never fail above.** A hard 0.85 ceiling would have rejected JPM and
+UNH — the two best trades in §7. Above ~0.90, just note that you are approaching a stock
+substitute and check whether a higher strike gives more leverage per dollar.
+
+Ranked ten, sorted by delta — the monotonic ordering is the whole argument:
+
+| Sym | Δ | Leverage | Carry/yr | Breakeven |
+|---|---|---|---|---|
+| JPM | 0.89 | **3.28×** | **4.4%** | +6.0% |
+| UNH | 0.87 | 3.03× | 4.9% | +6.8% |
+| QQQ | 0.85 | 3.02× | 5.3% | +7.4% |
+| MSFT | 0.82 | 2.85× | 6.4% | +8.8% |
+| NVDA | 0.81 | 2.47× | 7.9% | +10.9% |
+| META | 0.79 | **2.43×** | **8.8%** | +12.2% |
 
 Why not ATM, concretely (NVDA, both real quotes from the same chain):
 
@@ -329,10 +353,15 @@ worth the operational effort.
 6. **Roll at 9 months, not 3.** Theta and delta decay both accelerate hard inside 6 months.
 7. **Never mix this with the intraday spec.** `../strategy-spec.md` §9 notes that its
    options results depend on cheap high-gamma weeklies. That is the exact opposite instrument.
-8. **Spread is a cost, not a veto — but only if you respect it.** UNH has the second-best
+8. **Delta needs a floor, not a ceiling.** The 0.75–0.85 target is a within-name balance
+   point, not a cross-name filter. Applied as a hard band it rejects JPM (0.89) and UNH
+   (0.87) — which are the cheapest-carry, highest-leverage contracts in the screen. High
+   delta at fixed moneyness is a *symptom of low IV*, and low IV is what you want.
+   `evaluate.py` enforces the floor and only notes the ceiling.
+9. **Spread is a cost, not a veto — but only if you respect it.** UNH has the second-best
    economics in the screen and a 5.8% spread. Tradable with limit orders; value-destroying
    without them.
-9. **This screen has not been backtested.** Unlike `../strategy-spec.md` (101 sessions,
+10. **This screen has not been backtested.** Unlike `../strategy-spec.md` (101 sessions,
    walk-forward validated), §7 is a point-in-time cross-sectional screen on live quotes.
    The reasoning is sound and the data is real, but no historical edge has been demonstrated.
    Treat the rankings as a structured starting point for research, not a validated signal.
@@ -343,7 +372,8 @@ worth the operational effort.
 
 ```
 expiry              = January, 14-18 months out   (currently 2028-01-21)
-target_delta        = 0.75 - 0.85
+delta_floor         = 0.70                        (hard)
+target_delta        = 0.75 - 0.85                 (soft, no upper veto)
 target_moneyness    = strike ~= 78-80% of spot
 max_iv              = 45%
 min_open_interest   = 100 contracts at strike
@@ -364,7 +394,100 @@ review_cadence      = weekly
 
 ---
 
-## 11. Reproducing this
+## 11. Doing this yourself
+
+You do not need this repo, a screener, or an API. Six numbers off any option chain and
+four divisions decide it. The tooling below just saves you the arithmetic.
+
+### 11.1 The six inputs (all on one screen in any broker)
+
+Pull up the option chain, select the **January expiry 14–18 months out**, and read off the
+row nearest **79% of spot**:
+
+| Input | Where |
+|---|---|
+| Spot | the quote |
+| Strike | pick the row nearest `spot × 0.79` |
+| Bid / Ask | the chain; `mark = (bid + ask) / 2` |
+| Implied volatility | the chain (often a toggleable column) |
+| Delta | the chain (enable greeks if hidden) |
+| Open interest | the chain — **at that strike**, not the stock's volume |
+| 200-day SMA | any chart with a 200-period MA on daily bars |
+
+### 11.2 The four divisions
+
+```
+extrinsic  = mark − max(spot − strike, 0)
+carry/yr   = extrinsic ÷ spot ÷ years_to_expiry     → want ≤ 6.5%, reject > 9%
+leverage   = delta × spot ÷ mark                    → want ≥ 2.5×
+breakeven  = (strike + mark − spot) ÷ spot          → want ≤ +10%
+```
+
+That is the entire quantitative core. **Carry is the one that decides it** — it is what you
+pay per year to hold the leverage, and it ranged 4.4%–14.2% across the screen in §7.
+
+### 11.3 The entry gate
+
+Enter only if **all** of these hold:
+
+- [ ] Delta ≥ 0.70
+- [ ] IV ≤ 45%
+- [ ] Open interest ≥ 100 at the strike
+- [ ] 0% < (spot ÷ 200-day SMA − 1) ≤ 20%  — above the line, not extended above it
+- [ ] Carry ≤ 9%/yr
+- [ ] 12–18 months to expiry
+- [ ] You would happily own the shares for two years
+
+Any single failure is a no. Spread > 5% is not a veto but means limit orders only.
+
+### 11.4 Write the exit down *at entry*
+
+This is the step that separates a plan from a hope. Before you place the order, compute and
+record four numbers — they never change afterward:
+
+| | Formula | Meaning |
+|---|---|---|
+| **Roll date** | `expiry − 270 days` | Hard. Roll or close, up or down. |
+| **Stop price** | `mark × 0.50` | Hard. Close if the mark prints below it. |
+| **Trend stop** | the 200-day SMA value | Hard. Close on a *weekly* close below it. |
+| **Take-half** | `mark × 2.00` | Sell half at +100%. The rest is house money. |
+
+Then check, **once a week, in this order** — it takes two minutes:
+
+1. Is DTE < 270? → roll or close. Not a judgment call.
+2. Is the mark below the stop? → close.
+3. Did it close the week below the 200-day? → close.
+4. Is delta ≥ 0.92? → roll up to a fresh ~0.80 strike, take capital off.
+5. Is it up 100%? → sell half.
+6. Otherwise → do nothing. Close the laptop.
+
+Step 6 is most weeks, and doing nothing is the correct action. The failure mode of a
+16-month position is not missing an exit; it is fiddling with it.
+
+### 11.5 Let the tool do it
+
+```bash
+cd leaps
+
+python3 evaluate.py --preset msft   # replay a worked example, no setup
+python3 evaluate.py --manual        # type the six numbers from ANY broker
+python3 evaluate.py MSFT            # live, reuses robinhood-tools/.env
+python3 evaluate.py MSFT --strike 400
+
+python3 screen.py                   # rebuild the §7 ranking table
+```
+
+`evaluate.py` prints the four numbers, every filter as PASS/FAIL/COST, a bid ceiling, and a
+pre-computed **exit card** with the actual dollar levels and dates from §11.4. `--manual`
+needs no credentials and no network — it works with numbers read off a screenshot.
+
+> Note: `--manual` and `--preset` are tested. **Live mode is not** — this environment has no
+> Robinhood credentials, so the `robin_stocks` path has never been executed. Check its first
+> output against your broker's chain before trusting it.
+
+---
+
+## 12. Reproducing the tables
 
 ```bash
 cd leaps
@@ -377,5 +500,5 @@ Robinhood MCP calls that produced it are documented in the file header.
 
 ---
 
-*Not investment advice. §7 is a point-in-time screen, not a backtested edge — see §9.8.
+*Not investment advice. §7 is a point-in-time screen, not a backtested edge — see §9.10.
 LEAPS can and do expire worthless; size per §5 and assume every position can go to zero.*
