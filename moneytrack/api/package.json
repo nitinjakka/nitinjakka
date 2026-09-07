@@ -1,0 +1,8 @@
+{
+  "name": "money-tracker-api",
+  "version": "1.0.0",
+  "description": "Plaid backend for MoneyTrack prototype (classic function.json model)",
+  "dependencies": {
+    "@azure/data-tables": "^13.3.2"
+  }
+}

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoneyTrack</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><span class="logo">💸</span> MoneyTrack</div>
+    <nav>
+      <a href="#dashboard">🏠 Dashboard</a>
+      <a href="#transactions">🧾 Transactions</a>
+      <a href="#recurring">🔁 Recurring</a>
+      <a href="#spending">📊 Spending</a>
+      <a href="#budgets">🎯 Budgets</a>
+      <a href="#accounts">🏦 Accounts</a>
+      <a href="#networth">📈 Net Worth</a>
+      <a href="#settings">⚙️ Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn primary block" data-action="add-tx">+ Add transaction</button>
+      <div class="tiny muted">Prototype · data stays in this browser</div>
+    </div>
+  </aside>
+  <main id="main"></main>
+</div>
+<div id="modal-root"></div>
+<div id="toast"></div>
+<script src="app.js"></script>
+</body>
+</html>
