@@ -19,7 +19,7 @@ const CATEGORIES = {
   "Other":         { icon: "📦", color: "#8b8fa8" },
 };
 
-const STORE_KEY = "moneyTrack.v1";
+const STORE_KEY = "moneyTrack.v2"; // v2: starts empty — sample data is opt-in via Settings
 const SESSION_KEY = "moneyTrack.session";
 let state = null;          // local data (manual txns, budgets, recurring, accounts)
 let session = null;        // { token, email, userId }
@@ -155,7 +155,8 @@ function load() {
     const raw = localStorage.getItem(STORE_KEY);
     if (raw) { state = JSON.parse(raw); }
   } catch (e) {}
-  if (!state) { state = seedData(); save(); }
+  if (!state) { state = emptyData(); save(); }
+  try { localStorage.removeItem("moneyTrack.v1"); } catch (e) {}
   try {
     const s = localStorage.getItem(SESSION_KEY);
     if (s) session = JSON.parse(s);
@@ -837,8 +838,8 @@ function renderSettings(main) {
         <div class="card-title">Data</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <button class="btn ghost" id="btnExport">⬇ Export local data</button>
-          <button class="btn ghost" id="btnClearSample">Clear sample data</button>
-          <button class="btn danger" id="btnReset">Reset to sample data</button>
+          <button class="btn ghost" id="btnReset">Load demo data</button>
+          <button class="btn danger" id="btnClearSample">Clear local data</button>
         </div>
         <p class="tiny muted" style="margin-top:10px">Manual transactions, budgets, recurring and accounts are stored in this browser. Bank transactions are stored server-side (Azure Table Storage) under your login.</p>
       </div>
@@ -900,13 +901,13 @@ function renderSettings(main) {
     URL.revokeObjectURL(a.href);
   };
   document.getElementById("btnClearSample").onclick = () => {
-    if (confirm("Remove all local sample/manual data (keeps bank transactions)?")) {
+    if (confirm("Remove all local data — manual transactions, budgets, recurring, accounts? (Bank transactions are kept.)")) {
       state = emptyData(); save(); render(); toast("Local data cleared");
     }
   };
   document.getElementById("btnReset").onclick = () => {
-    if (confirm("Reset local data back to the sample data?")) {
-      state = seedData(); save(); render(); toast("Sample data restored");
+    if (confirm("Load demo/sample data? This replaces your current local data.")) {
+      state = seedData(); save(); render(); toast("Demo data loaded");
     }
   };
 }

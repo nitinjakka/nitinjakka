@@ -52,8 +52,9 @@ Azure resources (subscription "Subscription 1", resource group `money-tracker-rg
 
 Frontend:
 ```
-az storage blob upload-batch --account-name moneytracknitin -s money-tracker -d '$web' --overwrite --auth-mode key
+az storage blob upload-batch --account-name moneytracknitin -s money-tracker -d '$web' --overwrite --auth-mode key --content-cache-control "public, max-age=60"
 ```
+(Bump the `?v=N` query strings on `styles.css` / `app.js` in index.html when changing them.)
 
 Backend:
 ```
@@ -77,10 +78,27 @@ Local dev: `python -m http.server 8123 --directory money-tracker` (or the `money
 Nothing is billed per-hour; there is no VM. Going to real banks later means Plaid production
 (pay-as-you-go, roughly $0.30/connected account/month for transactions) — still no Azure change needed.
 
-## Backlog (not started)
+## Backlog
 
-- [ ] Two-step authentication (2FA) for login
-- [ ] Push code to git (GitHub — nitinjakka/nitinjakka)
+- [x] Two-step authentication (TOTP 2FA) — done 2026-09-06
+- [x] Push code to git — done 2026-09-06, https://github.com/nitinjakka/nitinjakka under `moneytrack/`
+- [x] Plaid production access — LIVE 2026-09-09 (client 6a9e3379…, PLAID_ENV=production, Data
+      Transparency use case + redirect URI configured; sandbox items/txns purged from DB)
+
+## Going live with real banks (Plaid production)
+
+Code is production-ready; the switch is config-only. Steps **you** must do at https://dashboard.plaid.com:
+1. Settings → Compliance → fill company/application profile (personal project is fine).
+2. Add a payment method (Plaid production is pay-as-you-go; Transactions ≈ $0.30/connected account/month).
+3. Request Production access and wait for approval (usually a few days).
+4. For OAuth banks (Chase, BofA…): Developers → API → add allowed redirect URI
+   `https://moneytracknitin.z19.web.core.windows.net/`.
+5. Copy the **production** secret from Developers → Keys.
+
+Then flip the backend (no code change):
+```
+az functionapp config appsettings set -g money-tracker-rg -n moneytrack-api-nitin --settings PLAID_ENV=production PLAID_SECRET=<production-secret> PLAID_REDIRECT_URI=https://moneytracknitin.z19.web.core.windows.net/
+```
 
 ## Changelog
 
@@ -89,6 +107,17 @@ Nothing is billed per-hour; there is no VM. Going to real banks later means Plai
 - **2026-09-06 (v2)** — email signup/login; Azure Functions backend + Table Storage;
   Plaid sandbox integration (Link, token exchange, transactions/sync); server-side transaction store;
   invite-by-email read-only sharing; sync button; source filter; export; cost writeup.
+- **2026-09-06 (v3)** — TOTP two-factor auth (authenticator-app based, enable/disable in Settings,
+  QR setup, login gate); Plaid production readiness (`PLAID_ENV`/`PLAID_REDIRECT_URI` config switch);
+  code pushed to GitHub (nitinjakka/nitinjakka → moneytrack/).
+- **2026-09-09 (v4)** — **Plaid PRODUCTION live**: switched backend to production team
+  (client `6a9e3379…`), configured Data Transparency Messaging use case + allowed redirect URI
+  in the Plaid dashboard (both required — missing use case throws `INVALID_LINK_CUSTOMIZATION`);
+  purged all sandbox items/transactions from the database.
+- **2026-09-09 (v5)** — app starts **empty** — sample data no longer auto-loads (new localStorage
+  key `moneyTrack.v2`; old v1 seed auto-deleted on load); Settings buttons: "Load demo data" /
+  "Clear local data"; removed sidebar footer message; cache-busting query strings (`?v=5`) +
+  `Cache-Control: max-age=60` on all blobs so deployments propagate within a minute.
 
 ## Security notes (prototype-grade)
 
