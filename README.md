@@ -16,6 +16,8 @@ standalone Robinhood account tools.
 | `suite-backtest/bt_frac100.py` | $100 fractional-share portfolio backtest (Mode B long-only, 4 tickers) |
 | `suite-backtest/bt_trend100.py` | $100 trend-filtered leveraged ETF backtest (TQQQ / 200-SMA) |
 | `robinhood-tools/` | Robinhood scripts: multi-account balances, sell-all, option order test |
+| `capitol-trades/` | **Congressional trade monitor** — Azure-hosted watcher that emails on new Pelosi PTR filings (triple-verified, from the official House Clerk source). Full ops guide in its README |
+| `moneytrack/` | Rocket Money-style budgeting app (web + Azure Functions API) |
 
 ## Robinhood tools quick start
 
