@@ -1,43 +1,65 @@
-# Capitol Trades Monitor — Nancy Pelosi PTR Watcher
+# Capitol Trades Monitor — Nancy Pelosi PTR Watcher (Azure-hosted)
 
 Watches for new stock-trade disclosures (Periodic Transaction Reports) filed by
 Rep. Nancy Pelosi (CA-11) and emails a summary when one appears.
 
-## Data source
+## Production deployment (Azure)
 
-The official House Clerk financial-disclosure index:
-`https://disclosures-clerk.house.gov/public_disc/financial-pdfs/{year}FD.zip`
+Azure Functions app, subscription "Subscription 1":
 
-This is the primary source that capitoltrades.com and similar sites are built
-on. (capitoltrades.com itself blocks automated access, so we go straight to
-the source.)
+- **Resource group:** `capitol-trades-rg` (centralus)
+- **Function app:** `pelosi-monitor-nitin` (Linux consumption plan, Python 3.11)
+- **Storage account:** `capitoltradesnitin` (also holds monitor state:
+  container `pelosi-monitor`, blob `seen_filings.json`)
+- **Email:** Resend API (`RESEND_API_KEY` app setting), from
+  `onboarding@resend.dev` to `EMAIL_TO` (nitin.jakka@gmail.com)
 
-## How it works
+Functions (code in `azure-function/`):
 
-1. A scheduled Claude Code Routine runs every few hours.
-2. It runs `pelosi_monitor.py check`, which downloads the disclosure index
-   **3 separate times** and only reports filings when all 3 fetches agree
-   (triple verification). New filings are anything not in `seen_filings.json`.
-3. If there are new filings, the session re-runs the check two more times,
-   spaced minutes apart, downloads the filing PDF, extracts every trade
-   (asset, ticker, buy/sell, trade date, amount range, owner), and emails a
-   summary to the account owner via Gmail.
-4. Only after the email sends successfully does it run
-   `pelosi_monitor.py ack` and commit the updated `seen_filings.json` back to
-   this branch — so a failed email is retried on the next run.
+- `pelosi_timer` — timer trigger, every 6 hours (`0 0 */6 * * *`)
+- `pelosi_run` — HTTP trigger for manual runs/testing
+  (`GET /api/pelosi_run?code=<function key>`; `send=0` = dry run,
+  `delay=N` = seconds between verification fetches)
 
-## Files
+Each run:
 
-- `pelosi_monitor.py` — stdlib-only checker (`check` / `ack` subcommands)
-- `seen_filings.json` — DocIDs of filings already processed and emailed
+1. Fetches the official House Clerk disclosure index **3 separate times**
+   (triple verification) — all fetches must agree or the run aborts.
+2. Diffs Pelosi PTR filings against the seen-filings blob.
+3. For new filings, downloads the official PDF and parses every trade
+   (asset, ticker, stock/option, buy/sell/exchange, date, amount, owner,
+   description).
+4. Emails one summary via Resend.
+5. Records filings as seen **only after** the email succeeds, so failures
+   retry on the next run.
 
-## Manual usage
+### Deploying updates
 
 ```bash
-python3 pelosi_monitor.py check --delay 30   # 3 verified fetches, prints new filings as JSON
-python3 pelosi_monitor.py ack                # mark everything currently published as seen
+cd capitol-trades/azure-function
+zip -r /tmp/pelosi-func.zip function_app.py pelosi_core.py host.json requirements.txt
+az functionapp deployment source config-zip -g capitol-trades-rg \
+  -n pelosi-monitor-nitin --src /tmp/pelosi-func.zip --build-remote true
 ```
 
-Filing type reference: `P` = Periodic Transaction Report (the stock trades);
-owner `SP` on a trade = spouse. PTR PDFs live at
+### Manual test
+
+```bash
+KEY=$(az functionapp function keys list -g capitol-trades-rg \
+  -n pelosi-monitor-nitin --function-name pelosi_run --query default -o tsv)
+curl "https://pelosi-monitor-nitin.azurewebsites.net/api/pelosi_run?send=0&delay=10&code=$KEY"
+```
+
+## Data source
+
+`https://disclosures-clerk.house.gov/public_disc/financial-pdfs/{year}FD.zip`
+— the primary source behind capitoltrades.com (which blocks automated access,
+so we go straight to the source). Filing type `P` = PTR (stock trades); PTR
+PDFs live at
 `https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/{year}/{DocID}.pdf`.
+Owner `SP` on a trade = spouse.
+
+## Standalone CLI (no Azure required)
+
+- `pelosi_monitor.py check|ack` — stdlib-only checker used before the Azure
+  deployment; state in local `seen_filings.json`. Kept for ad-hoc runs.
