@@ -1,6 +1,6 @@
 """Azure Functions app: Nancy Pelosi trade-disclosure monitor.
 
-- pelosi_timer: runs every 6 hours, checks for new filings, emails on new ones.
+- pelosi_timer: runs hourly, checks for new filings, emails on new ones.
 - pelosi_run:   HTTP endpoint (function-key protected) for manual runs/testing.
                 Query params: send=0 to skip email, delay=N seconds between
                 the 3 verification fetches (default 45).
@@ -15,7 +15,7 @@ import pelosi_core
 app = func.FunctionApp()
 
 
-@app.timer_trigger(schedule="0 0 */6 * * *", arg_name="timer",
+@app.timer_trigger(schedule="0 0 * * * *", arg_name="timer",
                    run_on_startup=False, use_monitor=True)
 def pelosi_timer(timer: func.TimerRequest) -> None:
     summary = pelosi_core.run_monitor()

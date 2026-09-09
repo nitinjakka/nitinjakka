@@ -16,7 +16,7 @@ Azure Functions app, subscription "Subscription 1":
 
 Functions (code in `azure-function/`):
 
-- `pelosi_timer` — timer trigger, every 6 hours (`0 0 */6 * * *`)
+- `pelosi_timer` — timer trigger, hourly (`0 0 * * * *`)
 - `pelosi_run` — HTTP trigger for manual runs/testing
   (`GET /api/pelosi_run?code=<function key>`; `send=0` = dry run,
   `delay=N` = seconds between verification fetches)
