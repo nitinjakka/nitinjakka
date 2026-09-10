@@ -319,6 +319,7 @@ function renderAuth(main) {
           <a href="#" id="authToggle" style="color:#7c5cff">Create one</a>
         </p>
         <p class="tiny muted" id="authError" style="color:#ff5c7a;margin-top:10px;text-align:center"></p>
+        <p class="tiny muted" style="margin-top:12px;text-align:center">By signing up or logging in you agree to the <a href="privacy.html" target="_blank" style="color:#7c5cff">Privacy Policy</a></p>
       </div>
     </div>`));
 
@@ -841,7 +842,7 @@ function renderSettings(main) {
           <button class="btn ghost" id="btnReset">Load demo data</button>
           <button class="btn danger" id="btnClearSample">Clear local data</button>
         </div>
-        <p class="tiny muted" style="margin-top:10px">Manual transactions, budgets, recurring and accounts are stored in this browser. Bank transactions are stored server-side (Azure Table Storage) under your login.</p>
+        <p class="tiny muted" style="margin-top:10px">Manual transactions, budgets, recurring and accounts are stored in this browser. Bank transactions are stored server-side (Azure Table Storage) under your login. <a href="privacy.html" target="_blank" style="color:#7c5cff">Privacy Policy</a></p>
       </div>
     </div>`));
 

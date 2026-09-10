@@ -118,6 +118,16 @@ az functionapp config appsettings set -g money-tracker-rg -n moneytrack-api-niti
   key `moneyTrack.v2`; old v1 seed auto-deleted on load); Settings buttons: "Load demo data" /
   "Clear local data"; removed sidebar footer message; cache-busting query strings (`?v=5`) +
   `Cache-Control: max-age=60` on all blobs so deployments propagate within a minute.
+- **2026-09-09 (v6)** — privacy policy published at /privacy.html (linked from sign-in screen with
+  consent line + Settings); part of Plaid OAuth-institution security questionnaire (MSA +
+  questionnaire + app profile required to unlock Chase/BofA/Capital One etc.).
+- **2026-09-09 — Plaid OAuth unlock progress**: security questionnaire + all attestations
+  submitted (Compliance Center "Up to date"); app profile saved (name "MoneyTracker App",
+  1024px icon in docs/moneytrack-icon-1024.png, 250-char data-access reason); data-retention
+  policy doc at docs/MoneyTrack-Data-Retention-and-Disposal-Policy.txt; billing active
+  (pay-as-you-go, card on file, contract 2026-09-07). REMAINING: MSA agreement — request sent
+  to Plaid via Talk-to-sales 2026-09-09, awaiting their reply; then a few days-2 weeks for
+  Chase/BofA/Capital One registration. Non-OAuth banks work now.
 
 ## Security notes (prototype-grade)
 

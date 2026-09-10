@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoneyTrack — Privacy Policy</title>
+<style>
+  body { background:#0e0f1a; color:#eef0ff; font-family:"Segoe UI",system-ui,sans-serif;
+         max-width:760px; margin:0 auto; padding:40px 24px; line-height:1.65; }
+  h1 { font-size:28px; } h2 { font-size:19px; margin-top:32px; color:#b98cff; }
+  p, li { color:#c9cce0; } a { color:#7c5cff; }
+  .updated { color:#8b8fa8; font-size:13px; }
+</style>
+</head>
+<body>
+<h1>💸 MoneyTrack — Privacy Policy</h1>
+<p class="updated">Last updated: September 9, 2026</p>
+
+<p>MoneyTrack is a personal financial-management application operated by Nitin Jakka
+("we", "I"). It is built for personal and household use. This policy explains what data the
+application collects, how it is used, and your rights.</p>
+
+<h2>What we collect</h2>
+<ul>
+  <li><b>Account information</b> — your email address and a password (stored only as a salted
+      scrypt hash; we never store or see your plain-text password). Optional two-factor
+      authentication secrets if you enable 2FA.</li>
+  <li><b>Financial data via Plaid</b> — when you choose to connect a bank account, we receive
+      transaction data (dates, merchant names, amounts, categories) through
+      <a href="https://plaid.com">Plaid</a>. Your bank credentials are entered only on Plaid's or
+      your bank's own screens — MoneyTrack never receives or stores your bank username or password.</li>
+  <li><b>Manually entered data</b> — transactions, budgets, recurring charges and accounts you add
+      by hand are stored locally in your own browser and do not leave your device.</li>
+</ul>
+
+<h2>How we use it</h2>
+<p>Data is used solely to provide the application's features to you: displaying and categorizing
+your transactions, budgets, spending analysis, and net worth. We do not sell, rent, share, or
+monetize your data in any way, and we do not use it for advertising.</p>
+
+<h2>Where it is stored</h2>
+<p>Server-side data (account records, Plaid access tokens, bank transactions) is stored in
+Microsoft Azure (Azure Table Storage, US region), encrypted at rest with AES-256 and in transit
+with TLS 1.2+. Plaid API credentials and bank access tokens are held server-side only and are
+never exposed to the browser.</p>
+
+<h2>Who can see it</h2>
+<p>Only you — and, if you explicitly invite someone by email from Settings, that person gets
+read-only access to your bank transactions. You can revoke an invitation at any time. There are
+no other users, employees, or third parties with access.</p>
+
+<h2>Third parties</h2>
+<p>We use two service providers: <b>Plaid</b> (bank connectivity — see
+<a href="https://plaid.com/legal/#end-user-privacy-policy">Plaid's End User Privacy Policy</a>)
+and <b>Microsoft Azure</b> (hosting and storage). No data is shared with anyone else.</p>
+
+<h2>Data retention &amp; deletion</h2>
+<p>Data is retained while your account is active. You may disconnect a bank at any time, which
+stops further collection. To delete your account and all associated server-side data, email
+<a href="mailto:nitin.jakka@gmail.com">nitin.jakka@gmail.com</a> — deletion is completed within
+30 days. Locally stored (browser) data can be removed instantly via Settings → "Clear local
+data" or by clearing your browser storage. This policy is reviewed periodically and the
+"Last updated" date reflects the latest revision.</p>
+
+<h2>Consent</h2>
+<p>By creating an account you consent to the collection and storage described here. Connecting a
+bank requires an additional, separate consent step presented by Plaid before any financial data
+is accessed.</p>
+
+<h2>Contact</h2>
+<p>Questions or requests: <a href="mailto:nitin.jakka@gmail.com">nitin.jakka@gmail.com</a></p>
+
+<p><a href="/">← Back to MoneyTrack</a></p>
+</body>
+</html>

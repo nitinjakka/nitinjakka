@@ -1,0 +1,61 @@
+MONEYTRACK — DATA RETENTION AND DISPOSAL POLICY
+Owner: Nitin Jakka (nitin.jakka@gmail.com)
+Effective date: September 9, 2026
+Last reviewed: September 9, 2026
+Review cadence: annually, and upon any material change to the application
+
+1. SCOPE
+This policy covers all consumer data processed by MoneyTrack, a personal
+financial-management application (https://moneytracknitin.z19.web.core.windows.net/),
+including data received from the Plaid API. The application serves a single
+household: the owner and any household members the owner explicitly invites.
+
+2. DATA INVENTORY AND STORAGE
+- Account records (email address, salted scrypt password hash, optional TOTP
+  2FA secret) — Azure Table Storage (US region).
+- Plaid access tokens and item records — Azure Table Storage, server-side only;
+  never exposed to client applications.
+- Bank transaction data received from the Plaid API (dates, merchant names,
+  amounts, categories) — Azure Table Storage.
+- Session tokens — Azure Table Storage; expire automatically after 30 days.
+- Manually entered data (budgets, manual transactions, recurring charges,
+  manual accounts) — stored only in the user's own browser (localStorage),
+  never transmitted to servers.
+All server-side data is encrypted at rest (AES-256, Azure Storage Service
+Encryption) and in transit (TLS 1.2+).
+
+3. RETENTION PERIODS
+- Account records, Plaid tokens, and transaction data: retained while the
+  user's account remains active.
+- Session tokens: expire 30 days after issuance.
+- Disconnected bank items: the access token is invalidated/removed upon
+  disconnection; previously synced transactions are retained until the user
+  requests deletion or the account is deleted.
+- No backups or secondary copies of consumer data are maintained outside the
+  primary Azure Storage account.
+
+4. DELETION AND DISPOSAL
+- User-requested deletion: a user may request deletion of their account and
+  all associated server-side data by emailing nitin.jakka@gmail.com. Requests
+  are completed within 30 days. Deletion covers account records, sessions,
+  Plaid items/access tokens (which are also removed at Plaid via
+  /item/remove), and all stored transactions.
+- Local data: users can delete browser-stored data instantly via the
+  application (Settings -> "Clear local data") or by clearing browser storage.
+- Disposal method: records are hard-deleted from Azure Table Storage
+  (physical deletion managed by Azure); Plaid access tokens are revoked so no
+  further data can be retrieved.
+- Whole-application decommissioning: if the application is retired, all Azure
+  resources (storage account and database tables) will be deleted, which
+  permanently destroys all stored consumer data, and all Plaid items will be
+  removed via the Plaid API.
+
+5. COMPLIANCE AND ENFORCEMENT
+The owner is the sole operator with access to production data and is
+responsible for enforcing this policy. The policy is reviewed at least
+annually and its effective date updated on revision. This policy is written
+to be consistent with applicable US consumer data privacy principles and with
+Plaid's End User Privacy Policy requirements.
+
+6. CONTACT
+All privacy, retention, and deletion requests: nitin.jakka@gmail.com
