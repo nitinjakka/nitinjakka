@@ -15,6 +15,22 @@ function normEmail(e) { return String(e || "").trim().toLowerCase(); }
 
 function validEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
 
+// Phone → "+<digits>" (US 10-digit numbers get +1). Returns "" if not a phone.
+function normPhone(p) {
+  let d = String(p || "").replace(/[^\d]/g, "");
+  if (d.length === 10) d = "1" + d;
+  if (d.length < 10 || d.length > 15) return "";
+  return "+" + d;
+}
+
+// Accepts an email or a phone; returns { kind: "email"|"phone", value } or null.
+function normContact(c) {
+  const raw = String(c || "").trim();
+  if (raw.includes("@")) { const e = normEmail(raw); return validEmail(e) ? { kind: "email", value: e } : null; }
+  const p = normPhone(raw);
+  return p ? { kind: "phone", value: p } : null;
+}
+
 async function createSession(user) {
   const token = newToken();
   const expires = new Date(Date.now() + SESSION_DAYS * 86400000).toISOString();
@@ -36,4 +52,16 @@ async function requireAuth(req) {
   return { userId: sess.userId, email: sess.email };
 }
 
-module.exports = { hashPassword, newSalt, newToken, newUserId, normEmail, validEmail, createSession, requireAuth };
+// True if `ownerId` has invited this user (by email or by the phone on their profile).
+async function canView(user, ownerId) {
+  if (ownerId === user.userId) return true;
+  if (await getEntity("invites", ownerId, user.email)) return true;
+  const u = await getEntity("users", "user", user.email);
+  if (u && u.phone && await getEntity("invites", ownerId, u.phone)) return true;
+  return false;
+}
+
+module.exports = {
+  hashPassword, newSalt, newToken, newUserId, normEmail, validEmail, normPhone, normContact,
+  createSession, requireAuth, canView,
+};

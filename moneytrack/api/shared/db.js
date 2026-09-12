@@ -12,7 +12,7 @@ function table(name) {
 }
 
 async function ensureTables() {
-  for (const name of ["users", "sessions", "items", "txns", "invites"]) {
+  for (const name of ["users", "sessions", "items", "txns", "invites", "accounts"]) {
     try { await table(name).createTable(); } catch (e) { /* already exists */ }
   }
 }
@@ -33,4 +33,15 @@ async function listEntities(tableName, filter) {
   return out;
 }
 
-module.exports = { table, ensureTables, getEntity, listEntities };
+async function deleteEntity(tableName, pk, rk) {
+  try { await table(tableName).deleteEntity(pk, rk); return true; } catch (e) { return false; }
+}
+
+// Table Storage rejects null property values — drop them.
+function clean(obj) {
+  const out = {};
+  for (const [k, v] of Object.entries(obj)) if (v !== null && v !== undefined) out[k] = v;
+  return out;
+}
+
+module.exports = { table, ensureTables, getEntity, listEntities, deleteEntity, clean };

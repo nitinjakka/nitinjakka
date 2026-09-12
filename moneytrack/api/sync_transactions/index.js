@@ -3,6 +3,8 @@ const { ensureTables } = require("../shared/db");
 const { requireAuth } = require("../shared/auth");
 const { syncUser } = require("../shared/sync");
 
+// Refreshes account balances + pulls new/modified/removed transactions for every linked bank.
+// Response: { added, removed, accounts, items, notReady, errors[] }
 module.exports = async function (context, req) {
   try {
     await ensureTables();

@@ -8,18 +8,40 @@ A Rocket Money-style budgeting app. Browser-based, personal use, deployed on Azu
 ## Features
 
 - **Email signup/login** — email + password (scrypt-hashed), 30-day bearer sessions
-- **Bank connections via Plaid (sandbox)** — Plaid Link in the Accounts page; transactions
-  pulled with `/transactions/sync` and stored server-side. Sandbox test login: `user_good` / `pass_good`
-- **Server-side transaction database** — Azure Table Storage, per-user partition, for analysis
-- **Sharing** — invite any email from Settings; when that person signs up/logs in, they get a
-  read-only "Shared with me" view of your bank transactions
-- **Dashboard** — monthly spend vs last month, income, recurring total, net worth, category donut, upcoming bills
-- **Transactions** — bank + manual combined, search/filter by category/type/source
+- **Bank connections via Plaid (production)** — Plaid Link in the Accounts page. Every individual
+  account (checking, savings, each card, loans, investments) is stored with its balance; transactions
+  are pulled with `/transactions/sync` (up to 730 days of history on a fresh link). Transactions arrive
+  automatically: the link step retries the initial pull, Plaid webhooks (`plaid_webhook`) sync new data
+  as it lands, and the app auto-syncs on load when the last sync is >10 min old.
+- **Server-side database** — Azure Table Storage, per-user partition (accounts + transactions + edits)
+- **Sharing** — invite by **email or phone number** from Settings; the viewer gets a read-only
+  "Shared with me" view of your accounts and transactions
+- **Dashboard** (Rocket Money layout) — month navigator; *Current spend* cumulative curve this month vs
+  last month with "you've spent $X more/less"; *Accounts* summary (Checking / Card Balance / Net Cash /
+  Savings / Investments / Loans, expandable to individual accounts); income & spend vs last month;
+  upcoming charges (7 days); recent transactions; spending breakdown
+- **Spending breakdown** — donut with total + % change vs last month in the centre, *Include bills*
+  toggle, table of Category / % of spend / Change vs last month / Amount (click → transactions)
+- **Income vs spending bars** — 6 months, bills & utilities stacked on spending, hover tooltip,
+  ‹ › paging back through history, click a bar to open that month
+- **Transactions** — bank + manual combined; global search box in the sidebar; search by name,
+  notes, amount, account, date; month navigator (all time / any month); **multi-select account filter**;
+  category / type / source filters; grouped by day; **inline category dropdown**; edit modal
+  (name, category, notes; amount/date/type for manual) with "apply to all same-name" and
+  "always use this category" (adds a rule); delete (bank transactions are hidden server-side so a
+  re-sync never resurrects them)
+- **Categorization** — Plaid `personal_finance_category` mapping server-side (transfers and
+  credit-card payments → *Transfer*, never counted as spending) + client keyword rules for anything
+  left as *Other* and for manual entries; user overrides are stored per transaction on the server
+- **Category management** (Settings) — add / rename / recolour / re-icon / delete categories, mark
+  categories as bills, income or transfer; rules editor (keyword → category)
 - **Recurring** — subscription list with due-date badges, monthly/annual totals
-- **Budgets** — per-category monthly limits with progress bars
-- **Accounts / Net worth** — manual asset & debt accounts, trend + breakdown charts
-- Manual data (budgets, recurring, manual txns, accounts) stays in the browser (localStorage);
-  bank transactions live server-side under your login
+- **Budgets** — per-category monthly limits with progress bars, month navigator, edit/delete
+- **Accounts** — linked banks grouped by institution with every account, balance, subtype, last
+  sync, error state and *Remove* (unlink + purge); manual accounts with type
+  (checking/savings/card/investment/loan/other); Assets / Debts / Net worth from both
+- Manual data (budgets, recurring, manual txns, manual accounts, categories, rules) stays in the
+  browser (localStorage); bank accounts/transactions and your edits to them live server-side
 
 ## Architecture
 
@@ -28,11 +50,14 @@ Browser (static HTML/JS/CSS, Chart.js, Plaid Link)
    │  Azure Storage static website ($web container, moneytracknitin)
    ▼
 Azure Functions  moneytrack-api-nitin  (Linux consumption, Node 22, classic function.json model)
-   │  endpoints: signup, login, me, invite,
-   │             create_link_token, exchange_public_token, sync_transactions, get_transactions
-   ├──► Plaid API (sandbox) — client_id/secret held in Function app settings only
+   │  endpoints: signup, login, me, invite, update_profile, enable/confirm/disable_2fa,
+   │             create_link_token, exchange_public_token, sync_transactions, get_transactions,
+   │             update_transaction, remove_bank, plaid_webhook (called by Plaid, not the browser)
+   ├──► Plaid API (production) — client_id/secret held in Function app settings only
    └──► Azure Table Storage (same storage account)
-          tables: users, sessions, items (Plaid access tokens + cursors), txns, invites
+          tables: users, sessions, items (Plaid access tokens + cursors + sync status),
+                  accounts (one row per bank account, balances), txns (Plaid fields + user* edit
+                  fields + hidden flag), invites (rowKey = email or +phone)
 ```
 
 Azure resources (subscription "Subscription 1", resource group `money-tracker-rg`, centralus):
@@ -85,6 +110,36 @@ Nothing is billed per-hour; there is no VM. Going to real banks later means Plai
 - [x] Plaid production access — LIVE 2026-09-09 (client 6a9e3379…, PLAID_ENV=production, Data
       Transparency use case + redirect URI configured; sandbox items/txns purged from DB)
 
+### Added 2026-09-11 (from user review vs Rocket Money dashboard) — ALL DONE in v7, same day
+
+- [x] Auto-pull transactions when a bank is linked — link step retries the initial sync, frontend
+      polls until the first batch lands, Plaid webhook syncs later batches, auto-sync on app load
+- [x] Accounts list shows every underlying account (per institution), not one row per bank
+- [x] Search box across all transactions (sidebar global search + Transactions page search)
+- [x] Filter transactions by one or more selected accounts (multi-select dropdown)
+- [x] Assets and Debts $0 after sync — balances now come from `/accounts/get` on every sync
+- [x] "Share my transactions" accepts a phone number as well as an email
+- [x] Dashboard: "Current Spend" curve this vs last month + Accounts summary with Net Cash
+- [x] Dashboard + Transactions (+ Spending, Budgets): month navigator, any past/future month
+- [x] Compare spending and earning against previous months (stat deltas, breakdown Change column,
+      6-month bars)
+- [x] Pull transaction history years back — `days_requested: 730` on every new link token.
+      **Existing links only have ~90 days; use Accounts → Remove, then re-connect the bank to get 2 years.**
+- [x] Auto-categorization (Plaid PFC + keyword rules) with inline category change
+- [x] Category management: add / rename / edit / delete categories, bill flag
+- [x] Transaction management: edit and delete (bank deletes = server-side hide)
+- [x] Spending Breakdown: donut w/ centre total + % change, Include-bills toggle, breakdown table
+- [x] Monthly Income vs Spending bar chart with stacked bills, tooltip, paging arrows
+- [x] Logo/brand click goes to Dashboard; sidebar hidden on the sign-in page
+
+### Open
+
+- [ ] Email verification, password reset
+- [ ] Plaid webhook signature verification (currently unverified — worst case is an extra sync)
+- [ ] Net-worth trend uses simulated history — store daily balance snapshots server-side
+- [ ] Recurring detection from bank transactions (today recurring items are manual)
+- [ ] `get_transactions` returns everything (cap 10 000) — paginate if it grows
+
 ## Going live with real banks (Plaid production)
 
 Code is production-ready; the switch is config-only. Steps **you** must do at https://dashboard.plaid.com:
@@ -128,6 +183,27 @@ az functionapp config appsettings set -g money-tracker-rg -n moneytrack-api-niti
   (pay-as-you-go, card on file, contract 2026-09-07). REMAINING: MSA agreement — request sent
   to Plaid via Talk-to-sales 2026-09-09, awaiting their reply; then a few days-2 weeks for
   Chase/BofA/Capital One registration. Non-OAuth banks work now.
+
+- **2026-09-11 (v7)** — Rocket Money parity release, all 16 backlog items from the 09-11 review:
+  - Backend: new `accounts` table filled from `/accounts/get` on link + every sync (per-account balances);
+    `transactions/sync` now MERGES so user edits survive; `update_transaction` (category/name/notes/hide,
+    batch up to 500); `plaid_webhook` (TRANSACTIONS + ITEM webhooks → immediate sync, registered on every
+    link token, URL derived from request host or `PLAID_WEBHOOK_URL`); `remove_bank` (item/remove +
+    purge); `update_profile` (phone); `invite` accepts email or phone (rowKey `+1…`); `me` returns
+    accounts, per-bank sync status/error, phone; `get_transactions` returns accountId, notes, original
+    name, autoCategory and hides deleted rows; `create_link_token` asks for 730 days + webhook;
+    `exchange_public_token` retries the initial sync 4x and reports `pending`; category map adds
+    Transfer / Loan Payment / Travel / Services / Fees and routes credit-card payments to Transfer.
+  - Frontend rewritten (app.js ~1700 lines): month navigator everywhere, Rocket Money dashboard
+    (spend curve, accounts summary with Net Cash), spending breakdown component, income-vs-spending
+    stacked bars, global search, account multi-filter, inline category select, edit/delete modal,
+    category & rule management, manual account types, bank groups with Remove, auto-sync + post-link
+    polling, phone field on signup, sidebar hidden on login, brand → dashboard.
+  - Verified: local dev run with demo data on every page; server edit/hide/invite-by-phone/profile
+    paths tested against the live API with a throwaway user (`claude-test-v7@example.com`, rows purged).
+    Bank linking itself could not be exercised (production Plaid needs real bank credentials) — the
+    first sync after this deploy populates the accounts table for existing links.
+  - Deployed: backend zip-deploy + frontend upload (`?v=7`). Cache-busting: bump `?v=` in index.html.
 
 ## Security notes (prototype-grade)
 

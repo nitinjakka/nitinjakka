@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MoneyTrack</title>
-<link rel="stylesheet" href="styles.css?v=5">
+<link rel="stylesheet" href="styles.css?v=7">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -12,7 +12,8 @@
 <body>
 <div class="app">
   <aside class="sidebar">
-    <div class="brand"><span class="logo">💸</span> MoneyTrack</div>
+    <a class="brand" href="#dashboard" title="Home"><span class="logo">💸</span> MoneyTrack</a>
+    <form class="side-search" id="globalSearch"><input type="search" name="q" placeholder="🔍 Search transactions…" autocomplete="off"></form>
     <nav>
       <a href="#dashboard">🏠 Dashboard</a>
       <a href="#transactions">🧾 Transactions</a>
@@ -31,6 +32,6 @@
 </div>
 <div id="modal-root"></div>
 <div id="toast"></div>
-<script src="app.js?v=5"></script>
+<script src="app.js?v=7"></script>
 </body>
 </html>
