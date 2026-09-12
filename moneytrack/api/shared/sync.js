@@ -1,4 +1,4 @@
-// Shared Plaid → Table Storage sync: transactions + account balances.
+// Shared Plaid → Table Storage sync: transactions + account balances + daily net-worth snapshots.
 const { plaidPost } = require("./plaid");
 const { table, listEntities, clean } = require("./db");
 
@@ -33,6 +33,17 @@ function mapCategory(txn) {
   return map[primary] || "Other";
 }
 
+// Same grouping the frontend uses (keep in sync with app.js groupOf).
+function groupOf(type, subtype) {
+  type = String(type || "").toLowerCase(); subtype = String(subtype || "").toLowerCase();
+  if (type === "depository") return ["savings", "money market", "cd", "hsa", "gic"].includes(subtype) ? "savings" : "checking";
+  if (type === "credit") return "credit";
+  if (type === "investment" || type === "brokerage") return "investment";
+  if (type === "loan") return "loan";
+  return "other_asset";
+}
+const DEBT_GROUPS = new Set(["credit", "loan", "other_debt"]);
+
 // Pull every account under an item (with cached balances) into the accounts table.
 async function refreshAccounts(userId, item) {
   const data = await plaidPost("/accounts/get", { access_token: item.accessToken });
@@ -57,6 +68,28 @@ async function refreshAccounts(userId, item) {
     }), "Replace");
   }
   return data.accounts.length;
+}
+
+// One row per user per day: totals by group + assets/debts/net (bank accounts only).
+async function writeSnapshot(userId) {
+  const accounts = await listEntities("accounts", `PartitionKey eq '${userId}'`);
+  if (!accounts.length) return null;
+  const groups = { checking: 0, savings: 0, credit: 0, investment: 0, loan: 0, other_asset: 0, other_debt: 0 };
+  for (const a of accounts) groups[groupOf(a.type, a.subtype)] += (typeof a.current === "number" ? a.current : 0);
+  let assets = 0, debts = 0;
+  for (const [g, v] of Object.entries(groups)) { if (DEBT_GROUPS.has(g)) debts += v; else assets += v; }
+  const snap = clean({
+    partitionKey: userId,
+    rowKey: new Date().toISOString().slice(0, 10),
+    assets: Math.round(assets * 100) / 100,
+    debts: Math.round(debts * 100) / 100,
+    net: Math.round((assets - debts) * 100) / 100,
+    ...Object.fromEntries(Object.entries(groups).map(([k, v]) => [k, Math.round(v * 100) / 100])),
+    accounts: accounts.length,
+    at: new Date().toISOString(),
+  });
+  await table("snapshots").upsertEntity(snap, "Replace");
+  return snap;
 }
 
 // Sync one Plaid item's transactions into the txns table. Returns counts + readiness.
@@ -103,7 +136,7 @@ async function syncItem(userId, item) {
   return { added, removed, status };
 }
 
-// Sync all items belonging to a user (accounts + transactions). Never throws for one bad item.
+// Sync all items belonging to a user (accounts + transactions + snapshot). Never throws for one bad item.
 async function syncUser(userId) {
   const items = await listEntities("items", `PartitionKey eq '${userId}'`);
   let added = 0, removed = 0, accounts = 0, notReady = false;
@@ -122,6 +155,7 @@ async function syncUser(userId) {
       } catch (e2) {}
     }
   }
+  try { if (items.length) await writeSnapshot(userId); } catch (e) { /* best effort */ }
   return { added, removed, accounts, items: items.length, notReady, errors };
 }
 
@@ -131,4 +165,4 @@ async function findItem(itemId) {
   return rows[0] || null;
 }
 
-module.exports = { syncUser, syncItem, refreshAccounts, mapCategory, findItem };
+module.exports = { syncUser, syncItem, refreshAccounts, writeSnapshot, mapCategory, findItem, groupOf };

@@ -11,10 +11,13 @@ function table(name) {
   return clients[name];
 }
 
+let ensured = false;
 async function ensureTables() {
-  for (const name of ["users", "sessions", "items", "txns", "invites", "accounts"]) {
+  if (ensured) return;
+  for (const name of ["users", "sessions", "items", "txns", "invites", "accounts", "tokens", "snapshots"]) {
     try { await table(name).createTable(); } catch (e) { /* already exists */ }
   }
+  ensured = true;
 }
 
 async function getEntity(tableName, pk, rk) {
@@ -33,6 +36,16 @@ async function listEntities(tableName, filter) {
   return out;
 }
 
+// One page of entities. Returns { items, continuation } — pass continuation back for the next page.
+async function listPage(tableName, filter, pageSize, continuation) {
+  const iter = table(tableName)
+    .listEntities(filter ? { queryOptions: { filter } } : undefined)
+    .byPage({ maxPageSize: pageSize, continuationToken: continuation || undefined });
+  const page = await iter.next();
+  const items = page.value ? Array.from(page.value) : [];
+  return { items, continuation: (page.value && page.value.continuationToken) || null };
+}
+
 async function deleteEntity(tableName, pk, rk) {
   try { await table(tableName).deleteEntity(pk, rk); return true; } catch (e) { return false; }
 }
@@ -44,4 +57,4 @@ function clean(obj) {
   return out;
 }
 
-module.exports = { table, ensureTables, getEntity, listEntities, deleteEntity, clean };
+module.exports = { table, ensureTables, getEntity, listEntities, listPage, deleteEntity, clean };

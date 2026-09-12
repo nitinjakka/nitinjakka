@@ -1,9 +1,10 @@
 const { jsonRes, errRes } = require("../shared/plaid");
 const { ensureTables, listEntities, getEntity } = require("../shared/db");
 const { requireAuth, canView } = require("../shared/auth");
+const { configured } = require("../shared/email");
 
-// Profile + linked banks + every individual account (with balances) + sharing info.
-// POST { owner_id? } — with owner_id (someone who invited you) returns THEIR accounts instead.
+// Profile + linked banks + every individual account (with balances) + net-worth snapshots + sharing info.
+// POST { owner_id? } — with owner_id (someone who invited you) returns THEIR accounts/snapshots instead.
 module.exports = async function (context, req) {
   try {
     await ensureTables();
@@ -32,13 +33,19 @@ module.exports = async function (context, req) {
       seen.add(i.partitionKey); return true;
     });
 
-    const items = await listEntities("items", `PartitionKey eq '${ownerId}'`);
-    const accounts = await listEntities("accounts", `PartitionKey eq '${ownerId}'`);
+    const [items, accounts, snapshots] = await Promise.all([
+      listEntities("items", `PartitionKey eq '${ownerId}'`),
+      listEntities("accounts", `PartitionKey eq '${ownerId}'`),
+      listEntities("snapshots", `PartitionKey eq '${ownerId}'`),
+    ]);
+    snapshots.sort((a, b) => String(a.rowKey).localeCompare(String(b.rowKey)));
 
     jsonRes(context, 200, {
       email: user.email,
       userId: user.userId,
       phone: (u && u.phone) || "",
+      emailVerified: !!(u && u.emailVerified),
+      emailConfigured: configured(),
       twoFA: !!(u && u.totpSecret),
       plaidEnv: process.env.PLAID_ENV || "sandbox",
       invited: myInvites.map(i => i.viewerEmail || i.viewerPhone || i.rowKey),
@@ -57,13 +64,18 @@ module.exports = async function (context, req) {
         institution: a.institution || "Bank",
         name: a.name,
         officialName: a.officialName || "",
-        mask: a.mask || "",
+        mask: a.mask == null ? "" : String(a.mask),
         type: a.type || "other",
         subtype: a.subtype || "",
         current: typeof a.current === "number" ? a.current : 0,
         available: typeof a.available === "number" ? a.available : null,
         limit: typeof a.limit === "number" ? a.limit : null,
         updatedAt: a.updatedAt || "",
+      })),
+      snapshots: snapshots.slice(-400).map(s => ({
+        date: s.rowKey, assets: s.assets || 0, debts: s.debts || 0, net: s.net || 0,
+        checking: s.checking || 0, savings: s.savings || 0, credit: s.credit || 0,
+        investment: s.investment || 0, loan: s.loan || 0,
       })),
     });
   } catch (e) {

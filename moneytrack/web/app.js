@@ -1,4 +1,4 @@
-/* MoneyTrack — Rocket Money style prototype (v7).
+/* MoneyTrack — Rocket Money style prototype (v8).
    Frontend: static site. Backend: Azure Functions + Table Storage + Plaid.
    Local data (manual txns, budgets, recurring, manual accounts, categories, rules) stays in localStorage.
    Bank accounts + transactions live server-side per signed-in user; edits to bank transactions
@@ -90,6 +90,9 @@ let viewMonth = "";        // month shown on Dashboard / Spending / Budgets (YYY
 let barsEnd = "";          // last month shown on the income-vs-spending bars
 let txFilters = { q: "", cat: "", type: "", src: "", accounts: [], month: "" };
 let includeBills = true;
+let barsRange = 6;         // months shown on the income-vs-spending bars
+let sidebarOpen = false;
+try { barsRange = Number(localStorage.getItem("moneyTrack.barsRange") || 6) || 6; } catch (e) {}
 
 /* ================= API ================= */
 
@@ -109,12 +112,25 @@ async function refreshServer() {
   if (!session) { me = null; bankTxns = []; return; }
   try {
     const ownerArg = viewingAs ? { owner_id: viewingAs.ownerId } : {};
-    const [profile, data] = await Promise.all([api("me", ownerArg), api("get_transactions", ownerArg)]);
+    const [profile, txns] = await Promise.all([api("me", ownerArg), fetchAllTransactions(ownerArg)]);
     me = profile;
-    bankTxns = data.transactions.map(t => ({ ...t, source: "bank" }));
+    bankTxns = txns;
+    recordLocalSnapshot();
   } catch (e) {
     if (session) toast(e.message);
   }
+}
+
+// Pages through get_transactions until the server says there is no more.
+async function fetchAllTransactions(ownerArg) {
+  const out = [];
+  let continuation = null, guard = 0;
+  do {
+    const data = await api("get_transactions", { ...ownerArg, page_size: 1000, continuation });
+    for (const t of data.transactions) out.push({ ...t, source: "bank" });
+    continuation = data.continuation || null;
+  } while (continuation && guard++ < 50);
+  return out;
 }
 
 function logout(redraw = true) {
@@ -141,6 +157,8 @@ function emptyData() {
     categories: DEFAULT_CATEGORIES.map(c => ({ ...c })),
     rules: DEFAULT_RULES.map(r => ({ ...r })),
     aliases: {},   // { "Old category name": "New name" } — keeps renamed categories in sync with server data
+    recurringIgnored: [], // merchant keys the user marked "not recurring"
+    manualSnapshots: {},  // { "YYYY-MM-DD": { assets, debts } } — manual accounts, recorded daily in this browser
   };
 }
 
@@ -340,10 +358,35 @@ function netWorth(accts = allAccounts()) {
   for (const a of accts) { if (GROUPS[a.group] && GROUPS[a.group].debt) debts += a.balance; else assets += a.balance; }
   return { assets, debts, net: assets - debts };
 }
+// Bank account names come back with ®/™, mojibake and boilerplate ("CARD ...7564") — tidy them.
+function cleanName(n) {
+  return String(n || "")
+    .replace(/[\u00AE\u2122\u2120\uFFFD\u00A9]/g, "")
+    .replace(/\(TM\)|\(R\)/gi, "")
+    .replace(/\s*\.{2,}\s*\d{3,4}\b/g, "")
+    .replace(/\s+-\s+\d{4}$/, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+// Manual accounts only live in this browser, so their history is recorded here once a day.
+function recordLocalSnapshot() {
+  if (viewingAs || !state) return;
+  const today = todayISO();
+  let assets = 0, debts = 0;
+  for (const a of state.accounts) { if (GROUPS[a.type] && GROUPS[a.type].debt) debts += a.balance; else assets += a.balance; }
+  const prev = state.manualSnapshots[today];
+  if (prev && prev.assets === assets && prev.debts === debts) return;
+  state.manualSnapshots[today] = { assets, debts };
+  const keys = Object.keys(state.manualSnapshots).sort();
+  while (keys.length > 400) delete state.manualSnapshots[keys.shift()];
+  save();
+}
+
 function accountName(accountId) {
   if (!accountId) return "Manual";
   const a = allAccounts().find(x => x.id === accountId);
-  return a ? `${a.name}${a.mask ? " ••" + a.mask : ""}` : "Bank";
+  return a ? `${cleanName(a.name)}${a.mask ? " ••" + a.mask : ""}` : "Bank";
 }
 
 function destroyCharts() {
@@ -355,6 +398,88 @@ if (window.Chart) {
   Chart.defaults.color = "#8b8fa8";
   Chart.defaults.borderColor = "#2a2c45";
   Chart.defaults.font.family = '"Segoe UI", system-ui, sans-serif';
+}
+
+/* ================= Recurring detection ================= */
+
+const CADENCE = {
+  weekly:   { days: 7,   label: "weekly",   perMonth: 52 / 12 },
+  biweekly: { days: 14,  label: "every 2 weeks", perMonth: 26 / 12 },
+  monthly:  { days: 30,  label: "monthly",  perMonth: 1 },
+  quarterly:{ days: 91,  label: "quarterly", perMonth: 1 / 3 },
+  yearly:   { days: 365, label: "yearly",   perMonth: 1 / 12 },
+};
+function classifyGap(g) {
+  if (g >= 6 && g <= 8) return "weekly";
+  if (g >= 13 && g <= 15) return "biweekly";
+  if (g >= 27 && g <= 33) return "monthly";
+  if (g >= 84 && g <= 98) return "quarterly";
+  if (g >= 355 && g <= 375) return "yearly";
+  return null;
+}
+function addDays(iso, n) { const d = new Date(iso + "T12:00:00"); d.setDate(d.getDate() + n); return isoOf(d); }
+function addMonthsISO(iso, n) { const d = new Date(iso + "T12:00:00"); const day = d.getDate(); d.setDate(1); d.setMonth(d.getMonth() + n); d.setDate(Math.min(day, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate())); return isoOf(d); }
+function nextAfter(iso, cadence) {
+  return cadence === "monthly" ? addMonthsISO(iso, 1) : cadence === "quarterly" ? addMonthsISO(iso, 3) : cadence === "yearly" ? addMonthsISO(iso, 12) : addDays(iso, CADENCE[cadence].days);
+}
+function merchantKey(name) {
+  return cleanName(name).toLowerCase().replace(/\b(pos|debit|credit|card|purchase|payment|online|recurring|ach|web|pmt|autopay|des|id)\b/g, " ")
+    .replace(/[#*][\w-]*/g, " ").replace(/\d{1,2}\/\d{1,2}(\/\d{2,4})?/g, " ").replace(/[^a-z&' ]+/g, " ").replace(/\s+/g, " ").trim().split(" ").slice(0, 3).join(" ");
+}
+const median = (arr) => { const a = [...arr].sort((x, y) => x - y); const m = Math.floor(a.length / 2); return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2; };
+
+// Finds charges that repeat on a regular cadence with a stable amount (bills, subscriptions, paychecks).
+function detectRecurring(txns = getTxns()) {
+  const groups = {};
+  for (const t of txns) {
+    if (t.pending || catKind(t.cat) === "transfer") continue;
+    const k = merchantKey(t.name) || merchantKey(t.originalName);
+    if (!k) continue;
+    (groups[k] ||= []).push(t);
+  }
+  const today = todayISO();
+  const out = [];
+  for (const [key, list] of Object.entries(groups)) {
+    // one per day (several coffees the same day are not a bill)
+    const byDay = {}; for (const t of list) byDay[t.date] = t;
+    const sorted = Object.values(byDay).sort((a, b) => a.date.localeCompare(b.date));
+    if (sorted.length < 2) continue;
+    const gaps = []; for (let i = 1; i < sorted.length; i++) gaps.push(daysUntil(sorted[i].date) - daysUntil(sorted[i - 1].date));
+    const cadence = classifyGap(median(gaps));
+    if (!cadence) continue;
+    const exp = CADENCE[cadence].days;
+    const tol = cadence === "weekly" ? 1 : Math.max(3, exp * 0.12);
+    const okGaps = gaps.filter(g => Math.abs(g - exp) <= tol).length;
+    if (okGaps / gaps.length < 0.6) continue;
+    const amts = sorted.map(t => t.amount), medAmt = median(amts);
+    const stable = amts.filter(a => Math.abs(a - medAmt) <= Math.max(2, medAmt * 0.25)).length / amts.length;
+    if (stable < 0.6) continue;
+    if (sorted.length === 2 && Math.abs(amts[0] - amts[1]) > 0.02 * medAmt) continue;
+    const last = sorted[sorted.length - 1];
+    const sinceLast = -daysUntil(last.date);
+    const active = sinceLast <= exp * 2.2;
+    let next = nextAfter(last.date, cadence), guard = 0;
+    while (next < today && guard++ < 60) next = nextAfter(next, cadence);
+    out.push({
+      id: "auto:" + key, key, name: last.name, category: last.cat, amount: medAmt, type: last.type,
+      cadence, cadenceLabel: CADENCE[cadence].label, perMonth: medAmt * CADENCE[cadence].perMonth,
+      lastDate: last.date, nextDue: next, count: sorted.length, active, source: "auto",
+      accountId: last.accountId,
+    });
+  }
+  return out;
+}
+
+// Manual recurring entries + detected ones (minus the ones the user dismissed), sorted by next due.
+function allRecurring() {
+  const manual = state.recurring.map(r => ({
+    ...r, key: "manual:" + r.id, cadenceLabel: r.cadence, type: "expense", source: "manual", active: true,
+    perMonth: r.amount * (r.cadence === "yearly" ? 1 / 12 : r.cadence === "weekly" ? 52 / 12 : 1),
+  }));
+  const ignored = new Set(state.recurringIgnored);
+  const manualKeys = new Set(manual.map(r => merchantKey(r.name)));
+  const auto = detectRecurring().filter(r => !manualKeys.has(r.key) && (viewingAs || !ignored.has(r.key)));
+  return [...manual, ...auto].sort((a, b) => (a.active === b.active ? a.nextDue.localeCompare(b.nextDue) : a.active ? -1 : 1));
 }
 
 /* ================= Sync ================= */
@@ -409,6 +534,8 @@ async function waitForInitialTransactions(before) {
 const ROUTES = {
   dashboard: renderDashboard,
   transactions: renderTransactions,
+  categories: renderCategories,
+  ask: renderAsk,
   recurring: renderRecurring,
   spending: renderSpending,
   budgets: renderBudgets,
@@ -432,6 +559,18 @@ function render() {
 
   const route = currentRoute();
   document.querySelectorAll("nav a").forEach(a => a.classList.toggle("active", a.getAttribute("href") === "#" + route));
+  document.body.classList.remove("nav-open"); sidebarOpen = false;
+  if (me && me.emailVerified === false && !viewingAs) {
+    main.appendChild(el(`
+      <div class="card banner">
+        <span>✉️ Please verify your email address — check your inbox for the MoneyTrack link.</span>
+        <button class="btn ghost" id="btnResendVerify">Resend email</button>
+      </div>`));
+    main.querySelector("#btnResendVerify").onclick = async (e) => {
+      e.target.disabled = true;
+      try { await api("resend_verification"); toast("Verification email sent"); } catch (err) { toast(err.message); e.target.disabled = false; }
+    };
+  }
   if (viewingAs) {
     main.appendChild(el(`
       <div class="card" style="border-color:#7c5cff;display:flex;align-items:center;gap:12px;justify-content:space-between">
@@ -567,6 +706,7 @@ function renderAuth(main) {
         <p class="tiny muted" style="margin-top:14px;text-align:center">
           <span id="authToggleText">No account?</span>
           <a href="#" id="authToggle" style="color:#7c5cff">Create one</a>
+          · <a href="#" id="authForgot" style="color:#7c5cff">Forgot password?</a>
         </p>
         <p class="tiny muted" id="authError" style="color:#ff5c7a;margin-top:10px;text-align:center"></p>
         <p class="tiny muted" style="margin-top:12px;text-align:center">By signing up or logging in you agree to the <a href="privacy.html" target="_blank" style="color:#7c5cff">Privacy Policy</a></p>
@@ -584,6 +724,7 @@ function renderAuth(main) {
     document.getElementById("phoneField").style.display = mode === "signup" ? "" : "none";
     toggle.textContent = mode === "login" ? "Create one" : "Sign in";
   };
+  document.getElementById("authForgot").onclick = (e) => { e.preventDefault(); forgotPasswordForm(); };
   document.getElementById("authForm").onsubmit = async (e) => {
     e.preventDefault();
     const d = new FormData(e.target);
@@ -604,7 +745,7 @@ function renderAuth(main) {
       session = { token: data.token, email: data.email, userId: data.userId };
       saveSession();
       await refreshServer();
-      toast(mode === "signup" ? "Account created — welcome!" : "Welcome back!");
+      toast(mode === "signup" ? (data.verificationSent ? "Account created — check your email to verify it" : "Account created — welcome!") : "Welcome back!");
       render();
       autoSync();
     } catch (err) {
@@ -613,6 +754,44 @@ function renderAuth(main) {
       btn.textContent = mode === "login" ? "Sign in" : "Sign up";
     }
   };
+}
+
+function forgotPasswordForm() {
+  const f = el(`<form>
+    <p class="tiny muted" style="margin-bottom:12px">Enter your account email and we'll send a link to choose a new password.</p>
+    ${field("Email", `<input name="email" type="email" required placeholder="you@example.com">`)}
+    ${formActions("Send reset link")}</form>`);
+  wireForm(f, async (d) => {
+    try { const r = await api("request_password_reset", { email: d.get("email") }); closeModal(); toast(r.message || "Reset link sent"); }
+    catch (e) { toast(e.message); }
+  });
+  openModal("Reset password", f);
+}
+
+function resetPasswordForm(token) {
+  const f = el(`<form>
+    ${field("New password", `<input name="password" type="password" required minlength="8" placeholder="min 8 characters">`)}
+    ${field("Confirm", `<input name="confirm" type="password" required minlength="8">`)}
+    ${formActions("Set password")}</form>`);
+  wireForm(f, async (d) => {
+    if (d.get("password") !== d.get("confirm")) { toast("Passwords don't match"); return; }
+    try { const r = await api("reset_password", { token, password: d.get("password") }); closeModal(); toast(`Password updated for ${r.email} — sign in`); }
+    catch (e) { toast(e.message); }
+  });
+  openModal("Choose a new password", f);
+}
+
+// Handles ?verify=TOKEN and ?reset=TOKEN links from emails (query string is cleared afterwards).
+async function handleEmailLinks() {
+  const q = new URLSearchParams(location.search);
+  const verify = q.get("verify"), reset = q.get("reset");
+  if (!verify && !reset) return;
+  history.replaceState(null, "", location.pathname + location.hash);
+  if (verify) {
+    try { const r = await api("verify_email", { token: verify }); toast(`✅ ${r.email} verified`); if (session) { await refreshServer(); render(); } }
+    catch (e) { toast(e.message); }
+  }
+  if (reset) resetPasswordForm(reset);
 }
 
 /* ================= Dashboard ================= */
@@ -674,13 +853,14 @@ function renderDashboard(main) {
       </div>
       <div class="grid grid-2">
         <div class="card">
-          <div class="card-head"><div class="card-title">Upcoming <span class="pill">next 7 days</span></div></div>
+          <div class="card-head"><div class="card-title">Upcoming <span class="pill">next 7 days</span></div><a href="#recurring" class="tiny" style="color:#7c5cff">All recurring →</a></div>
           <div class="upcoming-total" id="upcomingTotal"></div>
           <div class="list" id="dashBills"></div>
         </div>
         <div class="card">
           <div class="card-title">Recent transactions</div>
           <div class="list" id="dashRecent"></div>
+          <button class="btn ghost block" id="btnSeeAllTxns" style="margin-top:12px">See all transactions →</button>
         </div>
       </div>
       <div class="card" id="dashBreakdown"></div>
@@ -716,9 +896,9 @@ function renderDashboard(main) {
     syncBox.querySelector("#dashSyncNow").onclick = (e) => { e.preventDefault(); syncBanks(e.target); };
   }
 
+  document.getElementById("btnSeeAllTxns").onclick = () => gotoTransactions({ month: viewMonth });
   const bills = document.getElementById("dashBills");
-  const upcoming = [...state.recurring].filter(r => daysUntil(r.nextDue) <= 7 && daysUntil(r.nextDue) >= -1)
-    .sort((a, b) => a.nextDue.localeCompare(b.nextDue));
+  const upcoming = allRecurring().filter(r => r.active && r.type !== "income" && daysUntil(r.nextDue) <= 7 && daysUntil(r.nextDue) >= -1);
   document.getElementById("upcomingTotal").textContent = upcoming.length
     ? `${upcoming.length} recurring charge${upcoming.length === 1 ? "" : "s"} due within the next 7 days for ${fmt(upcoming.reduce((s, r) => s + r.amount, 0))}`
     : "";
@@ -726,8 +906,8 @@ function renderDashboard(main) {
   for (const r of upcoming.slice(0, 7)) {
     bills.appendChild(el(`
       <div class="list-row">
-        <div class="row-icon">🔁</div>
-        <div class="row-main"><div class="row-title">${esc(r.name)}</div><div class="row-sub">${niceDate(r.nextDue)}</div></div>
+        <div class="row-icon">${r.source === "auto" ? catInfo(r.category).icon : "🔁"}</div>
+        <div class="row-main"><div class="row-title">${esc(r.name)}</div><div class="row-sub">${niceDate(r.nextDue)} · ${esc(r.cadenceLabel)}</div></div>
         ${dueBadge(r.nextDue)}
         <div class="row-amount">${fmt(r.amount)}</div>
       </div>`));
@@ -764,18 +944,23 @@ function renderAccountSummary(wrap) {
     if (!list.length && !["checking", "credit", "savings", "investment"].includes(g)) continue;
     const info = GROUPS[g];
     const total = list.reduce((s, a) => s + a.balance, 0);
+    const sorted = [...list].sort((a, b) => b.balance - a.balance);
+    const active = sorted.filter(a => Math.abs(a.balance) >= 0.005), zero = sorted.filter(a => Math.abs(a.balance) < 0.005);
+    const subRow = (a) => `<div class="sub-row"><span class="sr-name" title="${esc(cleanName(a.name))}"><b>${esc(cleanName(a.name))}</b>${a.mask ? ` <span class="muted">••${esc(a.mask)}</span>` : ""}</span><span class="chip inst">${esc(a.institution)}</span><span class="sr-amt">${fmt(a.balance)}</span></div>`;
     const row = el(`
       <div>
         <div class="list-row">
           <div class="row-icon">${info.icon}</div>
-          <div class="row-main"><div class="row-title">${info.label}</div><div class="row-sub">${list.length ? `${list.length} account${list.length === 1 ? "" : "s"}` : "none"}</div></div>
+          <div class="row-main"><div class="row-title">${info.label}</div><div class="row-sub">${list.length ? `${list.length} account${list.length === 1 ? "" : "s"}${zero.length ? ` · ${zero.length} at $0` : ""}` : "none"}</div></div>
           <div class="row-amount">${list.length ? fmt(total) : `<a href="#accounts" class="tiny" style="color:#7c5cff">Add ⊕</a>`}</div>
           ${list.length ? `<button class="toggle" title="Show accounts">▾</button>` : ""}
         </div>
-        <div class="sub-rows">${list.map(a => `<div class="sub-row"><span><b>${esc(a.name)}</b>${a.mask ? " ••" + esc(a.mask) : ""} <span class="muted">· ${esc(a.institution)}</span></span><span>${fmt(a.balance)}</span></div>`).join("")}</div>
+        <div class="sub-rows">${active.map(subRow).join("")}${zero.length ? `<button class="btn ghost small zero-toggle">Show ${zero.length} zero-balance account${zero.length === 1 ? "" : "s"}</button><div class="zero-rows" hidden>${zero.map(subRow).join("")}</div>` : ""}</div>
       </div>`);
     const tg = row.querySelector(".toggle");
     if (tg) tg.onclick = () => { const s = row.querySelector(".sub-rows"); s.classList.toggle("open"); tg.textContent = s.classList.contains("open") ? "▴" : "▾"; };
+    const zt = row.querySelector(".zero-toggle");
+    if (zt) zt.onclick = () => { const z = row.querySelector(".zero-rows"); z.hidden = !z.hidden; zt.textContent = z.hidden ? `Show ${zero.length} zero-balance account${zero.length === 1 ? "" : "s"}` : "Hide zero-balance accounts"; };
     wrap.appendChild(row);
   }
 }
@@ -965,30 +1150,53 @@ function renderTransactions(main) {
 /* ================= Recurring ================= */
 
 function renderRecurring(main) {
-  const total = state.recurring.reduce((s, r) => s + r.amount, 0);
+  const items = allRecurring();
+  const active = items.filter(r => r.active);
+  const monthly = active.filter(r => r.type !== "income").reduce((s, r) => s + r.perMonth, 0);
+  const today = todayISO();
+  const due7 = active.filter(r => r.type !== "income" && daysUntil(r.nextDue) <= 7).reduce((s, r) => s + r.amount, 0);
+  const due30 = active.filter(r => r.type !== "income" && daysUntil(r.nextDue) <= 30).reduce((s, r) => s + r.amount, 0);
+  const ignored = state.recurringIgnored.length;
   main.appendChild(el(`
     <div>
       <header class="view-header row">
-        <div><h1>Recurring</h1><p class="sub">${state.recurring.length} charges · ${fmt(total)}/month (${fmt0(total * 12)}/year)</p></div>
-        <button class="btn primary" id="btnAddRecurring">+ Add recurring</button>
+        <div><h1>Recurring</h1><p class="sub">${active.length} active · ~${fmt(monthly)}/month (${fmt0(monthly * 12)}/year) · detected automatically from your transactions</p></div>
+        ${!viewingAs ? `<button class="btn primary" id="btnAddRecurring">+ Add manually</button>` : ""}
       </header>
+      <div class="grid grid-3">
+        <div class="card"><div class="stat-label">Monthly recurring</div><div class="stat-value small">${fmt(monthly)}</div></div>
+        <div class="card"><div class="stat-label">Due next 7 days</div><div class="stat-value small">${fmt(due7)}</div></div>
+        <div class="card"><div class="stat-label">Due next 30 days</div><div class="stat-value small">${fmt(due30)}</div></div>
+      </div>
       <div class="card"><div class="list" id="recurringList"></div></div>
+      ${ignored && !viewingAs ? `<p class="tiny muted">${ignored} merchant${ignored === 1 ? "" : "s"} marked as not recurring. <a href="#" id="lnkRestoreIgnored" style="color:#7c5cff">Restore all</a></p>` : ""}
     </div>`));
-  document.getElementById("btnAddRecurring").onclick = addRecurringForm;
+  const addBtn = document.getElementById("btnAddRecurring"); if (addBtn) addBtn.onclick = addRecurringForm;
+  const restore = document.getElementById("lnkRestoreIgnored");
+  if (restore) restore.onclick = (e) => { e.preventDefault(); state.recurringIgnored = []; save(); render(); };
 
   const wrap = document.getElementById("recurringList");
-  const sorted = [...state.recurring].sort((a, b) => a.nextDue.localeCompare(b.nextDue));
-  if (!sorted.length) wrap.appendChild(el(`<div class="empty">No recurring charges yet.</div>`));
-  for (const r of sorted) {
+  if (!items.length) wrap.appendChild(el(`<div class="empty">No recurring charges found yet. They are detected once a merchant shows up at least twice on a regular cadence (weekly / monthly / yearly) with a similar amount — or add one manually.</div>`));
+  for (const r of items) {
+    const isAuto = r.source === "auto";
     const row = el(`
-      <div class="list-row">
-        <div class="row-icon">🔁</div>
-        <div class="row-main"><div class="row-title">${esc(r.name)}</div><div class="row-sub">${r.cadence} · next ${niceDate(r.nextDue)}</div></div>
-        ${dueBadge(r.nextDue)}
-        <div class="row-amount">${fmt(r.amount)}</div>
-        <div class="row-actions"><button class="icon-btn" title="Delete">🗑</button></div>
+      <div class="list-row ${isAuto ? "clickable" : ""}">
+        <div class="row-icon">${isAuto ? catInfo(r.category).icon : "🔁"}</div>
+        <div class="row-main">
+          <div class="row-title">${esc(r.name)} ${isAuto ? `<span class="pill">auto · ${r.count}×</span>` : `<span class="pill">manual</span>`}</div>
+          <div class="row-sub">${esc(r.cadenceLabel)} · ${r.active ? `next ${niceDate(r.nextDue)}` : `last seen ${niceDate(r.lastDate)} — inactive`}${isAuto && r.accountId ? ` · ${esc(accountName(r.accountId))}` : ""}</div>
+        </div>
+        ${r.active ? dueBadge(r.nextDue) : `<span class="due-badge">inactive</span>`}
+        <div class="row-amount ${r.type === "income" ? "green" : ""}">${r.type === "income" ? "+" : ""}${fmt(r.amount)}</div>
+        ${!viewingAs ? `<div class="row-actions"><button class="icon-btn" title="${isAuto ? "Not recurring — hide" : "Delete"}">${isAuto ? "✕" : "🗑"}</button></div>` : ""}
       </div>`);
-    row.querySelector(".icon-btn").onclick = () => { state.recurring = state.recurring.filter(x => x.id !== r.id); save(); render(); toast(`Removed ${r.name}`); };
+    const btn = row.querySelector(".icon-btn");
+    if (btn) btn.onclick = (e) => {
+      e.stopPropagation();
+      if (isAuto) { state.recurringIgnored.push(r.key); save(); render(); toast(`${r.name} marked as not recurring`); }
+      else { state.recurring = state.recurring.filter(x => x.id !== r.id); save(); render(); toast(`Removed ${r.name}`); }
+    };
+    if (isAuto) row.onclick = () => gotoTransactions({ q: r.name });
     wrap.appendChild(row);
   }
 }
@@ -1005,10 +1213,13 @@ function renderSpending(main) {
       </header>
       <div class="card">
         <div class="card-head">
-          <div class="card-title">Income vs spending <span class="pill">6 months</span></div>
-          <div class="bars-nav"><button id="barsPrev" title="Earlier">‹</button><button id="barsNext" title="Later">›</button></div>
+          <div class="card-title">Income vs spending <span class="pill">${barsRange} months</span></div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <div class="range-btns" id="barsRangeBtns">${[3, 6, 12, 24].map(n => `<button class="btn ghost small ${barsRange === n ? "active" : ""}" data-n="${n}">${n}m</button>`).join("")}<input type="number" min="2" max="60" value="${[3, 6, 12, 24].includes(barsRange) ? "" : barsRange}" placeholder="custom" id="barsCustom" style="width:84px;padding:6px 8px"></div>
+            <div class="bars-nav"><button id="barsPrev" title="Earlier">‹</button><button id="barsNext" title="Later">›</button></div>
+          </div>
         </div>
-        <div class="chart-box tall"><canvas id="chartMonthly"></canvas></div>
+        <div class="chart-scroll"><div class="chart-box tall" style="min-width:${Math.max(0, barsRange * 64)}px"><canvas id="chartMonthly"></canvas></div></div>
         <div class="legend"><span><i style="background:#4b5bd6"></i>Income</span><span><i style="background:#8ea2ff"></i>Spending</span><span><i style="background:#0e0f1a;border:1px solid #555"></i>Bills &amp; utilities</span></div>
         <p class="tiny muted" style="margin-top:6px">Click a bar to open that month.</p>
       </div>
@@ -1017,7 +1228,10 @@ function renderSpending(main) {
   document.getElementById("spMonthNav").appendChild(monthNav(viewMonth, (v) => { viewMonth = v; barsEnd = v; render(); }));
 
   const months = [];
-  for (let m = 5; m >= 0; m--) months.push(shiftMonth(barsEnd, -m));
+  for (let m = barsRange - 1; m >= 0; m--) months.push(shiftMonth(barsEnd, -m));
+  const setRange = (n) => { n = Math.max(2, Math.min(60, Math.round(n))); if (!n) return; barsRange = n; try { localStorage.setItem("moneyTrack.barsRange", String(n)); } catch (e) {} render(); };
+  document.querySelectorAll("#barsRangeBtns button").forEach(b => (b.onclick = () => setRange(Number(b.dataset.n))));
+  document.getElementById("barsCustom").onchange = (e) => { if (e.target.value) setRange(Number(e.target.value)); };
   document.getElementById("barsPrev").onclick = () => { barsEnd = shiftMonth(barsEnd, -1); render(); };
   const next = document.getElementById("barsNext");
   next.disabled = barsEnd >= shiftMonth(thisMonth(), 1);
@@ -1141,14 +1355,22 @@ function renderAccounts(main) {
       </div>`);
     const lst = g.querySelector(".list");
     if (!list.length) lst.appendChild(el(`<div class="empty">Accounts not loaded yet — press “Sync now”.</div>`));
-    for (const a of list) {
+    const sortedList = [...list].sort((a, b) => Math.abs(b.balance) - Math.abs(a.balance));
+    const zeros = sortedList.filter(a => Math.abs(a.balance) < 0.005);
+    for (const a of sortedList) {
+      const zero = Math.abs(a.balance) < 0.005;
       lst.appendChild(el(`
-        <div class="list-row">
+        <div class="list-row ${zero ? "zero-acct" : ""}" ${zero ? "hidden" : ""}>
           <div class="row-icon">${GROUPS[a.group].icon}</div>
-          <div class="row-main"><div class="row-title">${esc(a.name)}${a.mask ? ` <span class="muted">••${esc(a.mask)}</span>` : ""}</div>
+          <div class="row-main"><div class="row-title">${esc(cleanName(a.name))}${a.mask ? ` <span class="muted">••${esc(a.mask)}</span>` : ""}</div>
             <div class="row-sub">${esc(a.subtype || a.group)} · ${GROUPS[a.group].label}${a.available != null && a.group !== "credit" ? ` · ${fmt(a.available)} available` : ""}${a.limit ? ` · limit ${fmt0(a.limit)}` : ""}</div></div>
           <div class="row-amount ${GROUPS[a.group].debt ? "" : "green"}">${GROUPS[a.group].debt ? "−" : ""}${fmt(a.balance)}</div>
         </div>`));
+    }
+    if (zeros.length) {
+      const zb = el(`<button class="btn ghost small" style="margin-top:8px">Show ${zeros.length} zero-balance account${zeros.length === 1 ? "" : "s"}</button>`);
+      zb.onclick = () => { const rows = g.querySelectorAll(".zero-acct"); const show = rows[0].hidden; rows.forEach(r => (r.hidden = !show)); zb.textContent = show ? "Hide zero-balance accounts" : `Show ${zeros.length} zero-balance account${zeros.length === 1 ? "" : "s"}`; };
+      lst.appendChild(zb);
     }
     const rm = g.querySelector(".bg-head .btn");
     if (rm) rm.onclick = async () => {
@@ -1209,34 +1431,65 @@ async function connectBank() {
 
 /* ================= Net worth ================= */
 
+// Bank history from server snapshots (written on every sync) + manual-account history from this browser.
+function netWorthSeries() {
+  const bank = (me && me.snapshots) || [];
+  const manual = viewingAs ? {} : state.manualSnapshots;
+  const dates = new Set([...bank.map(s => s.date), ...Object.keys(manual)]);
+  const sortedDates = [...dates].sort();
+  const out = [];
+  let lastBank = null, lastManual = null;
+  const bankByDate = Object.fromEntries(bank.map(s => [s.date, s]));
+  for (const d of sortedDates) {
+    if (bankByDate[d]) lastBank = bankByDate[d];
+    if (manual[d]) lastManual = manual[d];
+    const assets = (lastBank ? lastBank.assets : 0) + (lastManual ? lastManual.assets : 0);
+    const debts = (lastBank ? lastBank.debts : 0) + (lastManual ? lastManual.debts : 0);
+    out.push({ date: d, assets, debts, net: assets - debts });
+  }
+  return out;
+}
+
 function renderNetWorth(main) {
   const accts = allAccounts();
   const nw = netWorth(accts);
+  const series = netWorthSeries();
+  const first = series[0];
+  const change = first ? nw.net - first.net : 0;
   main.appendChild(el(`
     <div>
       <header class="view-header"><h1>Net Worth</h1><p class="sub">Assets minus debts across linked + manual accounts</p></header>
       <div class="grid grid-3">
-        <div class="card"><div class="stat-label">Net worth</div><div class="stat-value">${fmt(nw.net)}</div></div>
+        <div class="card"><div class="stat-label">Net worth</div><div class="stat-value">${fmt(nw.net)}</div>${first ? `<div class="stat-delta ${change >= 0 ? "down" : "up"}">${change >= 0 ? "▲" : "▼"} ${fmt0(Math.abs(change))} since ${niceDate(first.date)}</div>` : ""}</div>
         <div class="card"><div class="stat-label">Total assets</div><div class="stat-value green">${fmt(nw.assets)}</div></div>
         <div class="card"><div class="stat-label">Total debts</div><div class="stat-value red">${fmt(nw.debts)}</div></div>
       </div>
-      <div class="card"><div class="card-title">Trend <span class="pill">simulated history</span></div><div class="chart-box tall"><canvas id="chartNW"></canvas></div></div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Trend <span class="pill">${series.length} daily snapshot${series.length === 1 ? "" : "s"}</span></div><span class="tiny muted">A snapshot is stored every time your banks sync (at least daily when you open the app).</span></div>
+        <div class="chart-box tall"><canvas id="chartNW"></canvas></div>
+      </div>
       <div class="card"><div class="card-title">Breakdown by account</div><div class="chart-box tall"><canvas id="chartAccounts"></canvas></div></div>
     </div>`));
 
   if (window.Chart) {
-    const labels = [], data = [];
-    for (let m = 11; m >= 0; m--) { labels.push(monthLabel(monthISO(-m))); data.push(Math.round(nw.net * (1 - m * 0.018 - (m % 3 === 0 ? 0.01 : 0)))); }
+    const pts = series.length ? series : [{ date: todayISO(), net: nw.net, assets: nw.assets, debts: nw.debts }];
     charts.nw = new Chart(document.getElementById("chartNW"), {
       type: "line",
-      data: { labels, datasets: [{ label: "Net worth", data, borderColor: "#7c5cff", backgroundColor: "#7c5cff22", fill: true, tension: 0.35, pointRadius: 0, borderWidth: 2.5 }] },
-      options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: "#2a2c45" }, ticks: { callback: (v) => fmt0(v) } }, x: { grid: { display: false } } } },
+      data: {
+        labels: pts.map(p => niceDate(p.date)),
+        datasets: [
+          { label: "Net worth", data: pts.map(p => p.net), borderColor: "#7c5cff", backgroundColor: "#7c5cff22", fill: true, tension: 0.3, pointRadius: pts.length > 60 ? 0 : 3, borderWidth: 2.5 },
+          { label: "Assets", data: pts.map(p => p.assets), borderColor: "#2fd67b88", borderDash: [4, 4], pointRadius: 0, borderWidth: 1.5 },
+          { label: "Debts", data: pts.map(p => p.debts), borderColor: "#ff5c7a88", borderDash: [4, 4], pointRadius: 0, borderWidth: 1.5 },
+        ],
+      },
+      options: { maintainAspectRatio: false, interaction: { mode: "index", intersect: false }, plugins: { legend: { display: true, labels: { boxWidth: 10 } }, tooltip: { callbacks: { label: (c) => ` ${c.dataset.label}: ${fmt(c.raw)}` } } }, scales: { y: { grid: { color: "#2a2c45" }, ticks: { callback: (v) => fmt0(v) } }, x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } } } },
     });
     const sorted = [...accts].sort((a, b) => b.balance - a.balance);
     charts.accounts = new Chart(document.getElementById("chartAccounts"), {
       type: "bar",
       data: {
-        labels: sorted.map(a => `${a.name}${a.mask ? " ••" + a.mask : ""}`),
+        labels: sorted.map(a => `${cleanName(a.name)}${a.mask ? " ••" + a.mask : ""}`),
         datasets: [{ data: sorted.map(a => (GROUPS[a.group].debt ? -a.balance : a.balance)), backgroundColor: sorted.map(a => (GROUPS[a.group].debt ? "#ff5c7a" : "#00d4a6")), borderRadius: 6 }],
       },
       options: { indexAxis: "y", maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: "#2a2c45" }, ticks: { callback: (v) => fmt0(v) } }, y: { grid: { display: false } } } },
@@ -1255,9 +1508,15 @@ function renderSettings(main) {
       <header class="view-header"><h1>Settings</h1><p class="sub">Signed in as ${esc(session.email)}</p></header>
 
       <div class="card">
-        <div class="card-head"><div class="card-title">🏷️ Categories</div><button class="btn primary" id="btnAddCat">+ Add category</button></div>
-        <p class="tiny muted" style="margin-bottom:12px">Click a category to rename it, change its icon/colour, or mark it as a bill. Deleting one moves its transactions to “Other”.</p>
-        <div class="cat-grid" id="catGrid"></div>
+        <div class="card-head"><div class="card-title">🏷️ Categories</div><a href="#categories" class="btn ghost">Open Categories →</a></div>
+        <p class="tiny muted">Categories now live under Transactions → Categories (counts, totals, add / edit / delete).</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">✉️ Email <span class="pill">${me && me.emailVerified ? "verified" : "not verified"}</span></div>
+        <p class="tiny muted" style="margin-bottom:${me && me.emailVerified ? "0" : "10px"}">${esc(session.email)}${me && me.emailVerified ? " is verified." : " has not been verified yet."}</p>
+        ${me && !me.emailVerified ? `<button class="btn primary" id="btnResendVerify2">Resend verification email</button>` : ""}
+        ${me && !me.emailConfigured ? `<p class="tiny err" style="margin-top:8px">Email sending is not configured on the server.</p>` : ""}
       </div>
 
       <div class="card">
@@ -1313,24 +1572,8 @@ function renderSettings(main) {
       </div>
     </div>`));
 
-  // categories
-  const grid = document.getElementById("catGrid");
-  const counts = {};
-  for (const t of getTxns()) counts[t.cat] = (counts[t.cat] || 0) + 1;
-  for (const c of cats()) {
-    const tile = el(`
-      <div class="cat-tile" style="cursor:pointer" title="Edit">
-        <span class="row-icon" style="width:32px;height:32px;font-size:16px;background:${c.color}22">${c.icon}</span>
-        <span class="sw" style="background:${c.color}"></span>
-        <span class="nm">${esc(c.name)}<div class="tag">${counts[c.name] || 0} txns${c.bill ? " · bill" : ""}${c.kind && c.kind !== "expense" ? " · " + c.kind : ""}</div></span>
-        ${c.name !== "Other" ? `<button class="icon-btn" title="Delete">🗑</button>` : ""}
-      </div>`);
-    tile.onclick = () => categoryForm(c);
-    const del = tile.querySelector(".icon-btn");
-    if (del) del.onclick = (e) => { e.stopPropagation(); deleteCategory(c); };
-    grid.appendChild(tile);
-  }
-  document.getElementById("btnAddCat").onclick = () => categoryForm(null);
+  const rv = document.getElementById("btnResendVerify2");
+  if (rv) rv.onclick = async () => { rv.disabled = true; try { await api("resend_verification"); toast("Verification email sent"); } catch (e) { toast(e.message); rv.disabled = false; } };
 
   // rules
   const rl = document.getElementById("ruleList");
@@ -1470,6 +1713,181 @@ function renderTfaBox() {
       } catch (err) { toast(err.message); }
     };
   }
+}
+
+/* ================= Categories (sub-tab of Transactions) ================= */
+
+function renderCategories(main) {
+  const m = viewMonth, lm = shiftMonth(m, -1);
+  const txns = getTxns();
+  const inMonth = txns.filter(t => monthOf(t.date) === m);
+  const counts = {}, totals = {}, prevTotals = {}, allCounts = {};
+  for (const t of txns) allCounts[t.cat] = (allCounts[t.cat] || 0) + 1;
+  for (const t of inMonth) { counts[t.cat] = (counts[t.cat] || 0) + 1; totals[t.cat] = (totals[t.cat] || 0) + (t.type === "income" ? t.amount : -t.amount); }
+  for (const t of txns) if (monthOf(t.date) === lm) prevTotals[t.cat] = (prevTotals[t.cat] || 0) + (t.type === "income" ? t.amount : -t.amount);
+  const list = [...cats()].sort((a, b) => Math.abs(totals[b.name] || 0) - Math.abs(totals[a.name] || 0));
+  main.appendChild(el(`
+    <div>
+      <header class="view-header row">
+        <div><h1>Categories</h1><p class="sub"><a href="#transactions" style="color:#7c5cff">Transactions</a> › Categories · ${cats().length} categories</p></div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><div id="catMonthNav"></div>${!viewingAs ? `<button class="btn primary" id="btnAddCat">+ Add category</button>` : ""}</div>
+      </header>
+      <p class="tiny muted" style="margin:-10px 0 14px">Tap a category to see its transactions for ${monthLabel(m, true)}. Use ✎ to rename, recolour, change the icon or mark it as a bill; 🗑 moves its transactions to “Other”.</p>
+      <div class="card"><div class="list" id="catRows"></div></div>
+    </div>`));
+  document.getElementById("catMonthNav").appendChild(monthNav(viewMonth, (v) => { viewMonth = v; render(); }));
+  const addBtn = document.getElementById("btnAddCat"); if (addBtn) addBtn.onclick = () => categoryForm(null);
+  const wrap = document.getElementById("catRows");
+  for (const c of list) {
+    const tot = totals[c.name] || 0, prev = prevTotals[c.name] || 0;
+    const chg = prev ? Math.round(((Math.abs(tot) - Math.abs(prev)) / Math.abs(prev)) * 100) : null;
+    const row = el(`
+      <div class="list-row clickable">
+        <div class="row-icon" style="background:${c.color}22">${c.icon}</div>
+        <div class="row-main">
+          <div class="row-title">${esc(c.name)}${c.bill ? ' <span class="pill">bill</span>' : ""}${c.kind && c.kind !== "expense" ? ` <span class="pill">${c.kind}</span>` : ""}</div>
+          <div class="row-sub">${counts[c.name] || 0} in ${monthLabel(m)} · ${allCounts[c.name] || 0} all time${chg !== null ? ` · <span class="chg ${(c.kind === "income" ? chg >= 0 : chg <= 0) ? "down" : "up"}">${chg <= 0 ? "↓" : "↑"} ${Math.abs(chg)}% vs ${monthLabel(lm)}</span>` : ""}</div>
+        </div>
+        <div class="row-amount ${tot > 0 ? "green" : ""}">${tot ? (tot > 0 ? "+" : "−") + fmt(Math.abs(tot)) : "—"}</div>
+        ${!viewingAs ? `<div class="row-actions"><button class="icon-btn" title="Edit">✎</button>${c.name !== "Other" ? `<button class="icon-btn" title="Delete">🗑</button>` : ""}</div>` : ""}
+      </div>`);
+    row.onclick = () => gotoTransactions({ cat: c.name, month: m });
+    const btns = row.querySelectorAll(".icon-btn");
+    if (btns[0]) btns[0].onclick = (e) => { e.stopPropagation(); categoryForm(c); };
+    if (btns[1]) btns[1].onclick = (e) => { e.stopPropagation(); deleteCategory(c); };
+    wrap.appendChild(row);
+  }
+}
+
+/* ================= Ask (smart search) ================= */
+
+const MONTHS = ["january","february","march","april","may","june","july","august","september","october","november","december"];
+
+// Turns a natural-language question into { from, to, label, cat, merchant, account, type, metric }.
+function parseQuestion(q) {
+  const text = q.toLowerCase().replace(/[?!.,]/g, " ").replace(/\s+/g, " ").trim();
+  const today = todayISO(), tm = thisMonth();
+  const monthRange = (ym) => ({ from: ym + "-01", to: ym + "-" + pad(daysInMonth(ym)), label: monthLabel(ym, true) });
+  let range = null;
+  let m;
+  if (/\b(this|current) month\b/.test(text)) range = monthRange(tm);
+  else if (/\b(last|previous|past) month\b/.test(text)) range = monthRange(shiftMonth(tm, -1));
+  else if ((m = text.match(/\b(last|past) (\d+) months?\b/))) { const n = Number(m[2]); range = { from: shiftMonth(tm, -n) + "-01", to: today, label: `the last ${n} months` }; }
+  else if (/\b(last|past) (week|7 days)\b/.test(text)) range = { from: todayISO(-7), to: today, label: "the last 7 days" };
+  else if ((m = text.match(/\b(last|past) (\d+) days\b/))) range = { from: todayISO(-Number(m[2])), to: today, label: `the last ${m[2]} days` };
+  else if (/\byesterday\b/.test(text)) range = { from: todayISO(-1), to: todayISO(-1), label: "yesterday" };
+  else if (/\btoday\b/.test(text)) range = { from: today, to: today, label: "today" };
+  else if (/\bthis year\b/.test(text)) range = { from: today.slice(0, 4) + "-01-01", to: today, label: "this year" };
+  else if (/\blast year\b/.test(text)) { const y = Number(today.slice(0, 4)) - 1; range = { from: `${y}-01-01`, to: `${y}-12-31`, label: String(y) }; }
+  else if ((m = text.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\b(?:\s+(\d{4}))?/))) {
+    const idx = MONTHS.findIndex(x => x.startsWith(m[1].slice(0, 3)));
+    let y = m[2] ? Number(m[2]) : Number(today.slice(0, 4));
+    let ym = `${y}-${pad(idx + 1)}`;
+    if (!m[2] && ym > tm) ym = `${y - 1}-${pad(idx + 1)}`;
+    range = monthRange(ym);
+  }
+  else if ((m = text.match(/\b(20\d{2})\b/))) range = { from: `${m[1]}-01-01`, to: `${m[1]}-12-31`, label: m[1] };
+
+  let cat = null;
+  for (const c of cats()) { const n = c.name.toLowerCase(); if (new RegExp("\\b" + n.replace(/[^a-z ]/g, "") + "\\b").test(text) || (n.endsWith("s") && new RegExp("\\b" + n.slice(0, -1) + "\\b").test(text))) { cat = c.name; break; } }
+  if (!cat) { const alias = { grocery: "Groceries", food: "Dining", restaurant: "Dining", eating: "Dining", gas: "Transport", fuel: "Transport", rent: "Housing", bills: null, subscription: "Subscriptions", medical: "Health", doctor: "Health", flight: "Travel", hotel: "Travel", amazon: null }; for (const [k, v] of Object.entries(alias)) if (v && new RegExp("\\b" + k).test(text)) { cat = v; break; } }
+
+  let merchant = null;
+  if ((m = text.match(/\b(?:at|on|from|to|with|for)\s+([a-z0-9&'\-\. ]+?)(?=\s+(?:in|during|last|this|past|since|between|on|for|over)\b|$)/))) {
+    const cand = m[1].trim();
+    const stop = ["the", "my", "me", "cards", "card", "credit", "checking", "savings", "everything", "all", "groceries", "food"];
+    if (cand && !stop.includes(cand) && !cats().some(c => c.name.toLowerCase() === cand) && !MONTHS.some(x => x.startsWith(cand.slice(0, 3)) && cand.length <= 9)) merchant = cand;
+  }
+  if ((m = text.match(/"([^"]+)"/))) merchant = m[1];
+
+  let account = null;
+  for (const a of allAccounts()) { const n = cleanName(a.name).toLowerCase(); if (n && n.length > 3 && text.includes(n)) { account = a; break; } if (a.mask && text.includes(String(a.mask))) { account = a; break; } }
+
+  let metric = "spend";
+  if (/\b(owe|debt|card balance|credit card balance|balance on my card|how much .* cards?)\b/.test(text)) metric = "owe";
+  else if (/\bnet worth\b/.test(text)) metric = "networth";
+  else if (/\b(balance|how much (do i|is) (have|in))\b/.test(text) && !cat) metric = "balance";
+  else if (/\b(income|earn|earned|made|paid me|paycheck|salary)\b/.test(text)) metric = "income";
+  else if (/\b(biggest|largest|most expensive|top|highest)\b/.test(text)) metric = /categor/.test(text) ? "topcats" : "biggest";
+  else if (/\b(how many|count|number of)\b/.test(text)) metric = "count";
+  else if (/\b(average|avg|per day|per month)\b/.test(text)) metric = "average";
+  else if (/\b(recurring|subscriptions?|bills?)\b/.test(text) && !/\bspen[dt]\b/.test(text)) metric = "recurring";
+  else if (/\b(compare|vs|versus|difference|more or less|than last)\b/.test(text)) metric = "compare";
+  else if (/\b(over|more than|above|greater than|bigger than)\s*\$?(\d+)/.test(text)) metric = "over";
+  else if (/\b(saved?|left over|leftover|savings rate)\b/.test(text)) metric = "leftover";
+  const overAmt = (m = text.match(/\b(?:over|more than|above|greater than|bigger than)\s*\$?(\d+(?:\.\d+)?)/)) ? Number(m[1]) : null;
+  const catTotals = /\b(by category|per category|breakdown|categories)\b/.test(text);
+  return { range, cat, merchant, account, metric, overAmt, catTotals, text };
+}
+
+function answerQuestion(q) {
+  const p = parseQuestion(q);
+  const all = getTxns();
+  const range = p.range || (["owe", "networth", "balance", "recurring"].includes(p.metric) ? null : { from: thisMonth() + "-01", to: todayISO(), label: monthLabel(thisMonth(), true) });
+  let txns = all;
+  if (range) txns = txns.filter(t => t.date >= range.from && t.date <= range.to);
+  if (p.cat) txns = txns.filter(t => t.cat === p.cat);
+  if (p.merchant) { const mk = p.merchant; txns = txns.filter(t => String(t.name).toLowerCase().includes(mk) || String(t.originalName || "").toLowerCase().includes(mk)); }
+  if (p.account) txns = txns.filter(t => t.accountId === p.account.id);
+  const where = [p.merchant ? `at “${p.merchant}”` : null, p.cat ? `in ${p.cat}` : null, p.account ? `on ${cleanName(p.account.name)}` : null, range ? `in ${range.label}` : null].filter(Boolean).join(" ");
+  const spend = txns.filter(isSpend), income = txns.filter(isIncome);
+  const sum = (l) => l.reduce((s, t) => s + t.amount, 0);
+  const sortedSpend = [...spend].sort((a, b) => b.amount - a.amount);
+  let text = "", rows = [];
+  switch (p.metric) {
+    case "owe": { const cards = allAccounts().filter(a => a.group === "credit"); text = `You owe ${fmt(cards.reduce((s, a) => s + a.balance, 0))} across ${cards.length} card${cards.length === 1 ? "" : "s"}` + (allAccounts().some(a => a.group === "loan") ? `, plus ${fmt(groupTotal("loan"))} in loans` : "") + "."; break; }
+    case "networth": { const nw = netWorth(); text = `Your net worth is ${fmt(nw.net)} (${fmt(nw.assets)} assets − ${fmt(nw.debts)} debts).`; break; }
+    case "balance": { const a = p.account ? [p.account] : allAccounts().filter(x => ["checking", "savings"].includes(x.group)); text = a.length ? a.map(x => `${cleanName(x.name)}${x.mask ? " ••" + x.mask : ""}: ${fmt(x.balance)}`).join(" · ") : "No accounts found."; break; }
+    case "income": text = `You earned ${fmt(sum(income))} ${where || "this month"} (${income.length} deposit${income.length === 1 ? "" : "s"}).`; rows = income; break;
+    case "biggest": text = sortedSpend.length ? `Your biggest expense ${where} was ${sortedSpend[0].name} — ${fmt(sortedSpend[0].amount)} on ${niceDate(sortedSpend[0].date)}.` : `No spending found ${where}.`; rows = sortedSpend.slice(0, 10); break;
+    case "topcats": case "spend":
+      if (p.metric === "topcats" || p.catTotals) {
+        const by = {}; for (const t of spend) by[t.cat] = (by[t.cat] || 0) + t.amount;
+        const top = Object.entries(by).sort((a, b) => b[1] - a[1]).slice(0, 8);
+        text = top.length ? `Spending ${where} by category: ` + top.map(([c, v]) => `${c} ${fmt0(v)}`).join(", ") + `. Total ${fmt(sum(spend))}.` : `No spending found ${where}.`;
+      } else text = `You spent ${fmt(sum(spend))} ${where} across ${spend.length} transaction${spend.length === 1 ? "" : "s"}.`;
+      rows = sortedSpend; break;
+    case "count": text = `${txns.length} transaction${txns.length === 1 ? "" : "s"} ${where} (${spend.length} expenses, ${income.length} income).`; rows = txns; break;
+    case "average": { const days = range ? Math.max(1, daysUntil(range.to) - daysUntil(range.from) + 1) : 30; text = `Average spend ${where}: ${fmt(sum(spend) / days)} per day, ${fmt(spend.length ? sum(spend) / spend.length : 0)} per transaction.`; rows = sortedSpend; break; }
+    case "recurring": { const rec = allRecurring().filter(r => r.active && r.type !== "income"); text = `${rec.length} recurring charges, about ${fmt(rec.reduce((s, r) => s + r.perMonth, 0))}/month: ` + rec.slice(0, 10).map(r => `${r.name} ${fmt(r.amount)} ${r.cadenceLabel}`).join(", ") + "."; break; }
+    case "compare": { const cur = p.range ? range : { from: thisMonth() + "-01", to: todayISO(), label: monthLabel(thisMonth(), true) }; const ym = cur.from.slice(0, 7), pm = shiftMonth(ym, -1); const f = (mm) => all.filter(t => monthOf(t.date) === mm && (!p.cat || t.cat === p.cat)); const a = sum(f(ym).filter(isSpend)), b = sum(f(pm).filter(isSpend)), ai = sum(f(ym).filter(isIncome)), bi = sum(f(pm).filter(isIncome)); text = `${monthLabel(ym, true)} vs ${monthLabel(pm, true)}${p.cat ? " (" + p.cat + ")" : ""}: spent ${fmt(a)} vs ${fmt(b)} (${a >= b ? "+" : "−"}${fmt0(Math.abs(a - b))}); income ${fmt(ai)} vs ${fmt(bi)}.`; break; }
+    case "over": { const big = spend.filter(t => t.amount > p.overAmt); text = `${big.length} expense${big.length === 1 ? "" : "s"} over ${fmt0(p.overAmt)} ${where}, totalling ${fmt(sum(big))}.`; rows = big.sort((a, b) => b.amount - a.amount); break; }
+    case "leftover": text = `${where || "This month"}: income ${fmt(sum(income))} − spending ${fmt(sum(spend))} = ${fmt(sum(income) - sum(spend))} left over.`; break;
+  }
+  return { text, rows: rows.slice(0, 25), parsed: p, filters: { q: p.merchant || "", cat: p.cat || "", month: range && range.from.slice(0, 7) === range.to.slice(0, 7) ? range.from.slice(0, 7) : "", accounts: p.account ? [p.account.id] : [] } };
+}
+
+const askHistory = [];
+function renderAsk(main, initialQ) {
+  main.appendChild(el(`
+    <div>
+      <header class="view-header"><h1>Ask MoneyTrack</h1><p class="sub">Ask questions about your money in plain English — answered from your own data, nothing leaves your browser.</p></header>
+      <div class="card">
+        <form id="askForm" style="display:flex;gap:10px"><input name="q" placeholder="e.g. how much did I spend last month" autocomplete="off" style="flex:1"><button class="btn primary" type="submit">Ask</button></form>
+        <div class="chips" style="margin-top:10px" id="askExamples"></div>
+        <div id="askThread"></div>
+      </div>
+    </div>`));
+  const examples = ["how much did I spend last month", "what did I spend on groceries this month", "biggest expense in August", "how much do I owe on my cards", "how much did I earn this year", "spending by category last 3 months", "compare this month vs last month", "expenses over $200 this month", "what are my recurring charges", "what is my net worth"];
+  const ex = document.getElementById("askExamples");
+  for (const e of examples) { const c = el(`<span class="chip" style="cursor:pointer">${esc(e)}</span>`); c.onclick = () => ask(e); ex.appendChild(c); }
+  const thread = document.getElementById("askThread");
+  const draw = () => {
+    thread.innerHTML = "";
+    for (const h of [...askHistory].reverse()) {
+      const box = el(`<div class="ask-item"><div class="ask-q">🧑 ${esc(h.q)}</div><div class="ask-a">💬 ${esc(h.a.text)}</div><div class="list"></div>${h.a.rows.length ? `<button class="btn ghost small" style="margin-top:8px">Open in Transactions →</button>` : ""}</div>`);
+      const list = box.querySelector(".list");
+      for (const t of h.a.rows.slice(0, 8)) list.appendChild(txnRow(t, { actions: false }));
+      if (h.a.rows.length > 8) list.appendChild(el(`<div class="tiny muted" style="padding:6px 4px">…and ${h.a.rows.length - 8} more</div>`));
+      const open = box.querySelector("button"); if (open) open.onclick = () => gotoTransactions(h.a.filters);
+      thread.appendChild(box);
+    }
+  };
+  const ask = (q) => { if (!q.trim()) return; askHistory.push({ q, a: answerQuestion(q) }); if (askHistory.length > 20) askHistory.shift(); draw(); };
+  document.getElementById("askForm").onsubmit = (e) => { e.preventDefault(); ask(e.target.q.value); e.target.q.value = ""; };
+  draw();
+  if (initialQ) ask(initialQ);
+  else document.querySelector("#askForm input").focus();
 }
 
 /* ================= Category management ================= */
@@ -1683,10 +2101,16 @@ document.getElementById("globalSearch").onsubmit = (e) => {
   e.preventDefault();
   if (!session) return;
   const q = e.target.q.value.trim();
-  gotoTransactions({ q });
   e.target.q.value = "";
+  // questions go to Ask, plain words search transactions
+  if (/\b(how|what|which|when|did|do i|am i|compare|biggest|largest|total|average|spent|spend|earn|owe|net worth)\b/i.test(q) || q.split(" ").length > 3) {
+    location.hash = "#ask"; render(); const box = document.getElementById("askForm"); if (box) { box.q.value = q; box.dispatchEvent(new Event("submit")); }
+  } else gotoTransactions({ q });
 };
+document.getElementById("navToggle").onclick = () => { sidebarOpen = !sidebarOpen; document.body.classList.toggle("nav-open", sidebarOpen); };
+document.querySelectorAll(".sidebar nav a").forEach(a => a.addEventListener("click", () => { document.body.classList.remove("nav-open"); sidebarOpen = false; }));
 
 load();
 render();
+handleEmailLinks();
 if (session) refreshServer().then(() => { render(); autoSync(); });

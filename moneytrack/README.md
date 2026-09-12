@@ -7,7 +7,10 @@ A Rocket Money-style budgeting app. Browser-based, personal use, deployed on Azu
 
 ## Features
 
-- **Email signup/login** — email + password (scrypt-hashed), 30-day bearer sessions
+- **Email signup/login** — email + password (scrypt-hashed), 30-day bearer sessions; **email
+  verification** (soft: banner + resend until verified) and **password reset** by emailed link
+  (Resend API, `onboarding@resend.dev` sender → delivers only to the Resend account owner's
+  address until a domain is verified in Resend)
 - **Bank connections via Plaid (production)** — Plaid Link in the Accounts page. Every individual
   account (checking, savings, each card, loans, investments) is stored with its balance; transactions
   are pulled with `/transactions/sync` (up to 730 days of history on a fresh link). Transactions arrive
@@ -22,8 +25,9 @@ A Rocket Money-style budgeting app. Browser-based, personal use, deployed on Azu
   upcoming charges (7 days); recent transactions; spending breakdown
 - **Spending breakdown** — donut with total + % change vs last month in the centre, *Include bills*
   toggle, table of Category / % of spend / Change vs last month / Amount (click → transactions)
-- **Income vs spending bars** — 6 months, bills & utilities stacked on spending, hover tooltip,
-  ‹ › paging back through history, click a bar to open that month
+- **Income vs spending bars** — 3 / 6 / 12 / 24 or custom months (default 6, remembered), bills &
+  utilities stacked on spending, hover tooltip, ‹ › paging, click a bar to open that month; scrolls
+  horizontally on phones
 - **Transactions** — bank + manual combined; global search box in the sidebar; search by name,
   notes, amount, account, date; month navigator (all time / any month); **multi-select account filter**;
   category / type / source filters; grouped by day; **inline category dropdown**; edit modal
@@ -35,11 +39,25 @@ A Rocket Money-style budgeting app. Browser-based, personal use, deployed on Azu
   left as *Other* and for manual entries; user overrides are stored per transaction on the server
 - **Category management** (Settings) — add / rename / recolour / re-icon / delete categories, mark
   categories as bills, income or transfer; rules editor (keyword → category)
-- **Recurring** — subscription list with due-date badges, monthly/annual totals
+- **Recurring** — **auto-detected from bank + manual transactions** (same merchant, regular
+  weekly / biweekly / monthly / quarterly / yearly cadence, stable amount) plus manual entries;
+  next-due badges, monthly/annual totals, "not recurring" dismiss; feeds the dashboard *Upcoming* card
+- **Ask** (smart search) — plain-English questions answered from your own data in the browser:
+  spend / income / biggest expense / by category / compare months / over $X / count / average /
+  recurring / card debt / balances / net worth, with time ranges (last month, July, last 3 months,
+  this year…), category, merchant and account filters; results link into Transactions. The sidebar
+  search box routes questions here automatically
+- **Categories** — sub-tab under Transactions with per-category counts, month totals, change vs
+  last month, tap-through to transactions, add / edit / delete
 - **Budgets** — per-category monthly limits with progress bars, month navigator, edit/delete
 - **Accounts** — linked banks grouped by institution with every account, balance, subtype, last
-  sync, error state and *Remove* (unlink + purge); manual accounts with type
+  sync, error state and *Remove* (unlink + purge); names cleaned (®/™/mojibake stripped), sorted by
+  balance, zero-balance accounts collapsed behind a toggle; manual accounts with type
   (checking/savings/card/investment/loan/other); Assets / Debts / Net worth from both
+- **Net worth history** — real daily snapshots: the server stores one row per day per user on every
+  sync (`snapshots` table, bank accounts); manual-account history is recorded daily in the browser;
+  the trend chart combines both (net / assets / debts)
+- **Mobile layout** — top bar with ☰ menu below 1024 px, single-column cards
 - Manual data (budgets, recurring, manual txns, manual accounts, categories, rules) stays in the
   browser (localStorage); bank accounts/transactions and your edits to them live server-side
 
@@ -51,13 +69,16 @@ Browser (static HTML/JS/CSS, Chart.js, Plaid Link)
    ▼
 Azure Functions  moneytrack-api-nitin  (Linux consumption, Node 22, classic function.json model)
    │  endpoints: signup, login, me, invite, update_profile, enable/confirm/disable_2fa,
-   │             create_link_token, exchange_public_token, sync_transactions, get_transactions,
-   │             update_transaction, remove_bank, plaid_webhook (called by Plaid, not the browser)
+   │             verify_email, resend_verification, request_password_reset, reset_password,
+   │             create_link_token, exchange_public_token, sync_transactions, get_transactions (paged),
+   │             update_transaction, remove_bank, plaid_webhook (called by Plaid, signature-verified)
    ├──► Plaid API (production) — client_id/secret held in Function app settings only
+   ├──► Resend API — RESEND_API_KEY / EMAIL_FROM / APP_URL app settings (key shared with pelosi-monitor)
    └──► Azure Table Storage (same storage account)
           tables: users, sessions, items (Plaid access tokens + cursors + sync status),
                   accounts (one row per bank account, balances), txns (Plaid fields + user* edit
-                  fields + hidden flag), invites (rowKey = email or +phone)
+                  fields + hidden flag), invites (rowKey = email or +phone),
+                  tokens (verify / reset links, expiring), snapshots (daily net worth per user)
 ```
 
 Azure resources (subscription "Subscription 1", resource group `money-tracker-rg`, centralus):
@@ -132,13 +153,32 @@ Nothing is billed per-hour; there is no VM. Going to real banks later means Plai
 - [x] Monthly Income vs Spending bar chart with stacked bills, tooltip, paging arrows
 - [x] Logo/brand click goes to Dashboard; sidebar hidden on the sign-in page
 
+### Open — ALL DONE in v8 (2026-09-12)
+
+- [x] Email verification (soft banner + resend) and password reset (emailed link) — via Resend
+- [x] Plaid webhook signature verification (ES256 JWT, key cached from /webhook_verification_key/get;
+      `PLAID_WEBHOOK_VERIFY=off` app setting disables it for debugging)
+- [x] Net-worth trend from real daily snapshots (server for bank, browser for manual accounts)
+- [x] Recurring detection from bank transactions
+- [x] `get_transactions` paginated (Table Storage continuation tokens, 1000 rows/page — the API max)
+
+### Added 2026-09-11 evening (mobile review of v7) — ALL DONE in v8
+
+- [x] Card Balance list tidied: cleaned names, one line per account, institution chip, sorted by
+      balance, $0 accounts collapsed ("Show N zero-balance accounts") on dashboard and Accounts page
+- [x] Smart search / Ask page (rule-based parser over local data; sidebar search routes questions)
+- [x] Dashboard → "See all transactions" button (opens Transactions for the selected month)
+- [x] Recurring page populated automatically from bank data; dismiss with ✕; Upcoming card uses it
+- [x] Income vs spending range selector (3/6/12/24/custom, default 6, remembered)
+- [x] Transactions → Categories sub-tab with its own screen; sidebar collapses to a top bar on phones
+
 ### Open
 
-- [ ] Email verification, password reset
-- [ ] Plaid webhook signature verification (currently unverified — worst case is an extra sync)
-- [ ] Net-worth trend uses simulated history — store daily balance snapshots server-side
-- [ ] Recurring detection from bank transactions (today recurring items are manual)
-- [ ] `get_transactions` returns everything (cap 10 000) — paginate if it grows
+- [ ] Ask: LLM-backed answers for questions the rule parser can't handle (would need an API key)
+- [ ] Resend: verify a domain so verification / reset emails reach addresses other than the account
+      owner's (today `onboarding@resend.dev` only delivers to nitin.jakka@gmail.com)
+- [ ] Plaid `/transactions/recurring/get` as a higher-quality recurring source (product must be
+      enabled on the Plaid dashboard; extra cost)
 
 ## Going live with real banks (Plaid production)
 
@@ -205,10 +245,31 @@ az functionapp config appsettings set -g money-tracker-rg -n moneytrack-api-niti
     first sync after this deploy populates the accounts table for existing links.
   - Deployed: backend zip-deploy + frontend upload (`?v=7`). Cache-busting: bump `?v=` in index.html.
 
+- **2026-09-12 (v8)** — everything left in the backlog:
+  - Backend: `shared/email.js` (Resend REST), `verify_email` / `resend_verification` /
+    `request_password_reset` / `reset_password` (+ `tokens` table, reset logs out all sessions),
+    `signup` sends a verification email best-effort and records `emailVerified=false`; `me` returns
+    `emailVerified`, `emailConfigured`, `snapshots`; `writeSnapshot()` after every sync/webhook →
+    `snapshots` table; `plaid_webhook` verifies the Plaid-Verification JWT (ES256, body sha256, 5-min
+    iat window) and returns 401 otherwise; `get_transactions` pages with continuation tokens (max
+    1000/page — 2000 made Table Storage return InvalidInput, fixed); app settings added:
+    RESEND_API_KEY (copied from pelosi-monitor-nitin), EMAIL_FROM, APP_URL.
+  - Frontend (app.js ~2100 lines): Ask page + question parser, Categories page, recurring detection
+    (`detectRecurring` / `allRecurring`, ignore list), range selector on bars, real net-worth series
+    (`netWorthSeries`), cleaned account names + zero-balance collapse, See-all button, verify banner /
+    Forgot-password / `?verify=` `?reset=` link handling, phone-first nav (☰), paged transaction fetch.
+  - Verified locally with demo data on every page (desktop + 412 px), Ask answers for 11 sample
+    questions, live-API tests of reset/verify/webhook/paging. Real email delivery only testable with
+    the owner's Gmail (Resend sandbox sender) — not exercised.
+  - Gotchas hit: Python `open(..., newline='\\n')` truncated app.js before failing (restored from the
+    live site); `sed -i` in Git Bash mangles UTF-8 — patch files with Python instead.
+
 ## Security notes (prototype-grade)
 
 - Plaid keys and access tokens never reach the browser (server-side only).
 - Passwords hashed with scrypt + per-user salt; timing-safe comparison.
 - Endpoints are anonymous at the platform level but enforce their own bearer-token auth.
-- Not production-ready: no rate limiting, no email verification, no password reset, sessions
-  don't rotate, CORS is the main browser-side gate. Fine for a personal sandbox prototype.
+- Plaid webhooks are signature-verified; verification / reset tokens are single-use and expire
+  (24 h / 1 h); a password reset invalidates every session.
+- Not production-ready: no rate limiting on auth/email endpoints, sessions don't rotate, CORS is the
+  main browser-side gate. Fine for a personal sandbox prototype.
