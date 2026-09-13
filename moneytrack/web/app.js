@@ -1,4 +1,4 @@
-/* MoneyTrack — Rocket Money style prototype (v8).
+/* MoneyTrack — Rocket Money style prototype (v9).
    Frontend: static site. Backend: Azure Functions + Table Storage + Plaid.
    Local data (manual txns, budgets, recurring, manual accounts, categories, rules) stays in localStorage.
    Bank accounts + transactions live server-side per signed-in user; edits to bank transactions
@@ -642,7 +642,7 @@ function txnRow(t, { actions = true, showAccount = true } = {}) {
     const [editBtn, delBtn] = row.querySelectorAll(".icon-btn");
     editBtn.onclick = (e) => { e.stopPropagation(); editTxnForm(t); };
     delBtn.onclick = (e) => { e.stopPropagation(); deleteTxn(t); };
-    row.onclick = () => editTxnForm(t);
+    row.onclick = () => viewTxn(t);
   }
   return row;
 }
@@ -2000,6 +2000,34 @@ function addTxnForm() {
     save(); closeModal(); location.hash = "#transactions"; render(); toast("Transaction added");
   });
   openModal("Add transaction", f);
+}
+
+// Read-only detail popup — tapping a row opens this; Edit / Delete live inside it.
+function viewTxn(t) {
+  const info = catInfo(t.cat);
+  const income = t.type === "income";
+  const bank = t.source === "bank";
+  const rows = [
+    ["Amount", `<b class="${income ? "pos" : ""}" style="font-size:18px">${income ? "+" : "−"}${fmt(t.amount)}</b>`],
+    ["Date", longDate(t.date)],
+    ["Category", `<span class="row-icon" style="width:26px;height:26px;font-size:14px;display:inline-flex;vertical-align:middle;background:${info.color}22">${info.icon}</span> ${esc(t.cat)}${t.userSet ? ' <span class="pill">set by you</span>' : ""}`],
+    ["Account", esc(accountName(t.accountId))],
+    ["Source", bank ? "🏦 Bank (Plaid)" : "✍️ Manual entry"],
+    bank && t.originalName && t.originalName !== t.name ? ["Bank description", esc(t.originalName)] : null,
+    t.pending ? ["Status", '<span class="pill">pending</span>'] : null,
+    t.notes ? ["Notes", esc(t.notes)] : null,
+  ].filter(Boolean);
+  const body = el(`<div>
+    <div style="font-size:17px;font-weight:600;margin-bottom:14px">${esc(t.name)}</div>
+    <table class="detail-table">${rows.map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join("")}</table>
+    <div class="form-actions between">
+      <button type="button" class="btn danger" data-del>Delete</button>
+      <span style="display:flex;gap:10px"><button type="button" class="btn ghost" data-close>Close</button><button type="button" class="btn primary" data-edit>✎ Edit</button></span>
+    </div></div>`);
+  body.querySelector("[data-close]").onclick = closeModal;
+  body.querySelector("[data-edit]").onclick = () => { closeModal(); editTxnForm(t); };
+  body.querySelector("[data-del]").onclick = () => { closeModal(); deleteTxn(t); };
+  openModal("Transaction", body);
 }
 
 function editTxnForm(t) {

@@ -360,3 +360,7 @@ nav a.sub::before { content: "└"; color: var(--border); margin-right: 2px; }
   .list-row .inline-cat { display: none; }
   .bd-table th:nth-child(3), .bd-table td:nth-child(3) { display: none; }
 }
+.detail-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+.detail-table th { text-align: left; color: var(--muted); font-weight: 500; font-size: 13px; padding: 8px 12px 8px 0; width: 38%; vertical-align: top; border-bottom: 1px solid var(--border); }
+.detail-table td { padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+.detail-table tr:last-child th, .detail-table tr:last-child td { border-bottom: none; }

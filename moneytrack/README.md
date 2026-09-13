@@ -180,6 +180,16 @@ Nothing is billed per-hour; there is no VM. Going to real banks later means Plai
 - [ ] Plaid `/transactions/recurring/get` as a higher-quality recurring source (product must be
       enabled on the Plaid dashboard; extra cost)
 
+### Added 2026-09-12 (mobile review of v8 — not started)
+
+- [ ] Tapping an account row should open that account's transactions. Applies everywhere an account
+      is listed: Accounts page (each account under a linked bank, and manual accounts), the
+      dashboard Accounts summary sub-rows, and the Net Worth breakdown bars. Should land on
+      Transactions pre-filtered to that single account (the multi-select account filter already
+      supports it — `gotoTransactions({ accounts: [id] })`), with the account name shown as a chip.
+      Manual-account rows currently open the edit modal on click, so move editing to the ✎ button
+      only and keep row-tap for drill-through.
+
 ## Going live with real banks (Plaid production)
 
 Code is production-ready; the switch is config-only. Steps **you** must do at https://dashboard.plaid.com:
@@ -263,6 +273,10 @@ az functionapp config appsettings set -g money-tracker-rg -n moneytrack-api-niti
     the owner's Gmail (Resend sandbox sender) — not exercised.
   - Gotchas hit: Python `open(..., newline='\\n')` truncated app.js before failing (restored from the
     live site); `sed -i` in Git Bash mangles UTF-8 — patch files with Python instead.
+
+- **2026-09-12 (v9)** — tapping a transaction row now opens a read-only detail popup (amount, date,
+  category, account, source, bank description, pending, notes) with **Edit** / **Delete** buttons;
+  the ✎ and 🗑 icons on the row still jump straight to edit / delete. `viewTxn()` in app.js.
 
 ## Security notes (prototype-grade)
 
