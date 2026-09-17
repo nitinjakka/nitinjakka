@@ -1,4 +1,4 @@
-/* MoneyTrack — Rocket Money style prototype (v9).
+/* MoneyTrack — Rocket Money style prototype (v10).
    Frontend: static site. Backend: Azure Functions + Table Storage + Plaid.
    Local data (manual txns, budgets, recurring, manual accounts, categories, rules) stays in localStorage.
    Bank accounts + transactions live server-side per signed-in user; edits to bank transactions
@@ -381,6 +381,10 @@ function recordLocalSnapshot() {
   const keys = Object.keys(state.manualSnapshots).sort();
   while (keys.length > 400) delete state.manualSnapshots[keys.shift()];
   save();
+}
+
+function txnCountFor(accountId) {
+  return bankTxns.reduce((n, t) => n + (t.accountId === accountId ? 1 : 0), 0);
 }
 
 function accountName(accountId) {
@@ -946,7 +950,7 @@ function renderAccountSummary(wrap) {
     const total = list.reduce((s, a) => s + a.balance, 0);
     const sorted = [...list].sort((a, b) => b.balance - a.balance);
     const active = sorted.filter(a => Math.abs(a.balance) >= 0.005), zero = sorted.filter(a => Math.abs(a.balance) < 0.005);
-    const subRow = (a) => `<div class="sub-row"><span class="sr-name" title="${esc(cleanName(a.name))}"><b>${esc(cleanName(a.name))}</b>${a.mask ? ` <span class="muted">••${esc(a.mask)}</span>` : ""}</span><span class="chip inst">${esc(a.institution)}</span><span class="sr-amt">${fmt(a.balance)}</span></div>`;
+    const subRow = (a) => `<div class="sub-row clickable" data-acct="${esc(a.id)}" data-src="${a.source}" title="Show transactions for ${esc(cleanName(a.name))}"><span class="sr-name"><b>${esc(cleanName(a.name))}</b>${a.mask ? ` <span class="muted">••${esc(a.mask)}</span>` : ""}</span><span class="chip inst">${esc(a.institution)}</span><span class="sr-amt">${fmt(a.balance)} ›</span></div>`;
     const row = el(`
       <div>
         <div class="list-row">
@@ -961,6 +965,7 @@ function renderAccountSummary(wrap) {
     if (tg) tg.onclick = () => { const s = row.querySelector(".sub-rows"); s.classList.toggle("open"); tg.textContent = s.classList.contains("open") ? "▴" : "▾"; };
     const zt = row.querySelector(".zero-toggle");
     if (zt) zt.onclick = () => { const z = row.querySelector(".zero-rows"); z.hidden = !z.hidden; zt.textContent = z.hidden ? `Show ${zero.length} zero-balance account${zero.length === 1 ? "" : "s"}` : "Hide zero-balance accounts"; };
+    row.querySelectorAll(".sub-row[data-acct]").forEach(sr => (sr.onclick = () => gotoAccountTxns({ id: sr.dataset.acct, source: sr.dataset.src })));
     wrap.appendChild(row);
   }
 }
@@ -1035,6 +1040,10 @@ function renderBreakdown(card, month, txns) {
     tr.onclick = () => gotoTransactions({ cat, month });
     body.appendChild(tr);
   }
+}
+
+function gotoAccountTxns(a) {
+  gotoTransactions({ accounts: [a.source === "manual" ? "__manual" : a.id] });
 }
 
 function gotoTransactions(f) {
@@ -1125,7 +1134,7 @@ function renderTransactions(main) {
     chips.innerHTML = "";
     const chip = (label, onX) => { const c = el(`<span class="chip">${esc(label)} <span class="x">✕</span></span>`); c.querySelector(".x").onclick = onX; chips.appendChild(c); };
     if (f.cat) chip(`Category: ${f.cat}`, () => { txFilters.cat = ""; render(); });
-    if (f.accounts.length) chip(`${f.accounts.length} account(s)`, () => { txFilters.accounts = []; render(); });
+    if (f.accounts.length) chip(f.accounts.length === 1 ? `Account: ${f.accounts[0] === "__manual" ? "Manual transactions" : accountName(f.accounts[0])}` : `${f.accounts.length} accounts`, () => { txFilters.accounts = []; render(); });
     if (f.month) chip(monthLabel(f.month, true), () => { txFilters.month = ""; render(); });
 
     const wrap = document.getElementById("txnList");
@@ -1359,13 +1368,17 @@ function renderAccounts(main) {
     const zeros = sortedList.filter(a => Math.abs(a.balance) < 0.005);
     for (const a of sortedList) {
       const zero = Math.abs(a.balance) < 0.005;
-      lst.appendChild(el(`
-        <div class="list-row ${zero ? "zero-acct" : ""}" ${zero ? "hidden" : ""}>
+      const n = txnCountFor(a.id);
+      const ar = el(`
+        <div class="list-row clickable ${zero ? "zero-acct" : ""}" ${zero ? "hidden" : ""} title="Show transactions">
           <div class="row-icon">${GROUPS[a.group].icon}</div>
           <div class="row-main"><div class="row-title">${esc(cleanName(a.name))}${a.mask ? ` <span class="muted">••${esc(a.mask)}</span>` : ""}</div>
-            <div class="row-sub">${esc(a.subtype || a.group)} · ${GROUPS[a.group].label}${a.available != null && a.group !== "credit" ? ` · ${fmt(a.available)} available` : ""}${a.limit ? ` · limit ${fmt0(a.limit)}` : ""}</div></div>
+            <div class="row-sub">${esc(a.subtype || a.group)} · ${GROUPS[a.group].label}${a.available != null && a.group !== "credit" ? ` · ${fmt(a.available)} available` : ""}${a.limit ? ` · limit ${fmt0(a.limit)}` : ""} · ${n} txn${n === 1 ? "" : "s"}</div></div>
           <div class="row-amount ${GROUPS[a.group].debt ? "" : "green"}">${GROUPS[a.group].debt ? "−" : ""}${fmt(a.balance)}</div>
-        </div>`));
+          <span class="muted">›</span>
+        </div>`);
+      ar.onclick = () => gotoAccountTxns(a);
+      lst.appendChild(ar);
     }
     if (zeros.length) {
       const zb = el(`<button class="btn ghost small" style="margin-top:8px">Show ${zeros.length} zero-balance account${zeros.length === 1 ? "" : "s"}</button>`);
@@ -1395,7 +1408,7 @@ function renderAccounts(main) {
       const [e, d] = row.querySelectorAll(".icon-btn");
       e.onclick = (ev) => { ev.stopPropagation(); addAccountForm(a.raw); };
       d.onclick = (ev) => { ev.stopPropagation(); state.accounts = state.accounts.filter(x => x.id !== a.id); save(); render(); toast(`Removed ${a.name}`); };
-      row.onclick = () => addAccountForm(a.raw);
+      row.onclick = () => gotoAccountTxns(a);
       mWrap.appendChild(row);
     }
   }
@@ -1492,7 +1505,7 @@ function renderNetWorth(main) {
         labels: sorted.map(a => `${cleanName(a.name)}${a.mask ? " ••" + a.mask : ""}`),
         datasets: [{ data: sorted.map(a => (GROUPS[a.group].debt ? -a.balance : a.balance)), backgroundColor: sorted.map(a => (GROUPS[a.group].debt ? "#ff5c7a" : "#00d4a6")), borderRadius: 6 }],
       },
-      options: { indexAxis: "y", maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: "#2a2c45" }, ticks: { callback: (v) => fmt0(v) } }, y: { grid: { display: false } } } },
+      options: { indexAxis: "y", maintainAspectRatio: false, onClick: (evt, els) => { if (els.length) gotoAccountTxns(sorted[els[0].index]); }, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => ` ${fmt(Math.abs(c.raw))} — click for transactions` } } }, scales: { x: { grid: { color: "#2a2c45" }, ticks: { callback: (v) => fmt0(v) } }, y: { grid: { display: false } } } },
     });
   }
 }

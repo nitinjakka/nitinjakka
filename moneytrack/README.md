@@ -182,13 +182,10 @@ Nothing is billed per-hour; there is no VM. Going to real banks later means Plai
 
 ### Added 2026-09-12 (mobile review of v8 — not started)
 
-- [ ] Tapping an account row should open that account's transactions. Applies everywhere an account
-      is listed: Accounts page (each account under a linked bank, and manual accounts), the
-      dashboard Accounts summary sub-rows, and the Net Worth breakdown bars. Should land on
-      Transactions pre-filtered to that single account (the multi-select account filter already
-      supports it — `gotoTransactions({ accounts: [id] })`), with the account name shown as a chip.
-      Manual-account rows currently open the edit modal on click, so move editing to the ✎ button
-      only and keep row-tap for drill-through.
+- [x] Tapping an account row opens that account's transactions — done 2026-09-17 (v10): Accounts
+      page (bank + manual rows), dashboard Accounts summary sub-rows, Net Worth breakdown bars all
+      call `gotoAccountTxns()`; Transactions shows an "Account: …" chip; bank rows show a txn count;
+      manual-account editing is now only via ✎ (manual entries share one "Manual transactions" bucket).
 
 ## Going live with real banks (Plaid production)
 
@@ -277,6 +274,10 @@ az functionapp config appsettings set -g money-tracker-rg -n moneytrack-api-niti
 - **2026-09-12 (v9)** — tapping a transaction row now opens a read-only detail popup (amount, date,
   category, account, source, bank description, pending, notes) with **Edit** / **Delete** buttons;
   the ✎ and 🗑 icons on the row still jump straight to edit / delete. `viewTxn()` in app.js.
+
+- **2026-09-17 (v10)** — account drill-through: tap any account (Accounts page, dashboard summary,
+  Net Worth bars) → Transactions filtered to that account, with a named chip and per-account txn
+  counts on the Accounts page. Manual-account rows no longer open the editor on tap (use ✎).
 
 ## Security notes (prototype-grade)
 
