@@ -1092,3 +1092,4 @@ section "2026-10-15 — Drive swap DONE". Old copy parked at `E:\AI_trading_clau
   `C:\AI_trading_claude_Cowork\modeb-bot\modeb_bot.env`, run `run_bot.bat`, approve
   the phone prompt. LIVE=0 (paper) until the user flips LIVE=1.
 - 2026-10-16 08:45 ET: Agentic bot confirmed on account 408835270 via claude.ai MCP connector (no RH creds on disk anywhere); modeb-bot separation = account 5SE32399 + own folder/state. Login still blocked pending user's current RH password in modeb_bot.env.
+- 2026-10-16 ~09:05 ET: user ordered no orders + candidate purge. Bot session killed, STOP file set, candidates.txt emptied (rotation now selects nothing), watchlist stripped back to core-70. LIVE=0 throughout; no orders were placed at any point today (paper mode).
