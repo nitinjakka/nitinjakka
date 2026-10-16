@@ -14,9 +14,13 @@ Long-only intraday momentum, per the user's spec:
   * Exits -- tiered, NEVER at a loss:
       trailing armed at +2% (sell at peak * 0.99); quick take-profit in
       [+0.5%, +1%); everything else HOLD -- losses are held indefinitely.
-  * 15:58 ET sweep: sell every ACCOUNT position in profit (vs avg cost),
-    hold losers overnight.
-  * Runs 04:00-20:00 ET weekdays (orders only fill in regular hours).
+  * 15:58 ET sweep: sell positions in profit (SWEEP_SCOPE=tracked by default:
+    only bot-opened positions; set "all" for the original account-wide spec
+    behavior), hold losers overnight.
+  * ON-DEMAND (Windows): no daemon, no scheduled tasks. Run run_bot.bat and
+    the bot trades THIS session only -- it exits after the close (16:05 ET)
+    or immediately if the market is closed. No run = no trading; held bags
+    wait for the next session you start.
 
 DEVIATION FROM SPEC: Robinhood serves no 1-min history; indicators use 5-min
 bars + hourly HTF, while entries/exits are checked every minute on live quotes.
@@ -77,6 +81,8 @@ TP_LO = float(os.getenv("TP_BAND_LO_PCT", "0.5")) / 100
 TP_HI = float(os.getenv("TP_BAND_HI_PCT", "1.0")) / 100
 ADX_MIN = float(os.getenv("ADX_THRESHOLD", "20"))
 SCORE_MIN = int(os.getenv("SCORE_THRESHOLD", "2"))
+SWEEP_SCOPE = os.getenv("SWEEP_SCOPE", "tracked")   # tracked | all
+ROTATE_STALE_DAYS = int(os.getenv("ROTATE_STALE_DAYS", "7"))
 STOP_FILE = HERE / "STOP"
 STATE_FILE = HERE / "state.json"
 LOG_DIR = HERE / "logs"
@@ -504,6 +510,8 @@ def eod_sweep(st):
             if qty <= 0:
                 continue
             sym = rh.stocks.get_symbol_by_url(p.get("instrument"))
+            if SWEEP_SCOPE != "all" and sym not in st["positions"]:
+                continue        # tracked scope: never touch manual holdings
             avg = float(p.get("average_buy_price") or 0)
             px = float(rh.stocks.get_latest_price(sym)[0])
             if avg > 0 and px > avg:
@@ -524,6 +532,41 @@ def eod_sweep(st):
     save_state(st)
 
 
+def reconcile_positions(st) -> None:
+    """Drop tracked positions the account no longer holds (sold manually,
+    or stale state from a previous deployment)."""
+    if not LIVE:
+        return
+    for sym in list(st["positions"].keys()):
+        q = account_qty(sym)
+        if q is not None and q <= 1e-6:
+            log(f"reconcile: {sym} tracked but not in account -> dropped")
+            st["positions"].pop(sym)
+    save_state(st)
+
+
+def maybe_rotate() -> bool:
+    """Refresh the satellite-30 list at session start if older than
+    ROTATE_STALE_DAYS (replaces the old Sunday systemd timer)."""
+    try:
+        import re
+        m = re.findall(r"# rotated (\d{4}-\d{2}-\d{2})",
+                       WATCHLIST_FILE.read_text())
+        age = 9999
+        if m:
+            last = datetime.strptime(m[-1], "%Y-%m-%d").date()
+            age = (datetime.now(ET).date() - last).days
+        if age >= ROTATE_STALE_DAYS:
+            log(f"satellite list is {age}d old -> refreshing (~3 min)...")
+            import rotate_pool
+            rotate_pool.main()
+            log("rotation complete")
+            return True
+    except Exception as e:
+        log(f"rotation skipped: {e!r}")
+    return False
+
+
 # ---------------- main loop ----------------
 def run():
     log(f"bot v2 starting  LIVE={LIVE}  account={ACCOUNT or '(default)'}  "
@@ -532,9 +575,20 @@ def run():
         f"/-{TRAIL_GIVEBACK*100:.0f}%  NO-STOP-LOSS mode")
     if LIVE:
         log("*** LIVE MODE: places REAL orders; losers are HELD, never sold red ***")
+    now0 = datetime.now(ET)
+    if now0.weekday() >= 5 or now0.hour * 60 + now0.minute >= 965:
+        log("market is closed (weekend or after 16:05 ET) -- nothing to "
+            "trade. Run run_bot.bat on a market day.")
+        return
     rh_login()
+    if not login_verified():
+        log("*** LOGIN FAILED: approve the device prompt on your phone and "
+            "run run_bot.bat again ***")
+        return
     last_login = time.time()
     st = load_state()
+    reconcile_positions(st)
+    maybe_rotate()
     ctx_cache = {}
     ctx_time = {}
     htf_cache = {}
@@ -568,8 +622,13 @@ def run():
                                                 for s, r in benched))
                 save_state(st)
             hm = now.hour * 60 + now.minute
-            if now.weekday() >= 5 or not (240 <= hm < 1200):  # 04:00-20:00
-                time.sleep(120)
+            if now.weekday() >= 5 or hm >= 965:   # after 16:05 -> session over
+                day_summary()
+                log("session complete -- exiting. Run run_bot.bat next time "
+                    "you want the bot to trade.")
+                break
+            if hm < 555:                          # before 9:15: idle quietly
+                time.sleep(60)
                 continue
             regular = 570 <= hm < 960          # 09:30-16:00
             active = [s for s in st.get("eligible", TICKERS)
@@ -707,25 +766,21 @@ def run():
             tb = traceback.format_exc()
             log("ERROR:\n" + tb)
             if "can only be called when logged in" in tb:
-                log("auth lost -> re-logging in")
+                # ONE verified retry, never force_fresh in a loop (the
+                # 2026-08 lesson: approval spam -> Robinhood 429 lockout)
+                log("auth lost -> one re-login attempt")
                 try:
                     rh_login()
-                    if not login_verified():
-                        log("session pickle is dead -> forcing fresh login")
-                        rh_login(force_fresh=True)
-                    if login_verified():
-                        last_login = time.time()
-                        log("re-login OK (verified)")
-                    else:
-                        log("*** AUTH DEAD: headless login blocked by device "
-                            "verification. Run on the server: "
-                            "systemctl stop modeb-bot && cd /opt/modeb-bot && "
-                            "venv/bin/python modeb_bot.py  (approve on phone, "
-                            "Ctrl+C, systemctl start modeb-bot) ***")
-                        time.sleep(240)
                 except Exception as e:
-                    log(f"re-login FAILED: {e!r} (retrying)")
-                    time.sleep(240)
+                    log(f"re-login raised: {e!r}")
+                if login_verified():
+                    last_login = time.time()
+                    log("re-login OK (verified)")
+                else:
+                    log("*** AUTH DEAD: ending this session. Positions are "
+                        "saved. Run run_bot.bat again (approve the phone "
+                        "prompt) to resume. ***")
+                    break
             time.sleep(60)
 
 
